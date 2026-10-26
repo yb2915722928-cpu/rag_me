@@ -1,7 +1,2 @@
-# Preserve downloaded bytes so source checksums survive checkout.
-alice_utf8.txt -text
-pypa_sampleproject.md -text
-python_datastructures.html -text
-json_schema_2020_12.json -text
-chromium_simple_page_unmht.mht -text
-chromium_multi_frames_contentid.mht -text
+# Preserve every fixture byte, including locally constructed encoding variants.
+* -text
