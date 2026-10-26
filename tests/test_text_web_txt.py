@@ -11,6 +11,36 @@ SAMPLES = Path(__file__).parent / "testFile"
 
 
 class TxtConversionTests(unittest.TestCase):
+    def test_explicit_utf8_bom_only_input_fails_without_creating_or_overwriting_export(self):
+        successful = content.convert_file(SAMPLES / "txt_utf8_layout.txt")
+
+        with tempfile.TemporaryDirectory() as directory:
+            existing = content.export_markdown(successful, Path(directory) / "existing.md")
+            original = existing.read_bytes()
+            missing = Path(directory) / "missing.md"
+
+            for filename in ("txt_bom_only.txt", "md_bom_only.md"):
+                path = SAMPLES / filename
+                results = (
+                    content.convert_file(path, encoding="utf-8"),
+                    content.convert_bytes(
+                        path.read_bytes(), format=path.suffix, source=str(path),
+                        encoding="utf-8",
+                    ),
+                )
+                for entry, result in zip(("file", "bytes"), results):
+                    with self.subTest(filename=filename, entry=entry):
+                        self.assertFalse(result.success)
+                        self.assertIsNone(result.markdown)
+                        self.assertEqual(result.error, "No usable text body")
+                        self.assertEqual(result.encoding, "utf-8")
+                        self.assertEqual(result.warnings, [])
+                        for output in (missing, existing):
+                            with self.assertRaises(ValueError):
+                                content.export_markdown(result, output)
+                        self.assertFalse(missing.exists())
+                        self.assertEqual(existing.read_bytes(), original)
+
     def test_unusable_or_truncated_encoding_fails_without_replacement_text(self):
         for filename in ("txt_undecodable.txt", "txt_truncated_utf16.txt"):
             with self.subTest(filename=filename):
