@@ -1,0 +1,112 @@
+from dataclasses import dataclass, field, replace
+from pathlib import Path
+
+from .decoding import decode_bytes
+
+
+@dataclass
+class Source:
+    location: str
+    format: str | None = None
+
+
+@dataclass
+class ConversionResult:
+    markdown: str | None
+    source: Source
+    encoding: str | None = None
+    warnings: list[str] = field(default_factory=list)
+    error: str | None = None
+
+    @property
+    def success(self) -> bool:
+        return self.markdown is not None and self.error is None
+
+
+def convert_file(
+    path, *, format=None, source=None, encoding=None, mode="article"
+) -> ConversionResult:
+    source_info = source if isinstance(source, Source) else Source(
+        str(path) if source is None else str(source)
+    )
+    try:
+        path = Path(path)
+        source_info = _validate_options(
+            path.suffix if format is None else format,
+            str(path) if source is None else source,
+            encoding,
+            mode,
+        )
+    except (TypeError, ValueError) as exc:
+        return ConversionResult(
+            markdown=None, source=source_info, error=f"Invalid path or options: {exc}"
+        )
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        return ConversionResult(
+            markdown=None, source=source_info, error=f"Could not read '{path}': {exc}"
+        )
+    return _convert_content(data, source_info, encoding, mode)
+
+
+def convert_bytes(
+    data, *, format, source, encoding=None, mode="article"
+) -> ConversionResult:
+    source_info = source if isinstance(source, Source) else Source(str(source))
+    try:
+        source_info = _validate_options(format, source, encoding, mode)
+        if not isinstance(data, bytes):
+            raise ValueError("data must be bytes")
+    except ValueError as exc:
+        return ConversionResult(markdown=None, source=source_info, error=str(exc))
+    return _convert_content(data, source_info, encoding, mode)
+
+
+def export_markdown(result: ConversionResult, path) -> Path:
+    if not result.success:
+        raise ValueError(f"Cannot export failed conversion: {result.error}")
+    path = Path(path)
+    path.write_bytes(result.markdown.encode("utf-8"))
+    return path
+
+
+def _convert_content(data: bytes, source_info: Source, encoding: str | None, mode: str):
+    try:
+        text, used_encoding, warnings = decode_bytes(data, encoding)
+    except (UnicodeError, LookupError) as exc:
+        return ConversionResult(
+            markdown=None, source=source_info, error=f"Decoding failed: {exc}"
+        )
+    if not text.strip():
+        return ConversionResult(
+            markdown=None,
+            source=source_info,
+            encoding=used_encoding,
+            warnings=warnings,
+            error="No usable text body",
+        )
+    return ConversionResult(
+        markdown=text.replace("\r\n", "\n").replace("\r", "\n"),
+        source=source_info,
+        encoding=used_encoding,
+        warnings=warnings,
+    )
+
+
+def _validate_options(format, source, encoding, mode):
+    if not isinstance(format, str) or not format.strip():
+        raise ValueError("format must be a nonempty string")
+    input_format = format.strip().lower().lstrip(".")
+    if input_format != "txt":
+        raise ValueError(f"Unsupported format: {input_format}")
+    if not isinstance(source, (str, Source)):
+        raise ValueError("source must be a nonempty string or Source")
+    source_info = source if isinstance(source, Source) else Source(source)
+    if not isinstance(source_info.location, str) or not source_info.location.strip():
+        raise ValueError("source location must be a nonempty string")
+    if encoding is not None and (not isinstance(encoding, str) or not encoding.strip()):
+        raise ValueError("encoding must be a nonempty string or None")
+    if mode not in ("article", "full"):
+        raise ValueError("mode must be 'article' or 'full'")
+    return replace(source_info, format=input_format)
