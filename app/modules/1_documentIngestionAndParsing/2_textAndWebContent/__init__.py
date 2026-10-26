@@ -3,6 +3,7 @@ from pathlib import Path
 
 from .decoding import decode_bytes
 from .html_conversion import html_encoding_declarations, html_to_markdown
+from .json_content import convert_json
 
 
 @dataclass
@@ -82,7 +83,7 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
         return ConversionResult(
             markdown=None, source=source_info, error=f"Decoding failed: {exc}"
         )
-    if not text.strip():
+    if source_info.format != "json" and not text.strip():
         return ConversionResult(
             markdown=None,
             source=source_info,
@@ -90,21 +91,23 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
             warnings=warnings,
             error="No usable text body",
         )
-    if source_info.format in ("html", "htm"):
-        try:
-            text = html_to_markdown(text, mode)
-        except ValueError as exc:
-            return ConversionResult(
-                markdown=None,
-                source=source_info,
-                encoding=used_encoding,
-                warnings=warnings,
-                error=str(exc),
-            )
-    else:
-        text = text.replace("\r\n", "\n").replace("\r", "\n")
+    try:
+        if source_info.format in ("html", "htm"):
+            markdown = html_to_markdown(text, mode)
+        elif source_info.format == "json":
+            markdown = convert_json(text)
+        else:
+            markdown = text.replace("\r\n", "\n").replace("\r", "\n")
+    except ValueError as exc:
+        return ConversionResult(
+            markdown=None,
+            source=source_info,
+            encoding=used_encoding,
+            warnings=warnings,
+            error=f"Invalid JSON: {exc}" if source_info.format == "json" else str(exc),
+        )
     return ConversionResult(
-        markdown=text,
+        markdown=markdown,
         source=source_info,
         encoding=used_encoding,
         warnings=warnings,
@@ -115,7 +118,7 @@ def _validate_options(format, source, encoding, mode):
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     input_format = format.strip().lower().lstrip(".")
-    if input_format not in ("txt", "html", "htm"):
+    if input_format not in ("txt", "json", "html", "htm"):
         raise ValueError(f"Unsupported format: {input_format}")
     if not isinstance(source, (str, Source)):
         raise ValueError("source must be a nonempty string or Source")
