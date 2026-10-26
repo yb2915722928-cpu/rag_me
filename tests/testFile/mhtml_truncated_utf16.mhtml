@@ -1,0 +1,10 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"; start="<encoded-root>"
+
+--mhtml-fixture
+Content-Type: text/html
+Content-Transfer-Encoding: base64
+Content-ID: <encoded-root>
+
+//4X
+--mhtml-fixture--

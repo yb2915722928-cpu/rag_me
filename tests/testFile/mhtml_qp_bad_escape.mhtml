@@ -1,0 +1,9 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"
+
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<p>Must not accept =QZ as decoded text</p>
+--mhtml-fixture--

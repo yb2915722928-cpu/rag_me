@@ -5,12 +5,17 @@ from .decoding import decode_bytes
 from .html_conversion import html_encoding_declarations, html_to_markdown
 from .json_content import convert_json
 from .markdown import normalize_markdown
+from .mhtml import select_mhtml_html
 
 
 @dataclass
 class Source:
     location: str
     format: str | None = None
+    encoding: str | None = None
+    content_id: str | None = None
+    content_location: str | None = None
+    mime_index: int | None = None
 
 
 @dataclass
@@ -75,6 +80,8 @@ def export_markdown(result: ConversionResult, path) -> Path:
 
 
 def _convert_content(data: bytes, source_info: Source, encoding: str | None, mode: str):
+    if source_info.format in ("mht", "mhtml"):
+        return _convert_mhtml(data, source_info, encoding, mode)
     declarations = (
         html_encoding_declarations(data) if source_info.format in ("html", "htm") else ()
     )
@@ -117,11 +124,32 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
     )
 
 
+def _convert_mhtml(data, source_info, encoding, mode):
+    try:
+        text, used_encoding, warnings, selected = select_mhtml_html(data, encoding)
+    except (ValueError, LookupError) as exc:
+        return ConversionResult(
+            markdown=None, source=source_info,
+            error=f"MHTML decoding failed: {str(exc) or type(exc).__name__}",
+        )
+    source_info = replace(source_info, encoding=used_encoding, **selected)
+    try:
+        markdown = html_to_markdown(text, mode)
+    except ValueError as exc:
+        return ConversionResult(
+            markdown=None, source=source_info, encoding=used_encoding,
+            warnings=warnings, error=str(exc),
+        )
+    return ConversionResult(
+        markdown=markdown, source=source_info, encoding=used_encoding, warnings=warnings
+    )
+
+
 def _validate_options(format, source, encoding, mode):
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     input_format = format.strip().lower().lstrip(".")
-    if input_format not in ("txt", "md", "markdown", "json", "html", "htm"):
+    if input_format not in ("txt", "md", "markdown", "json", "html", "htm", "mht", "mhtml"):
         raise ValueError(f"Unsupported format: {input_format}")
     if not isinstance(source, (str, Source)):
         raise ValueError("source must be a nonempty string or Source")

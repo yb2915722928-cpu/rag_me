@@ -1,0 +1,8 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"
+
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+<html><body><p>MIME structure is incomplete.</p></body></html>

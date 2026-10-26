@@ -1,0 +1,18 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"
+
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <bytes-winner>
+Content-Location: https://example.test/bytes
+
+<html><body><p>中中中中中中中中中中中中中中中中中中中中中中中中中中中中中中</p></body></html>
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <characters-winner>
+Content-Location: https://example.test/characters
+
+<html><body><p>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</p></body></html>
+--mhtml-fixture--
