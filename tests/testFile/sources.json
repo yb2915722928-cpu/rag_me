@@ -1,0 +1,73 @@
+{
+  "samples": [
+    {
+      "filename": "alice_utf8.txt",
+      "format": "TXT",
+      "publisher": "Project Gutenberg",
+      "source_url": "https://www.gutenberg.org/ebooks/11",
+      "download_url": "https://www.gutenberg.org/cache/epub/11/pg11.txt",
+      "downloaded_on": "2026-10-26",
+      "bytes": 174311,
+      "sha256": "01b38ea4c710a84bc18d0bd41271a5a1a92b94e97b2812f4dece97d4a694725e"
+    },
+    {
+      "filename": "python_datastructures.html",
+      "format": "HTML",
+      "publisher": "Python documentation",
+      "source_url": "https://docs.python.org/3.11/tutorial/datastructures.html",
+      "resolved_url": "https://docs.python.org/3.11/tutorial/datastructures.html",
+      "downloaded_on": "2026-10-26",
+      "content_type": "text/html",
+      "bytes": 95725,
+      "sha256": "dc7b79fbb2330bf8613844fb9d1b7836cc8fbcfdc5992fe18cb7ddca79972ae9"
+    },
+    {
+      "filename": "json_schema_2020_12.json",
+      "format": "JSON",
+      "publisher": "JSON Schema",
+      "source_url": "https://json-schema.org/draft/2020-12/schema",
+      "resolved_url": "https://json-schema.org/draft/2020-12/schema",
+      "downloaded_on": "2026-10-26",
+      "content_type": "application/schema+json",
+      "bytes": 2452,
+      "sha256": "41da76f5afb7ce062d248f762463a92f7ca47e4e0f905b224ba6afeef91ded0f"
+    },
+    {
+      "filename": "pypa_sampleproject.md",
+      "format": "Markdown",
+      "publisher": "Python Packaging Authority",
+      "source_url": "https://github.com/pypa/sampleproject/blob/main/README.md",
+      "download_url": "https://raw.githubusercontent.com/pypa/sampleproject/main/README.md",
+      "git_blob_sha": "d6c10ebb3006b55da0222d37658dba0788a34b76",
+      "downloaded_on": "2026-10-26",
+      "bytes": 1804,
+      "sha256": "0ee0ddefd61fb532db9cd7d5aada5b2bf505d4f01c108965c3888ae6efffb297"
+    },
+    {
+      "filename": "chromium_simple_page_unmht.mht",
+      "format": "MHTML",
+      "publisher": "Chromium",
+      "source_url": "https://github.com/chromium/chromium/blob/main/third_party/blink/web_tests/mhtml/simple_page_unmht.mht",
+      "download_url": "https://raw.githubusercontent.com/chromium/chromium/main/third_party/blink/web_tests/mhtml/simple_page_unmht.mht",
+      "git_blob_sha": "93524ce532e71188a67eff62371d9ceb4f916a16",
+      "downloaded_on": "2026-10-26",
+      "bytes": 746,
+      "sha256": "2c6b882ed65f87de77474ad46ef4e49d7d2b9b36ec9020227ab148387bc9478e",
+      "html_parts": 1,
+      "declared_start": null
+    },
+    {
+      "filename": "chromium_multi_frames_contentid.mht",
+      "format": "MHTML",
+      "publisher": "Chromium",
+      "source_url": "https://github.com/chromium/chromium/blob/main/third_party/blink/web_tests/mhtml/multi_frames_contentid.mht",
+      "download_url": "https://raw.githubusercontent.com/chromium/chromium/main/third_party/blink/web_tests/mhtml/multi_frames_contentid.mht",
+      "git_blob_sha": "3547f86375e803c7a3d506794d7956fe35c3359f",
+      "downloaded_on": "2026-10-26",
+      "bytes": 3373,
+      "sha256": "46b3daea81cd192407bad45fd43df4ddbec885b1edd921d10f4d9ccdb0b2ee9e",
+      "html_parts": 5,
+      "declared_start": null
+    }
+  ]
+}
