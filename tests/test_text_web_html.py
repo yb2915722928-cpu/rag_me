@@ -11,6 +11,52 @@ SAMPLES = Path(__file__).parent / "testFile"
 
 
 class HtmlConversionTests(unittest.TestCase):
+    def test_python_tutorial_keeps_body_footnotes_in_article_and_full_exports(self):
+        path = SAMPLES / "python_datastructures.html"
+        footnote = "Other languages may return the mutated object"
+        code = '`d->insert("a")->remove("b")->sort();`'
+
+        for mode in ("article", "full"):
+            results = (
+                content.convert_file(path, mode=mode),
+                content.convert_bytes(
+                    path.read_bytes(), format="html", source=str(path), mode=mode,
+                ),
+            )
+            for entry, result in zip(("file", "bytes"), results):
+                with self.subTest(mode=mode, entry=entry):
+                    self.assertTrue(result.success, result.error)
+                    self.assertIn(footnote, result.markdown)
+                    self.assertIn(code, result.markdown)
+                    self.assertIn("[[1]](#id2)", result.markdown)
+                    self.assertIn("[1](#id1)", result.markdown)
+                    with tempfile.TemporaryDirectory() as directory:
+                        exported = content.export_markdown(result, Path(directory) / "tutorial.md")
+                        self.assertIn(footnote, exported.read_text(encoding="utf-8"))
+
+    def test_literal_pipes_preserve_two_table_columns_and_inline_code_in_both_modes(self):
+        path = SAMPLES / "html_table_pipe.html"
+        expected_table = (
+            "| 命令 | 作用 |\n| --- | --- |\n"
+            "| a \\| b | 普通文字中的管道 |\n"
+            "| `c \\| d` | 行内代码中的管道 |\n"
+        )
+
+        for mode in ("article", "full"):
+            results = (
+                content.convert_file(path, mode=mode),
+                content.convert_bytes(
+                    path.read_bytes(), format="html", source=str(path), mode=mode,
+                ),
+            )
+            for entry, result in zip(("file", "bytes"), results):
+                with self.subTest(mode=mode, entry=entry):
+                    self.assertTrue(result.success, result.error)
+                    self.assertIn(expected_table, result.markdown)
+                    with tempfile.TemporaryDirectory() as directory:
+                        exported = content.export_markdown(result, Path(directory) / "table.md")
+                        self.assertIn(expected_table, exported.read_text(encoding="utf-8"))
+
     def test_bytes_and_utf8_export_keep_source_and_diagnostics_out_of_body(self):
         data = (SAMPLES / "html_invalid_declaration.html").read_bytes()
         source = content.Source("uploaded-page.htm")

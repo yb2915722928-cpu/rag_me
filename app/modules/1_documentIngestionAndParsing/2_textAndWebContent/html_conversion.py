@@ -35,8 +35,10 @@ def html_to_markdown(text: str, mode: str = "article") -> str:
 
 
 def _article_body(document):
+    # Keep both footnote asides and the asides that contain them.
     for element in reversed(document.select(
-        "nav, aside, footer, [role=navigation], [role=banner], "
+        "nav, aside:not([role=doc-footnote]):not(:has([role=doc-footnote])), "
+        "footer, [role=navigation], [role=banner], "
         "[role=contentinfo], [role=complementary]"
     )):
         element.decompose()
@@ -65,6 +67,12 @@ def _process_images(body):
 
 
 class _BodyMarkdownConverter(MarkdownConverter):
+    def convert_td(self, el, text, parent_tags):
+        # Table pipes need escaping even inside Markdown code spans.
+        return super().convert_td(el, text.replace("|", r"\|"), parent_tags)
+
+    convert_th = convert_td
+
     def convert_pre(self, el, text, parent_tags):
         # Converted child spans can trim spaces, so read the original preformatted text.
         code = el.get_text()

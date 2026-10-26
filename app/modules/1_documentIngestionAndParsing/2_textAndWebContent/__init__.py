@@ -91,7 +91,7 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
         return ConversionResult(
             markdown=None, source=source_info, error=f"Decoding failed: {exc}"
         )
-    if source_info.format != "json" and not text.strip():
+    if source_info.format != "json" and not text.removeprefix("\ufeff").strip():
         return ConversionResult(
             markdown=None,
             source=source_info,
