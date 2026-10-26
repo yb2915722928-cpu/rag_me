@@ -1,0 +1,13 @@
+[
+  {"城市":"北京","integer":9007199254740993,"fraction":1.25,"exponent":1.25e3,"enabled":true,"disabled":false,"missing":null,"empty_string":"","empty_object":{},"empty_array":[]},
+  ["first", {"child":[null,false,0,0.0,{"leaf":"末尾"}]}],
+  "文本\n\t```json \"引用\" \\路径",
+  1,
+  -2,
+  3.5,
+  true,
+  false,
+  null,
+  {},
+  []
+]

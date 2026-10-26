@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from .decoding import decode_bytes
+from .json_content import convert_json
 
 
 @dataclass
@@ -78,7 +79,7 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
         return ConversionResult(
             markdown=None, source=source_info, error=f"Decoding failed: {exc}"
         )
-    if not text.strip():
+    if source_info.format != "json" and not text.strip():
         return ConversionResult(
             markdown=None,
             source=source_info,
@@ -86,8 +87,22 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
             warnings=warnings,
             error="No usable text body",
         )
+    try:
+        markdown = (
+            convert_json(text)
+            if source_info.format == "json"
+            else text.replace("\r\n", "\n").replace("\r", "\n")
+        )
+    except ValueError as exc:
+        return ConversionResult(
+            markdown=None,
+            source=source_info,
+            encoding=used_encoding,
+            warnings=warnings,
+            error=f"Invalid JSON: {exc}",
+        )
     return ConversionResult(
-        markdown=text.replace("\r\n", "\n").replace("\r", "\n"),
+        markdown=markdown,
         source=source_info,
         encoding=used_encoding,
         warnings=warnings,
@@ -98,7 +113,7 @@ def _validate_options(format, source, encoding, mode):
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     input_format = format.strip().lower().lstrip(".")
-    if input_format != "txt":
+    if input_format not in ("txt", "json"):
         raise ValueError(f"Unsupported format: {input_format}")
     if not isinstance(source, (str, Source)):
         raise ValueError("source must be a nonempty string or Source")
