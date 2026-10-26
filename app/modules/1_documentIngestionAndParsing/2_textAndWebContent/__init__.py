@@ -3,6 +3,7 @@ from pathlib import Path
 
 from .decoding import decode_bytes
 from .json_content import convert_json
+from .markdown import normalize_markdown
 
 
 @dataclass
@@ -88,11 +89,12 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
             error="No usable text body",
         )
     try:
-        markdown = (
-            convert_json(text)
-            if source_info.format == "json"
-            else text.replace("\r\n", "\n").replace("\r", "\n")
-        )
+        if source_info.format == "json":
+            markdown = convert_json(text)
+        elif source_info.format in ("md", "markdown"):
+            markdown = normalize_markdown(text)
+        else:
+            markdown = text.replace("\r\n", "\n").replace("\r", "\n")
     except ValueError as exc:
         return ConversionResult(
             markdown=None,
@@ -113,7 +115,7 @@ def _validate_options(format, source, encoding, mode):
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     input_format = format.strip().lower().lstrip(".")
-    if input_format not in ("txt", "json"):
+    if input_format not in ("txt", "md", "markdown", "json"):
         raise ValueError(f"Unsupported format: {input_format}")
     if not isinstance(source, (str, Source)):
         raise ValueError("source must be a nonempty string or Source")
