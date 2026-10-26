@@ -1,0 +1,2 @@
+# Preserve every fixture byte, including locally constructed encoding variants.
+* -text

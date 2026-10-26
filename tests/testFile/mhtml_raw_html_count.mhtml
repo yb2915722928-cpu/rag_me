@@ -1,0 +1,16 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"
+
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <markdown-winner>
+
+<html><body><p>Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text Visible text </p></body></html>
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <raw-winner>
+
+<html><body><!--xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx--><p>Raw markup winner</p></body></html>
+--mhtml-fixture--

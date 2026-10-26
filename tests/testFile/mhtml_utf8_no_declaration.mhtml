@@ -1,0 +1,10 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"; start="<encoded-root>"
+
+--mhtml-fixture
+Content-Type: text/html
+Content-Transfer-Encoding: 8bit
+Content-ID: <encoded-root>
+
+<html><body><p>长江流经武汉，黄河流经兰州。</p></body></html>
+--mhtml-fixture--

@@ -1,0 +1,12 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"; start="<encoded-root>"
+
+--mhtml-fixture
+Content-Type: text/html
+Content-Transfer-Encoding: quoted-printable
+Content-ID: <encoded-root>
+
+<html><head><meta charset=3D"GB18030"></head><body><p>=B3=A4=BD=AD=C1=F7=BE=
+=AD=CE=E4=BA=BA=A3=AC=BB=C6=BA=D3=C1=F7=BE=AD=C0=BC=D6=DD=A1=A3</p></body><=
+/html>
+--mhtml-fixture--

@@ -1,0 +1,16 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"; start="<valid>"
+
+--mhtml-fixture
+Content-Type: text/html
+Content-Transfer-Encoding: 8bit
+Content-ID: <broken>
+
+ÿþ
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <valid>
+
+<html><body><p>Only the selected HTML needs decoding.</p></body></html>
+--mhtml-fixture--

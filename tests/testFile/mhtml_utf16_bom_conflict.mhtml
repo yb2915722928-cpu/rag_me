@@ -1,0 +1,13 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"; start="<encoded-root>"
+
+--mhtml-fixture
+Content-Type: text/html; charset=ascii
+Content-Transfer-Encoding: base64
+Content-ID: <encoded-root>
+
+//48AGgAdABtAGwAPgA8AGgAZQBhAGQAPgA8AG0AZQB0AGEAIABjAGgAYQByAHMAZQB0AD0AIgBh
+AHMAYwBpAGkAIgA+ADwALwBoAGUAYQBkAD4APABiAG8AZAB5AD4APABwAD4Af5VfbEFtz35ma0ls
+DP/EnrNsQW3PfnBR3l0CMDwALwBwAD4APAAvAGIAbwBkAHkAPgA8AC8AaAB0AG0AbAA+AA==
+
+--mhtml-fixture--

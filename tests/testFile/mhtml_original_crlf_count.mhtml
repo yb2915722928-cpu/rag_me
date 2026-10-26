@@ -1,0 +1,36 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"
+
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <lf-winner>
+
+<html><body><p>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</p></body></html>
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <original-winner>
+
+<html><body><!--
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--><p>CRLF winner</p></body></html>
+--mhtml-fixture--
