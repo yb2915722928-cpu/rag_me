@@ -1,0 +1,17 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"; start="<main-page>"
+
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <large-frame>
+
+<html><body><p>Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame Unselected large frame </p></body></html>
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <main-page>
+Content-Location: https://example.test/main
+
+<html><body><nav>Archive navigation</nav><article><h1>Main page</h1><p>Start chooses this shorter page.</p></article></body></html>
+--mhtml-fixture--

@@ -1,0 +1,14 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"
+
+--mhtml-fixture
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+An attached note is not an HTML page.
+--mhtml-fixture
+Content-Type: image/png
+Content-Transfer-Encoding: binary
+
+not-an-image
+--mhtml-fixture--

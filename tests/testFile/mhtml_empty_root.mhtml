@@ -1,0 +1,16 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"; start="<empty-root>"
+
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <readable-frame>
+
+<html><body><p>Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame Readable unselected frame </p></body></html>
+--mhtml-fixture
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-ID: <empty-root>
+
+<html><head><title>Not a body</title><style>body{color:red}</style></head><body><script>text='Not static body';</script></body></html>
+--mhtml-fixture--

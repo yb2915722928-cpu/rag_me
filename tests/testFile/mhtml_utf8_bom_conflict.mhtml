@@ -1,0 +1,12 @@
+MIME-Version: 1.0
+Content-Type: multipart/related; boundary="mhtml-fixture"; type="text/html"; start="<encoded-root>"
+
+--mhtml-fixture
+Content-Type: text/html; charset=ascii
+Content-Transfer-Encoding: base64
+Content-ID: <encoded-root>
+
+77u/PGh0bWw+PGhlYWQ+PG1ldGEgY2hhcnNldD0iYXNjaWkiPjwvaGVhZD48Ym9keT48cD7plb/m
+sZ/mtYHnu4/mrabmsYnvvIzpu4TmsrPmtYHnu4/lhbDlt57jgII8L3A+PC9ib2R5PjwvaHRtbD4=
+
+--mhtml-fixture--
