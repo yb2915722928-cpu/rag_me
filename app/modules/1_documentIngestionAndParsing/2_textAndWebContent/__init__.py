@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from .decoding import decode_bytes
+from .html_conversion import html_encoding_declarations, html_to_markdown
 
 
 @dataclass
@@ -72,8 +73,11 @@ def export_markdown(result: ConversionResult, path) -> Path:
 
 
 def _convert_content(data: bytes, source_info: Source, encoding: str | None, mode: str):
+    declarations = (
+        html_encoding_declarations(data) if source_info.format in ("html", "htm") else ()
+    )
     try:
-        text, used_encoding, warnings = decode_bytes(data, encoding)
+        text, used_encoding, warnings = decode_bytes(data, encoding, declarations)
     except (UnicodeError, LookupError) as exc:
         return ConversionResult(
             markdown=None, source=source_info, error=f"Decoding failed: {exc}"
@@ -86,8 +90,21 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
             warnings=warnings,
             error="No usable text body",
         )
+    if source_info.format in ("html", "htm"):
+        try:
+            text = html_to_markdown(text, mode)
+        except ValueError as exc:
+            return ConversionResult(
+                markdown=None,
+                source=source_info,
+                encoding=used_encoding,
+                warnings=warnings,
+                error=str(exc),
+            )
+    else:
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
     return ConversionResult(
-        markdown=text.replace("\r\n", "\n").replace("\r", "\n"),
+        markdown=text,
         source=source_info,
         encoding=used_encoding,
         warnings=warnings,
@@ -98,7 +115,7 @@ def _validate_options(format, source, encoding, mode):
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     input_format = format.strip().lower().lstrip(".")
-    if input_format != "txt":
+    if input_format not in ("txt", "html", "htm"):
         raise ValueError(f"Unsupported format: {input_format}")
     if not isinstance(source, (str, Source)):
         raise ValueError("source must be a nonempty string or Source")
