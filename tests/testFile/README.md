@@ -1,6 +1,6 @@
 # 文本与网页转换测试样本
 
-以下六个文件于 2026-10-26 下载，保持来源提供的原始字节。文件大小和 SHA-256 见[来源记录](/E:/aaa-project/rag-me/tests/testFile/sources.json)。本目录的公开样本用于后续真实转换验收，下载完成不代表转换已经通过。
+以下六个文件于 2026-10-26 下载，保持来源提供的原始字节。文件大小和 SHA-256 见[来源记录](/E:/aaa-project/rag-me/tests/testFile/sources.json)。测试读取本地固定副本，通过公开转换、导出入口核验实际正文与导出文件。
 
 | 样本 | 格式 | 来源 | 主要用途 |
 | --- | --- | --- | --- |
@@ -10,6 +10,17 @@
 | [json_schema_2020_12.json](/E:/aaa-project/rag-me/tests/testFile/json_schema_2020_12.json) | JSON | [JSON Schema 2020-12 元模式](https://json-schema.org/draft/2020-12/schema) | 嵌套对象、数组、布尔值及结构保留；不要求本项目实现 JSON Schema 验证 |
 | [chromium_simple_page_unmht.mht](/E:/aaa-project/rag-me/tests/testFile/chromium_simple_page_unmht.mht) | MHTML | [Chromium 单页面归档](https://github.com/chromium/chromium/blob/main/third_party/blink/web_tests/mhtml/simple_page_unmht.mht) | MIME 解包、ISO-8859-1 声明、标题与正文提取 |
 | [chromium_multi_frames_contentid.mht](/E:/aaa-project/rag-me/tests/testFile/chromium_multi_frames_contentid.mht) | MHTML | [Chromium 多框架归档](https://github.com/chromium/chromium/blob/main/third_party/blink/web_tests/mhtml/multi_frames_contentid.mht) | 五个 HTML 部分、候选选择、来源记录与启发式警告 |
+
+## 本地构造样本
+
+编码、失败及结构边界样本与公开样本保存在同一目录，构造方式分别记录于：
+
+- [TXT 样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-txt.md)
+- [Markdown 样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-markdown.md)
+- [JSON 样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-json.md)
+- [HTML 样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-html.md)
+- [MHTML 样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-mhtml.md)
+- [集成验收样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-integration.md)
 
 ## 验收使用约定
 
