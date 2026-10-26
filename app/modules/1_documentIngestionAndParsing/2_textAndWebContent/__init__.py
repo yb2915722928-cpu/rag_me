@@ -4,6 +4,7 @@ from pathlib import Path
 from .decoding import decode_bytes
 from .html_conversion import html_encoding_declarations, html_to_markdown
 from .json_content import convert_json
+from .markdown import normalize_markdown
 
 
 @dataclass
@@ -96,6 +97,8 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
             markdown = html_to_markdown(text, mode)
         elif source_info.format == "json":
             markdown = convert_json(text)
+        elif source_info.format in ("md", "markdown"):
+            markdown = normalize_markdown(text)
         else:
             markdown = text.replace("\r\n", "\n").replace("\r", "\n")
     except ValueError as exc:
@@ -118,7 +121,7 @@ def _validate_options(format, source, encoding, mode):
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     input_format = format.strip().lower().lstrip(".")
-    if input_format not in ("txt", "json", "html", "htm"):
+    if input_format not in ("txt", "md", "markdown", "json", "html", "htm"):
         raise ValueError(f"Unsupported format: {input_format}")
     if not isinstance(source, (str, Source)):
         raise ValueError("source must be a nonempty string or Source")
