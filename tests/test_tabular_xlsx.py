@@ -62,20 +62,28 @@ class XlsxConversionTests(unittest.TestCase):
         self.assertEqual([cell.raw_value for cell in table.rows[0].cells], ["北京", 500])
         self.assertNotIn("上海", result.markdown)
 
-    def test_merges_and_multilevel_headers_are_explicitly_unsupported_for_now(self):
-        for path, options, diagnostic in (
-            ("xlsx_merged_unsupported.xlsx", None, "A2:A3"),
-            ("xlsx_merged_unsupported.xlsx", tabular.XlsxOptions((
-                tabular.XlsxSheetOptions("合并", "A3:B3"),)), "A2:A3"),
-            ("xlsx_travel.xlsx", tabular.XlsxOptions((
-                tabular.XlsxSheetOptions("差旅", header_rows=(1, 2)),)), "multi-level"),
-        ):
-            with self.subTest(path=path, options=options):
-                result = tabular.convert_file(SAMPLES / path, xlsx=options)
-                self.assertFalse(result.success)
-                self.assertIsNone(result.markdown)
-                self.assertEqual(result.tables, [])
-                self.assertIn(diagnostic, result.error)
+    def test_real_merged_labels_and_explicit_multilevel_headers_are_supported(self):
+        result = tabular.convert_file(SAMPLES / "xlsx_merged_unsupported.xlsx")
+        self.assertTrue(result.success, result.error)
+        covered = result.tables[0].rows[1].cells[0]
+        self.assertIsNone(covered.raw_value)
+        self.assertIn("北京（合并共同标签", covered.text)
+        self.assertEqual(covered.source.merged_anchor, "A2")
+        self.assertEqual(covered.source.merged_range, "A2:A3")
+
+        cut = tabular.convert_file(SAMPLES / "xlsx_merged_unsupported.xlsx", xlsx=tabular.XlsxOptions((
+            tabular.XlsxSheetOptions("合并", "A3:B3"),)))
+        self.assertFalse(cut.success)
+        self.assertIsNone(cut.markdown)
+        self.assertEqual(cut.tables, [])
+        self.assertIn("A2:A3", cut.error)
+
+        layered = tabular.convert_file(SAMPLES / "xlsx_travel.xlsx", xlsx=tabular.XlsxOptions((
+            tabular.XlsxSheetOptions("差旅", header_rows=(1, 2)),)))
+        self.assertTrue(layered.success, layered.error)
+        self.assertEqual([column.name for column in layered.tables[0].columns],
+                         ["城市 / 北京", "住宿上限（元／晚） / 500", "餐补（元／天） / 100"])
+        self.assertEqual(layered.tables[0].rows[0].cells[0].raw_value, "上海")
 
     def test_invalid_xlsx_options_are_rejected_at_public_entries(self):
         invalid = (
