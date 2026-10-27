@@ -10,6 +10,11 @@ from .mhtml import select_mhtml_html
 
 @dataclass
 class Source:
+    """保留输入来源及实际选中的归档部分，不将这些信息拼入 Markdown 正文。
+
+    mime_index 按 MIME 遍历顺序计数，归档根为 0；缺失的来源头保持为 None。
+    """
+
     location: str
     format: str | None = None
     encoding: str | None = None
@@ -20,6 +25,11 @@ class Source:
 
 @dataclass
 class ConversionResult:
+    """失败时不提供正文，避免下游把错误提示当作可用文档继续处理。
+
+    编码、警告和失败原因独立于正文，导出时只使用成功结果的正文。
+    """
+
     markdown: str | None
     source: Source
     encoding: str | None = None
@@ -34,6 +44,11 @@ class ConversionResult:
 def convert_file(
     path, *, format=None, source=None, encoding=None, mode="article"
 ) -> ConversionResult:
+    """读取本地文件并转换整篇正文；省略格式时使用文件后缀。
+
+    读取、解码及内容转换失败统一通过结果返回，不在本入口抓取网页或切块。
+    """
+
     source_info = source if isinstance(source, Source) else Source(
         str(path) if source is None else str(source)
     )
@@ -61,6 +76,11 @@ def convert_file(
 def convert_bytes(
     data, *, format, source, encoding=None, mode="article"
 ) -> ConversionResult:
+    """处理调用方已取得的文件字节，格式和来源必须显式提供。
+
+    外部参数在公共入口完成校验，随后与文件入口共用实际转换流程。
+    """
+
     source_info = source if isinstance(source, Source) else Source(str(source))
     try:
         source_info = _validate_options(format, source, encoding, mode)
@@ -72,6 +92,11 @@ def convert_bytes(
 
 
 def export_markdown(result: ConversionResult, path) -> Path:
+    """仅导出成功正文，失败结果在创建或覆盖目标文件之前被拒绝。
+
+    按 UTF-8 字节写入，避免 Windows 文本写入改写换行；写入错误正常抛出。
+    """
+
     if not result.success:
         raise ValueError(f"Cannot export failed conversion: {result.error}")
     path = Path(path)
@@ -80,6 +105,12 @@ def export_markdown(result: ConversionResult, path) -> Path:
 
 
 def _convert_content(data: bytes, source_info: Source, encoding: str | None, mode: str):
+    """MHTML 先进行 MIME 解包，其他格式先完成严格解码再转换正文。
+
+    单独的 BOM 不算可用正文；JSON 的空输入交给解析器报告格式错误。
+    所有诊断保存在结果字段中，不能成为成功正文的一部分。
+    """
+
     if source_info.format in ("mht", "mhtml"):
         return _convert_mhtml(data, source_info, encoding, mode)
     declarations = (
@@ -125,6 +156,11 @@ def _convert_content(data: bytes, source_info: Source, encoding: str | None, mod
 
 
 def _convert_mhtml(data, source_info, encoding, mode):
+    """先确定主 HTML 部分，再复用静态 HTML 转换。
+
+    已选中且解码成功的部分即使没有正文，也保留来源和编码，便于回查失败原因。
+    """
+
     try:
         text, used_encoding, warnings, selected = select_mhtml_html(data, encoding)
     except (ValueError, LookupError) as exc:
@@ -146,6 +182,11 @@ def _convert_mhtml(data, source_info, encoding, mode):
 
 
 def _validate_options(format, source, encoding, mode):
+    """在公共入口规范化格式和选项，并生成携带实际格式的来源副本。
+
+    不原地修改调用方传入的 Source，避免多次转换相互改写来源信息。
+    """
+
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     input_format = format.strip().lower().lstrip(".")

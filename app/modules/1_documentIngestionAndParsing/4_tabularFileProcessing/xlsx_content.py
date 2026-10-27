@@ -2,7 +2,8 @@ from io import BytesIO
 import re
 
 from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter, range_boundaries
+from openpyxl.utils import get_column_letter
+from openpyxl.worksheet.cell_range import CellRange
 
 from .models import Column, Row, SourcePosition, Table, XlsxOptions, XlsxSheetOptions
 from .xlsx_values import adapt_cell
@@ -30,7 +31,7 @@ def validate_xlsx_options(options: XlsxOptions) -> None:
                 config.cell_range,
             ):
                 raise ValueError("cell_range must be a closed A1 rectangle")
-            left, top, right, bottom = range_boundaries(config.cell_range)
+            left, top, right, bottom = CellRange(config.cell_range).bounds
             if not (1 <= left <= right <= 16384 and 1 <= top <= bottom <= 1048576):
                 raise ValueError("cell_range is reversed or outside XLSX bounds")
         if config.header_rows is not None:
@@ -72,7 +73,7 @@ def read_xlsx(data, source, context, options, warnings: list[str]) -> list[Table
                     continue
                 if not populated:
                     raise ValueError(f"XLSX sheet {sheet.title}: empty selected sheet")
-                bounds = range_boundaries(config.cell_range) if config.cell_range else (
+                bounds = CellRange(config.cell_range).bounds if config.cell_range else (
                     min(cell.column for cell in populated), min(cell.row for cell in populated),
                     max(cell.column for cell in populated), max(cell.row for cell in populated),
                 )
