@@ -10,6 +10,39 @@ SAMPLES = Path(__file__).parent / "testFile"
 
 
 class DigitalPdfConversionTests(unittest.TestCase):
+    def test_ocr_page_selection_rejects_pages_outside_the_actual_pdf_range(self):
+        path = SAMPLES / "pdf_digital_page_order.pdf"
+        for number in (0, -1, 3, 41):
+            with self.subTest(page=number):
+                results = (
+                    content.convert_file(path, ocr_pages=(number,), mineru=content.MinerUConfig(token="")),
+                    content.convert_bytes(path.read_bytes(), format="pdf", source=str(path),
+                                          ocr_pages=(number,), mineru=content.MinerUConfig(token="")),
+                )
+                for result in results:
+                    self.assertFalse(result.success)
+                    self.assertIsNone(result.markdown)
+                    self.assertEqual(result.sources, [])
+                    self.assertIn("ocr_pages", result.error)
+                    self.assertIn(str(number), result.error)
+                    self.assertIn("1..2", result.error)
+
+    def test_ocr_page_selection_rejects_invalid_types_for_file_and_bytes(self):
+        path = SAMPLES / "pdf_digital_page_order.pdf"
+        for selection in (None, 2, "2", [2], (True,), (2.0,), ("2",)):
+            with self.subTest(ocr_pages=selection):
+                results = (
+                    content.convert_file(path, ocr_pages=selection, mineru=content.MinerUConfig(token="")),
+                    content.convert_bytes(path.read_bytes(), format="pdf", source=str(path),
+                                          ocr_pages=selection, mineru=content.MinerUConfig(token="")),
+                )
+                for result in results:
+                    self.assertFalse(result.success)
+                    self.assertIsNone(result.markdown)
+                    self.assertEqual(result.sources, [])
+                    self.assertIn("ocr_pages", result.error)
+                    self.assertIn("tuple of integers", result.error)
+
     def test_blank_pdf_has_no_body_or_invented_page_source(self):
         path = SAMPLES / "pdf_digital_blank.pdf"
         results = (

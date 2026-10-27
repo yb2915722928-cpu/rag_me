@@ -163,8 +163,12 @@ def extract_scanned_pdf(data: bytes, source: Source, page_numbers: list[int],
 
 
 def _block_markdown(block: dict) -> str:
+    if block["type"] == "list":
+        return "\n".join(block.get("list_items", []))
     if block["type"] == "table":
-        return block.get("table_body", "")
+        parts = (block.get("table_caption", []) + [block.get("table_body", "")]
+                 + block.get("table_footnote", []))
+        return "\n\n".join(part for part in parts if part.strip())
     text = block.get("text", "")
     level = block.get("text_level", 0)
     return "#" * level + " " + text if level else text
@@ -192,6 +196,10 @@ def _read_content_list(archive: bytes, page_count: int) -> list[dict]:
         for key in ("text", "table_body"):
             if key in block and not isinstance(block[key], str):
                 raise MinerUError(f"MinerU content_list {key} must be a string")
+        for key in ("list_items", "table_caption", "table_footnote"):
+            if key in block and (not isinstance(block[key], list)
+                                 or any(not isinstance(item, str) for item in block[key])):
+                raise MinerUError(f"MinerU content_list {key} must be an array of strings")
         level = block.get("text_level", 0)
         if type(level) is not int or not 0 <= level <= 6:
             raise MinerUError("MinerU content_list text_level must be an integer from 0 to 6")

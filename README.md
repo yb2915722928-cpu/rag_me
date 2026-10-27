@@ -74,6 +74,8 @@ result = documents.convert_bytes(
 
 混合 PDF 仅复制需要识字的原页组成一份 PDF 上传，按原始页序合并正文与来源。例如 API 0、1 映射回原第 2、4 页，数字第 1、3 页保留本地文本。缺少扫描页正文时整篇失败，诊断指向原页；不会把已有数字页当作整篇处理成功。
 
+文本层非空不代表正文完整：扫描正文可能只有页码或页眉可提取。调用方对照原页发现此问题后，可在两个公开入口传 `ocr_pages=(2,)`，以 MinerU 结果替换原 PDF 实际第 2 页的文本层；其余数字页保留本地结果，无文字扫描页仍自动识字。参数为整数元组，使用从 1 开始的实际 PDF 页序；类型错误或超出页数时返回诊断，不能填写印刷页码。
+
 正文来源使用左闭右开的字符区间关联到实际 PDF 页序，或 DOCX 章节与正文块位置。PDF 页序不等于印刷页码，DOCX 正文块号不等于页码。失败结果的正文为 `None`，诊断不会拼进正文。本模块不承担最终切块或完整检索问答验证。
 
-默认测试使用固定文件和本地 HTTP 服务验证 API 协议，不向云端提交任务。真实扫描验收需显式设置 `MINERU_LIVE_TEST=1`，混合验收使用 `MINERU_MIXED_LIVE_TEST=1`。调用说明见 [PDF 与 Word 模块](/C:/Users/29157/.codex/worktrees/pdf-word-mixed/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/README.md)，混合输入摘要、真实结果、耗时及局限见[固定样本记录](/C:/Users/29157/.codex/worktrees/pdf-word-mixed/rag-me/tests/testFile/constructed-mixed-pdf.md)。
+默认测试使用固定文件和本地 HTTP 服务验证 API 协议，不向云端提交任务。真实扫描验收需显式设置 `MINERU_LIVE_TEST=1`，混合验收使用 `MINERU_MIXED_LIVE_TEST=1`。调用说明见 [PDF 与 Word 模块](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/README.md)，混合输入摘要、真实结果、耗时及局限见[固定样本记录](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/constructed-mixed-pdf.md)。
