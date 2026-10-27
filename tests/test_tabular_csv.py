@@ -47,7 +47,7 @@ class CsvConversionTests(unittest.TestCase):
             ({"path": SAMPLES}, "format"),
             ({"path": SAMPLES, "format": "csv"}, "Could not read"),
             ({"path": None}, "path"), ({"path": 12}, "path"),
-            ({"path": path, "format": "xlsx"}, "Unsupported format"),
+            ({"path": path, "format": "xlsx"}, "XLSX reading failed"),
             ({"path": path, "source": 12}, "source"),
             ({"path": path, "mode": "full"}, "mode"),
             ({"path": path, "header_record": 0}, "header_record"),
