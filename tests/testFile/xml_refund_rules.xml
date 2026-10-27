@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<refund title="退款办理规则">
+  <rule order_type="普通订单"><owner>客服</owner><steps><step>提交退款申请</step><step>客服核验订单</step><step>原路退款</step></steps></rule>
+  <rule order_type="企业订单" amount_max_inclusive="10000"><owner>企业财务</owner><steps><step>提交企业退款申请</step><step>企业财务核验</step><step>企业财务退款</step></steps></rule>
+  <rule order_type="企业订单" amount_gt="10000"><owner>企业专属负责人</owner><steps><step>提交企业退款申请</step><step>企业财务核验</step><step>企业专属负责人审批</step><step>企业财务执行退款</step></steps></rule>
+</refund>
