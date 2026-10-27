@@ -94,6 +94,8 @@ def mineru_server(blocks=HISTORY, input_name="pdf_scanned_teaching.pdf", failure
                 return self.reply({"code": 0, "data": {}})
             if failure == "unknown-state" and Handler.polls == 1:
                 return self.reply({"code": 0, "data": {"extract_result": [{"state": "unknown"}]}})
+            if failure == "pending":
+                return self.reply({"code": 0, "data": {"extract_result": [{"state": "pending"}]}})
             if failure in {"failed", "sensitive-failure"} and Handler.polls == 1:
                 return self.reply({"code": 0, "data": {"extract_result": [{
                     "state": "failed", "err_msg": (
@@ -238,7 +240,7 @@ class ScannedPdfConversionTests(unittest.TestCase):
         self.assertNotIn("signature=", result.error)
 
     def test_pending_task_has_a_bounded_wait_instead_of_indefinite_polling(self):
-        with mineru_server() as api:
+        with mineru_server(failure="pending") as api:
             api.max_wait = 0.01
             api.poll_interval = 0.02
             result = content.convert_file(SAMPLES / "pdf_scanned_teaching.pdf", mineru=api)

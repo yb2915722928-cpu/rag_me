@@ -35,7 +35,9 @@ class MinerULiveAcceptanceTests(unittest.TestCase):
         }
         target = os.environ.get("MINERU_LIVE_EVIDENCE")
         if target:
-            Path(target).write_text(json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")
+            with Path(target).open("w", encoding="utf-8", newline="\n") as output:
+                json.dump(evidence, output, ensure_ascii=False, indent=2)
+                output.write("\n")
         self.assertTrue(result.success, result.error)
         normalized = re.sub(r"[^a-z0-9]", "", result.markdown.lower())
         for statement in (
