@@ -49,6 +49,7 @@ class XlsxOptions:
 class Column:
     name: str
     source: SourcePosition
+    header_sources: list[SourcePosition] = field(default_factory=list)
 
 
 @dataclass
