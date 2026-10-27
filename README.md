@@ -1,6 +1,6 @@
 # rag_me
 
-RAG 项目。文本与网页模块将本地 TXT、Markdown、JSON、静态 HTML 和 MHTML 转为整篇 Markdown，并支持 UTF-8 导出。PDF 与 Word 模块通过同一公开调用方式处理数字 PDF、DOCX 和需要 MinerU 官方 API 识字的扫描 PDF，正文与来源、诊断分别返回。
+RAG 项目。文本与网页模块将本地 TXT、Markdown、JSON、静态 HTML 和 MHTML 转为整篇 Markdown，并支持 UTF-8 导出。PDF 与 Word 模块通过同一公开调用方式处理数字 PDF、DOCX 和需要 MinerU 官方 API 识字的扫描 PDF，正文与来源、诊断分别返回。演示文稿与结构化文档模块提供 PPTX 演示页归属及 JSON 节点来源，待核验关系独立返回。
 
 ## 安装与验证
 
@@ -107,3 +107,25 @@ else:
 CSV 保留字段文本、前导零及字段内换行，并支持显式编码、分隔符和表头记录。XLSX 可显式指定工作表、区域与连续表头行；[表头和合并关系](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/TABLE_STRUCTURE.md)只按真实覆盖范围表示，普通空白不会填成零或上一行的值。
 
 [公式和单元格值](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/CELL_VALUES.md)保留原值、类型与数字格式，支持明确的常见显示格式；公式表达式和文件缓存分别保存，不执行重算。正文、来源和诊断分别返回，任一选中表解析失败时不返回部分成功结果。本模块止于表格解析与表示，不执行最终切块、检索或模型问答。
+
+## PPTX 与结构化文档
+
+[演示文稿与结构化文档模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/README.md) 沿用文件、字节与 UTF-8 正文导出入口。[PPTX](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/PPTX.md) 在本地保留原页、标题、独立文本对象、段落层级、表格跨度与演讲者备注，并返回对象 ID 路径及父容器内坐标。
+
+```python
+from importlib import import_module
+
+presentations = import_module(
+    "app.modules.1_documentIngestionAndParsing.5_presentationsAndStructuredDocuments"
+)
+result = presentations.convert_file("tests/testFile/pptx_refund.pptx")
+if result.success:
+    print(result.requires_review, result.review_issues)
+    presentations.export_markdown(result, "refund.md")
+else:
+    print(result.error)
+```
+
+`success` 与 `requires_review` 独立：完成提取后，分栏阅读顺序、箭头、图文对应和条件归属仍需对照原页。图片页不宣称 OCR；母版、版式继承内容与嵌入文件不展开。无需安装 PowerPoint，不调用视觉模型或上传资料。损坏包及后续页解析失败时整篇失败，导出失败结果不会覆盖文件。固定文件与重建方法见 [PPTX 样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-pptx.md)。
+
+[JSON](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/JSON.md) 复用原有严格解析和完整结构表示，补充 JSON Pointer 及父节点来源，保留值类型与数组顺序，不把对象字段排列推断为业务步骤。

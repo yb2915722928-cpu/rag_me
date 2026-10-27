@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?workflow preserve="yes"?>
+<!--退款条件不能串到其他分支-->
+<rules xmlns="urn:refund:rules" xmlns:corp="https://example.invalid/refund/corporate" xmlns:alias="https://example.invalid/refund/corporate" xmlns:other="urn:refund:other" version="2026" note="&quot;保留&quot;">
+  <branch id="ordinary">普通订单<owner>客服</owner>核验后退款<!--归属注释--></branch>
+  <branch id="enterprise">企业订单<corp:owner code="finance">企业财务</corp:owner><other:owner>审计</other:owner><owner xmlns="">无命名空间负责人</owner></branch>
+  <corp:branch id="large"><corp:owner>企业专属负责人</corp:owner><alias:owner>企业财务执行退款</alias:owner></corp:branch>
+  <note>金额 <em>10000</em> 元以下；<![CDATA[大于10000 <企业> & 专属]]>。</note>
+</rules>
