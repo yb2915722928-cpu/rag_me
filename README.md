@@ -1,6 +1,6 @@
 # rag_me
 
-RAG 项目。目前实现的文本与网页类内容模块将本地 TXT、Markdown、JSON、静态 HTML 和 MHTML 转为整篇 Markdown，并支持 UTF-8 导出。
+RAG 项目。文本与网页模块将本地 TXT、Markdown、JSON、静态 HTML 和 MHTML 转为整篇 Markdown，并支持 UTF-8 导出。PDF 与 Word 模块通过同一公开调用方式处理数字 PDF、DOCX 和需要 MinerU 官方 API 识字的扫描 PDF，正文与来源、诊断分别返回。
 
 ## 安装与验证
 
@@ -47,3 +47,35 @@ result = text_web.convert_bytes(
 - 成功正文、来源信息、编码及警告分别返回；失败结果的 `markdown` 为 `None`，`error` 提供失败原因。导出失败结果会抛出 `ValueError`，不会创建或覆盖目标文件；成功导出只包含正文，写入错误按普通文件 I/O 异常处理。
 
 模块处理已取得的文件内容，不抓取网址、不执行 JavaScript，也不进行最终文档切块。图片只保留空扩展点。
+
+## PDF 与 DOCX 解析
+
+```python
+from importlib import import_module
+
+documents = import_module(
+    "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
+)
+
+result = documents.convert_file("manual.docx")
+if result.success:
+    print(result.markdown)
+    print(result.source, result.sources, result.warnings)
+else:
+    print(result.error)
+
+result = documents.convert_bytes(
+    pdf_bytes, format="pdf", source="manual.pdf",
+    mineru=documents.MinerUConfig(language="en"),
+)
+```
+
+数字 PDF 优先在本地读取可用文本层；DOCX 按正文顺序读取标题、段落和普通表格。需要识字的 PDF 页面使用 MinerU 官方 API，调用前将本机 Token 配置为进程环境变量 `MINERU_API_TOKEN`，或通过 `MinerUConfig` 显式传入。库不会自动读取环境文件；凭据仅在调用进程中使用，不写入代码和提交。
+
+混合 PDF 仅复制需要识字的原页组成一份 PDF 上传，按原始页序合并正文与来源。例如 API 0、1 映射回原第 2、4 页，数字第 1、3 页保留本地文本。缺少扫描页正文时整篇失败，诊断指向原页；不会把已有数字页当作整篇处理成功。
+
+文本层非空不代表正文完整：扫描正文可能只有页码或页眉可提取。调用方对照原页发现此问题后，可在两个公开入口传 `ocr_pages=(2,)`，以 MinerU 结果替换原 PDF 实际第 2 页的文本层；其余数字页保留本地结果，无文字扫描页仍自动识字。参数为整数元组，使用从 1 开始的实际 PDF 页序；类型错误或超出页数时返回诊断，不能填写印刷页码。
+
+正文来源使用左闭右开的字符区间关联到实际 PDF 页序，或 DOCX 章节与正文块位置。PDF 页序不等于印刷页码，DOCX 正文块号不等于页码。失败结果的正文为 `None`，诊断不会拼进正文。本模块不承担最终切块或完整检索问答验证。
+
+默认测试使用固定文件和本地 HTTP 服务验证 API 协议，不向云端提交任务。真实扫描验收需显式设置 `MINERU_LIVE_TEST=1`，混合验收使用 `MINERU_MIXED_LIVE_TEST=1`。调用说明见 [PDF 与 Word 模块](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/README.md)，混合输入摘要、真实结果、耗时及局限见[固定样本记录](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/constructed-mixed-pdf.md)。
