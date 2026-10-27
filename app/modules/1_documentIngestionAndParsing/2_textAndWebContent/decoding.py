@@ -6,10 +6,16 @@ from charset_normalizer import from_bytes
 def decode_bytes(
     data: bytes, encoding: str | None = None, declarations: tuple[str, ...] = ()
 ) -> tuple[str, str, list[str]]:
+    """依次采用显式编码、BOM、格式声明、UTF-8 和编码探测，始终严格解码。
+
+    显式编码或已识别的 BOM 解码失败时直接抛错，不用猜测掩盖损坏内容；
+    格式声明不可用时单独记录警告，再尝试后续依据。自动探测结果仍需核验。
+    UTF-32 LE 与 UTF-16 LE 的签名前缀重叠，因此必须先识别 UTF-32。
+    """
+
     if encoding is not None:
         used_encoding = codecs.lookup(encoding).name
         return data.decode(used_encoding, errors="strict"), used_encoding, []
-    # UTF-32 LE starts with the UTF-16 LE signature, so check it first.
     for signature, used_encoding in (
         (codecs.BOM_UTF32_LE, "utf-32"),
         (codecs.BOM_UTF32_BE, "utf-32"),

@@ -1,19 +1,21 @@
 from io import BytesIO
 from zipfile import BadZipFile
 
-from docx import Document
+from docx.api import Document
 from docx.oxml.ns import qn
 from docx.table import Table
-from lxml.etree import XMLSyntaxError
 
 from . import ContentSource, ConversionResult, Source
 
 
 def extract_docx(data: bytes, source: Source) -> ConversionResult:
-    """顶层段落和表格各占一个正文块；空块保留计数，非空标题开启新章节。"""
+    """顶层段落和表格各占一个正文块；空块保留计数，非空标题开启新章节。
+
+    lxml 的 XMLSyntaxError 通过其内置基类 SyntaxError 捕获，避免依赖扩展模块的静态导出。
+    """
     try:
         document = Document(BytesIO(data))
-    except (BadZipFile, XMLSyntaxError, KeyError, ValueError) as exc:
+    except (BadZipFile, SyntaxError, KeyError, ValueError) as exc:
         return ConversionResult(None, source, error=f"DOCX parsing failed: {exc}")
     markdown = ""
     sources = []
