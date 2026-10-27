@@ -1,3 +1,4 @@
 charset-normalizer>=3.4,<4
 beautifulsoup4==4.15.0
 markdownify==1.2.3
+pypdf==6.21.2
