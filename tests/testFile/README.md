@@ -30,3 +30,14 @@
 - 断言内容及结构事实，不只检查非空或无异常。JSON 可从输出围栏重新解析以比较原始层级和值；MHTML 按实际选择规则核验，不要求合并所有框架。
 - 图片处理当前为空扩展点，不验收图片引用、附件导出或 OCR。
 - 下载样本的版权与许可沿用原来源；保留原文件中的署名、许可及来源信息。
+
+## 表格文件样本
+
+2026-10-27 新增两个公开下载样本，保持原始字节。来源、Git blob SHA、大小及 SHA-256 同样记录在[来源记录](/E:/aaa-project/rag-me/tests/testFile/sources.json)。
+
+| 样本 | 来源 | 已核对事实与用途 |
+| --- | --- | --- |
+| [seaborn_iris.csv](/E:/aaa-project/rag-me/tests/testFile/seaborn_iris.csv) | [seaborn-data 的 Iris 数据](https://github.com/mwaskom/seaborn-data/blob/master/iris.csv) | UTF-8，5 列、150 条数据；首条为 5.1、3.5、1.4、0.2、setosa。用于真实 CSV 读取与行列对应验收。 |
+| [pandas_test1.xlsx](/E:/aaa-project/rag-me/tests/testFile/pandas_test1.xlsx) | [pandas 的 Excel 测试数据](https://github.com/pandas-dev/pandas/blob/main/pandas/tests/io/data/excel/test1.xlsx) | ZIP 完整，包含 Sheet1–Sheet4；Sheet1 的 B1:E8 是 4 列表头 A–D 与 7 条数据。其他区域含空表头或仅表头工作表，需按验收目标显式配置区域，或验证默认规则下的明确失败。 |
+
+目前仅核对下载字节及上述格式事实，尚未通过表格模块执行转换。中文差旅标准、多层表头、合并范围、公式缓存和特殊格式需在功能实施时补充真实构造样本，并仍保存于本目录。

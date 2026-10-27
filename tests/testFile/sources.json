@@ -68,6 +68,28 @@
       "sha256": "46b3daea81cd192407bad45fd43df4ddbec885b1edd921d10f4d9ccdb0b2ee9e",
       "html_parts": 5,
       "declared_start": null
+    },
+    {
+      "filename": "seaborn_iris.csv",
+      "format": "CSV",
+      "publisher": "seaborn sample data (mwaskom/seaborn-data)",
+      "source_url": "https://github.com/mwaskom/seaborn-data/blob/master/iris.csv",
+      "download_url": "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv",
+      "git_blob_sha": "20bd6ee57729baea0cc8b05397cc34eb4af8b452",
+      "downloaded_on": "2026-10-27",
+      "bytes": 3858,
+      "sha256": "9cc1c345c71bcc9b486b74cbf6063fa66f4bb5e0f603a4b3c3471ec2e5e8e355"
+    },
+    {
+      "filename": "pandas_test1.xlsx",
+      "format": "XLSX",
+      "publisher": "pandas test data (pandas-dev/pandas)",
+      "source_url": "https://github.com/pandas-dev/pandas/blob/main/pandas/tests/io/data/excel/test1.xlsx",
+      "download_url": "https://raw.githubusercontent.com/pandas-dev/pandas/main/pandas/tests/io/data/excel/test1.xlsx",
+      "git_blob_sha": "862574e05a114240e403a653b7fe22d2feb458b3",
+      "downloaded_on": "2026-10-27",
+      "bytes": 12074,
+      "sha256": "b6fe2d9ae5afd6d0bdfefbae9c0c1649d8bf883e183a153cb76f2a8a548cef11"
     }
   ]
 }
