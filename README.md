@@ -79,3 +79,31 @@ result = documents.convert_bytes(
 正文来源使用左闭右开的字符区间关联到实际 PDF 页序，或 DOCX 章节与正文块位置。PDF 页序不等于印刷页码，DOCX 正文块号不等于页码。失败结果的正文为 `None`，诊断不会拼进正文。本模块不承担最终切块或完整检索问答验证。
 
 默认测试使用固定文件和本地 HTTP 服务验证 API 协议，不向云端提交任务。真实扫描验收需显式设置 `MINERU_LIVE_TEST=1`，混合验收使用 `MINERU_MIXED_LIVE_TEST=1`。调用说明见 [PDF 与 Word 模块](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/README.md)，混合输入摘要、真实结果、耗时及局限见[固定样本记录](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/constructed-mixed-pdf.md)。
+
+## CSV 与 XLSX 表格文件
+
+[表格模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/README.md)提供真实 CSV／XLSX 的文件和字节转换入口，支持整表 Markdown 与按行文本。行记录可独立取得完整列名、共同上下文和来源；XLSX 来源包含工作表与原始单元格位置。
+
+```python
+from importlib import import_module
+
+tabular = import_module(
+    "app.modules.1_documentIngestionAndParsing.4_tabularFileProcessing"
+)
+context = tabular.TableContext(
+    name="员工国内差旅标准", version="2026示例版",
+    applicability="普通员工，国内出差",
+)
+result = tabular.convert_file(
+    "tests/testFile/xlsx_travel.xlsx", context=context, mode="rows",
+)
+if result.success:
+    beijing = result.tables[0].rows[0]
+    print(beijing.text, beijing.cells[1].raw_value, beijing.source)
+else:
+    print(result.error)
+```
+
+CSV 保留字段文本、前导零及字段内换行，并支持显式编码、分隔符和表头记录。XLSX 可显式指定工作表、区域与连续表头行；[表头和合并关系](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/TABLE_STRUCTURE.md)只按真实覆盖范围表示，普通空白不会填成零或上一行的值。
+
+[公式和单元格值](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/CELL_VALUES.md)保留原值、类型与数字格式，支持明确的常见显示格式；公式表达式和文件缓存分别保存，不执行重算。正文、来源和诊断分别返回，任一选中表解析失败时不返回部分成功结果。本模块止于表格解析与表示，不执行最终切块、检索或模型问答。
