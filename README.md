@@ -1,6 +1,6 @@
 # rag_me
 
-RAG 项目。目前实现的文本与网页类内容模块将本地 TXT、Markdown、JSON、静态 HTML 和 MHTML 转为整篇 Markdown，并支持 UTF-8 导出。
+RAG 项目。文本与网页模块将本地 TXT、Markdown、JSON、静态 HTML 和 MHTML 转为整篇 Markdown，并支持 UTF-8 导出。PDF 与 Word 模块通过同一公开调用方式处理数字 PDF、DOCX 和需要 MinerU 官方 API 识字的扫描 PDF，正文与来源、诊断分别返回。
 
 ## 安装与验证
 
@@ -47,3 +47,31 @@ result = text_web.convert_bytes(
 - 成功正文、来源信息、编码及警告分别返回；失败结果的 `markdown` 为 `None`，`error` 提供失败原因。导出失败结果会抛出 `ValueError`，不会创建或覆盖目标文件；成功导出只包含正文，写入错误按普通文件 I/O 异常处理。
 
 模块处理已取得的文件内容，不抓取网址、不执行 JavaScript，也不进行最终文档切块。图片只保留空扩展点。
+
+## PDF 与 DOCX 解析
+
+```python
+from importlib import import_module
+
+documents = import_module(
+    "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
+)
+
+result = documents.convert_file("manual.docx")
+if result.success:
+    print(result.markdown)
+    print(result.source, result.sources, result.warnings)
+else:
+    print(result.error)
+
+result = documents.convert_bytes(
+    pdf_bytes, format="pdf", source="manual.pdf",
+    mineru=documents.MinerUConfig(language="en"),
+)
+```
+
+数字 PDF 优先在本地读取可用文本层；DOCX 按正文顺序读取标题、段落和普通表格。需要识字的 PDF 页面使用 MinerU 官方 API，调用前将本机 Token 配置为进程环境变量 `MINERU_API_TOKEN`，或通过 `MinerUConfig` 显式传入。库不会自动读取环境文件；凭据仅在调用进程中使用，不写入代码和提交。
+
+正文来源使用左闭右开的字符区间关联到实际 PDF 页序，或 DOCX 章节与正文块位置。PDF 页序不等于印刷页码，DOCX 正文块号不等于页码。失败结果的正文为 `None`，诊断不会拼进正文。本模块不承担最终切块或完整检索问答验证。
+
+默认测试使用固定文件和本地 HTTP 服务验证 API 协议，不向云端提交任务。真实 MinerU 验收需显式设置 `MINERU_LIVE_TEST=1`，结果与局限单独记录。
