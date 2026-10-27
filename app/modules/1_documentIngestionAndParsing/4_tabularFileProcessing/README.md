@@ -102,7 +102,7 @@ CSV 字段始终为原始文本，不推断数字、日期或公式，保留前�
 ## 验证
 
 ```powershell
-python -m unittest tests.test_tabular_csv tests.test_tabular_xlsx tests.test_tabular_xlsx_structure tests.test_tabular_xlsx_values -v
+python -m unittest discover -s tests -p "test_tabular_*.py" -v
 python -m unittest discover -s tests -q
 ```
 

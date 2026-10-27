@@ -41,3 +41,5 @@
 | [pandas_test1.xlsx](/E:/aaa-project/rag-me/tests/testFile/pandas_test1.xlsx) | [pandas 的 Excel 测试数据](https://github.com/pandas-dev/pandas/blob/main/pandas/tests/io/data/excel/test1.xlsx) | ZIP 完整，包含 Sheet1–Sheet4；Sheet1 的 B1:E8 是 4 列表头 A–D 与 7 条数据。其他区域含空表头或仅表头工作表，需按验收目标显式配置区域，或验证默认规则下的明确失败。 |
 
 表格模块通过固定真实文件验收。补充样本及构造方法见 [CSV](/E:/aaa-project/rag-me/tests/testFile/constructed-csv.md)、[XLSX 普通表](/E:/aaa-project/rag-me/tests/testFile/constructed-xlsx-tabular.md)、[表头与合并](/E:/aaa-project/rag-me/tests/testFile/xlsx_structure_constructed.md)、[值与公式缓存](/E:/aaa-project/rag-me/tests/testFile/xlsx_values_constructed.md)。这些样本与公开下载文件均保存在本目录，测试不联网下载。
+
+空文本缓存、数组公式、空白合并区、损坏共享字符串及 ISO 日期类型的补充回归见[评审样本说明](/E:/aaa-project/rag-me/tests/testFile/xlsx_review_constructed.md)。

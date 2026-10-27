@@ -7,6 +7,7 @@
 - raw_value 和 formula 保留公式表达式，data_type 保留 `f`，number_format 和 source 保留原始格式及来源。
 - 有保存值时 cached_value 保留 openpyxl 读取的值，cache_status 为 `cached`；text 同时展示表达式、“文件缓存”和“非实时计算结果”。零、False 和错误缓存不会因真假判断而丢失。
 - 缺缓存时 cached_value 为 None，cache_status 保持既有 `unknown`；text 表达“结果未知”，warnings 包含工作表及单元格定位的 formula 提示。
+- 已保存的空文本缓存为 cached_value=""、cache_status="cached"，正文标明“空文本”；它与缺缓存有明确区别。数组公式保留已有表达式文本及保存值。
 - 不执行公式，不声称缓存是最新结果。错误值使用“错误：”前缀，不经过数值格式化；缓存错误同样处理。
 - 非公式的 formula、cached_value、cache_status 仍为 None。普通空白保留 None／空文本，零保持数值，布尔和文本不套用数字格式。CSV 的等号文本行为不受影响。
 
@@ -33,5 +34,6 @@
 
 - [独立行为测试](/E:/aaa-project/rag-me/tests/test_tabular_xlsx_values.py)
 - [样本构造及固定期望说明](/E:/aaa-project/rag-me/tests/testFile/xlsx_values_constructed.md)
+- [评审回归样本说明](/E:/aaa-project/rag-me/tests/testFile/xlsx_review_constructed.md)
 
 运行 `python -m unittest tests.test_tabular_xlsx_values tests.test_tabular_xlsx tests.test_tabular_csv -v`；默认回归沿用 `python -m unittest discover -s tests -v`。
