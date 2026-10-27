@@ -75,28 +75,24 @@ def _convert_content(
         return ConversionResult(
             None, source_info, encoding=encoding, warnings=warnings, error=str(exc),
         )
-    warnings.extend(
-        f"Table context {name} is unknown; caller did not supply it."
-        for name in ("name", "version", "applicability")
-        if getattr(table.context, name) is None
-    )
-    render_rows(table)
-    markdown = (
-        render_table(table) if mode == "table"
-        else "\n\n".join(row.text for row in table.rows)
-    )
-    return ConversionResult(markdown, source_info, [table], encoding, warnings)
+    return _finish_conversion([table], source_info, mode, warnings, encoding)
 
 
 def _convert_xlsx(data, source, mode, context, options):
     warnings = []
     try:
         tables = read_xlsx(data, source, context, options, warnings)
-    except (ValueError, TypeError, OSError, BadZipFile, KeyError, ParseError, InvalidFileException) as exc:
+    except (ValueError, TypeError, OSError, BadZipFile, KeyError, IndexError, ParseError, InvalidFileException) as exc:
         return ConversionResult(None, source, warnings=warnings, error=f"XLSX reading failed: {exc}")
+    return _finish_conversion(tables, source, mode, warnings)
+
+
+def _finish_conversion(tables, source, mode, warnings, encoding=None):
+    """两种格式共享行表示与正文组装，诊断前缀仍保留各自的来源粒度。"""
     for table in tables:
+        prefix = f"XLSX sheet {table.source.sheet}: table context" if source.format == "xlsx" else "Table context"
         warnings.extend(
-            f"XLSX sheet {table.source.sheet}: table context {name} is unknown; caller did not supply it."
+            f"{prefix} {name} is unknown; caller did not supply it."
             for name in ("name", "version", "applicability")
             if getattr(table.context, name) is None
         )
@@ -105,7 +101,7 @@ def _convert_xlsx(data, source, mode, context, options):
         render_table(table) if mode == "table" else "\n\n".join(row.text for row in table.rows)
         for table in tables
     )
-    return ConversionResult(markdown, source, tables, warnings=warnings)
+    return ConversionResult(markdown, source, tables, encoding, warnings)
 
 
 def _validate_options(format, source, mode, context, encoding, delimiter, header_record, xlsx) -> Source:
