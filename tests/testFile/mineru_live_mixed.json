@@ -1,0 +1,97 @@
+{
+  "input": "pdf_mixed_maintenance.pdf",
+  "sha256": "4d87b329c3d618ba54a6a8bacd870e595186104e26eb56ea6f46224b701e1c71",
+  "input_bytes": 109198,
+  "input_pages": [
+    {
+      "pdf_page_number": 1,
+      "text_layer": "Digital Intake\nAsset code: PUMP-A17.\nPrinted page 90\n",
+      "image_count": 0
+    },
+    {
+      "pdf_page_number": 2,
+      "text_layer": "",
+      "image_count": 1
+    },
+    {
+      "pdf_page_number": 3,
+      "text_layer": "Digital Release\nTorque setting: 12 Nm.\nPrinted page 12\n",
+      "image_count": 0
+    },
+    {
+      "pdf_page_number": 4,
+      "text_layer": "",
+      "image_count": 1
+    }
+  ],
+  "expected_upload_mapping": {
+    "0": 2,
+    "1": 4
+  },
+  "model_version": "vlm",
+  "language": "en",
+  "enable_table": true,
+  "python_version": "3.12.8",
+  "pypdf_version": "6.21.2",
+  "recorded_at": "2026-10-27T02:08:52.951060+00:00",
+  "seconds": 9.57,
+  "result": {
+    "markdown": "Digital Intake\nAsset code: PUMP-A17.\nPrinted page 90\n\n## Equipment Maintenance\n\nDisconnect power before maintenance.\n\nDo not service while power is on.\n\nInspect every 30 days.\n\n<table><tr><td>Equipment</td><td>Interval</td></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></table>\n\nRestart after inspection.\n\nPrinted page 41\n\nDigital Release\nTorque setting: 12 Nm.\nPrinted page 12\n\nInspection Limits\n\nTemperature must not exceed 60 C.\n\nPrinted page 7\n",
+    "source": {
+      "location": "pdf_mixed_maintenance.pdf",
+      "format": "pdf"
+    },
+    "sources": [
+      {
+        "markdown_start": 0,
+        "markdown_end": 53,
+        "pdf_page_number": 1,
+        "extraction_method": "text_layer",
+        "section_path": [],
+        "body_block_number": null,
+        "section_block_number": null,
+        "block_type": null,
+        "heading_level": null
+      },
+      {
+        "markdown_start": 54,
+        "markdown_end": 360,
+        "pdf_page_number": 2,
+        "extraction_method": "mineru_api",
+        "section_path": [],
+        "body_block_number": null,
+        "section_block_number": null,
+        "block_type": null,
+        "heading_level": null
+      },
+      {
+        "markdown_start": 361,
+        "markdown_end": 416,
+        "pdf_page_number": 3,
+        "extraction_method": "text_layer",
+        "section_path": [],
+        "body_block_number": null,
+        "section_block_number": null,
+        "block_type": null,
+        "heading_level": null
+      },
+      {
+        "markdown_start": 417,
+        "markdown_end": 486,
+        "pdf_page_number": 4,
+        "extraction_method": "mineru_api",
+        "section_path": [],
+        "body_block_number": null,
+        "section_block_number": null,
+        "block_type": null,
+        "heading_level": null
+      }
+    ],
+    "warnings": [
+      "PDF page 2: no usable text layer; OCR required",
+      "PDF page 4: no usable text layer; OCR required",
+      "PDF text-layer extraction does not reconstruct heading levels, columns or table relationships; verify content and reading order against the PDF"
+    ],
+    "error": null
+  }
+}

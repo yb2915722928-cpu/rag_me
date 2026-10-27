@@ -115,15 +115,18 @@ class MinerUClient:
             connection.close()
 
 
-def extract_scanned_pdf(data: bytes, source: Source, page_count: int, required_pages: list[int],
+def extract_scanned_pdf(data: bytes, source: Source, page_numbers: list[int],
                         config: MinerUConfig | None) -> ConversionResult:
+    """page_numbers 按上传页序列出原 PDF 页序；API page_idx 是其中的零基索引。"""
+    page_count = len(page_numbers)
+    original_pages = ", ".join(map(str, page_numbers))
     config = config or MinerUConfig()
     token = config.token if config.token is not None else os.environ.get("MINERU_API_TOKEN")
     if not token:
         return ConversionResult(
             None, source,
-            warnings=[f"PDF page {p}: OCR unavailable" for p in range(1, page_count + 1)],
-            error=f"OCR unavailable for PDF pages 1-{page_count}: set MINERU_API_TOKEN "
+            warnings=[f"PDF page {p}: OCR unavailable" for p in page_numbers],
+            error=f"OCR unavailable for PDF pages {original_pages}: set MINERU_API_TOKEN "
                   "or MinerUConfig.token",
         )
     config = replace(config, token=token)
@@ -132,16 +135,18 @@ def extract_scanned_pdf(data: bytes, source: Source, page_count: int, required_p
     except MinerUError as exc:
         message = re.sub(r"https?://\S+", "[redacted URL]", str(exc).replace(token, "[redacted]"))
         return ConversionResult(None, source,
-                                error=f"OCR failed for PDF pages 1-{page_count}: {message}")
+                                error=f"OCR failed for PDF pages {original_pages}: {message}")
     pages = {}
     warnings = []
     for block in blocks:
         text = _block_markdown(block).strip()
         if block["type"] == "table" and "<table" not in text.lower():
-            warnings.append(f"PDF page {block['page_idx'] + 1}: table relationships were not recovered")
+            warnings.append(
+                f"PDF page {page_numbers[block['page_idx']]}: table relationships were not recovered"
+            )
         if text:
             pages.setdefault(block["page_idx"], []).append(text)
-    missing = [p for p in required_pages if p - 1 not in pages]
+    missing = [number for index, number in enumerate(page_numbers) if index not in pages]
     if missing:
         return ConversionResult(None, source, warnings=warnings, error=(
             "No usable OCR body for " + ", ".join(f"PDF page {p}" for p in missing)
@@ -153,7 +158,7 @@ def extract_scanned_pdf(data: bytes, source: Source, page_count: int, required_p
             markdown += "\n"
         start = len(markdown)
         markdown += "\n\n".join(texts) + "\n"
-        sources.append(ContentSource(start, len(markdown), page_idx + 1, "mineru_api"))
+        sources.append(ContentSource(start, len(markdown), page_numbers[page_idx], "mineru_api"))
     return ConversionResult(markdown, source, sources, warnings)
 
 
