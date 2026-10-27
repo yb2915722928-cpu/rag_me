@@ -126,6 +126,82 @@ def mineru_server(blocks=HISTORY, input_name="pdf_scanned_teaching.pdf", failure
 
 
 class ScannedPdfConversionTests(unittest.TestCase):
+    def test_list_and_table_text_arrays_are_validated_at_the_http_boundary(self):
+        path = SAMPLES / "pdf_scanned_teaching.pdf"
+        for field, kind in (("list_items", "list"), ("table_caption", "table"),
+                            ("table_footnote", "table")):
+            for value in ("not an array", None, ["valid text", 30]):
+                with self.subTest(field=field, value=value):
+                    blocks = HISTORY + [{"type": kind, field: value, "page_idx": 0}]
+                    with mineru_server(blocks) as api:
+                        results = (
+                            content.convert_file(path, mineru=api),
+                            content.convert_bytes(path.read_bytes(), format="pdf", source=path.name,
+                                                  mineru=api),
+                        )
+                    for result in results:
+                        self.assertFalse(result.success)
+                        self.assertIsNone(result.markdown)
+                        self.assertEqual(result.sources, [])
+                        self.assertIn("content_list", result.error)
+                        self.assertIn(field, result.error)
+                        self.assertIn("array of strings", result.error)
+
+    def test_table_captions_and_footnotes_stay_with_their_table_and_page(self):
+        path = SAMPLES / "pdf_scanned_maintenance_table.pdf"
+        table = ("<table><tr><th>Equipment</th><th>Interval</th></tr>"
+                 "<tr><td>Pump</td><td>Monthly</td></tr>"
+                 "<tr><td>Valve</td><td>Quarterly</td></tr></table>")
+        blocks = [
+            {"type": "text", "text": "Equipment Maintenance", "text_level": 1, "page_idx": 0},
+            {"type": "list", "list_items": ["Disconnect power before maintenance.",
+                                            "Inspect every 30 days."], "page_idx": 0},
+            {"type": "table", "table_caption": ["Table 1. Maintenance intervals", "Normal operation"],
+             "table_body": table, "table_footnote": ["Do not service while power is on.",
+                                                      "Restart after inspection."], "page_idx": 0},
+            {"type": "text", "text": "Temperature must not exceed 60 C.", "page_idx": 1},
+        ]
+        with mineru_server(blocks, path.name) as api:
+            results = (
+                content.convert_file(path, source="table.pdf", mineru=api),
+                content.convert_bytes(path.read_bytes(), format="pdf", source="table.pdf", mineru=api),
+            )
+        self.assertEqual(results[0], results[1])
+        first = ("# Equipment Maintenance\n\nDisconnect power before maintenance.\n"
+                 "Inspect every 30 days.\n\nTable 1. Maintenance intervals\n\nNormal operation\n\n"
+                 + table + "\n\nDo not service while power is on.\n\nRestart after inspection.\n")
+        second = "Temperature must not exceed 60 C.\n"
+        for result in results:
+            self.assertTrue(result.success, result.error)
+            self.assertEqual(result.markdown, first + "\n" + second)
+            self.assertEqual([s.pdf_page_number for s in result.sources], [1, 2])
+            self.assertEqual([result.markdown[s.markdown_start:s.markdown_end] for s in result.sources],
+                             [first, second])
+            self.assertFalse(any("table relationships" in w for w in result.warnings))
+
+    def test_list_only_page_keeps_rules_and_page_source_for_file_and_bytes(self):
+        path = SAMPLES / "pdf_scanned_teaching.pdf"
+        blocks = [{"type": "list", "sub_type": "text", "page_idx": 0, "list_items": [
+            "1. Disconnect power before maintenance.",
+            "2. Do not service while power is on.",
+            "3. Inspect every 30 days.",
+        ]}]
+        with mineru_server(blocks) as api:
+            results = (
+                content.convert_file(path, source="rules.pdf", mineru=api),
+                content.convert_bytes(path.read_bytes(), format="pdf", source="rules.pdf", mineru=api),
+            )
+        self.assertEqual(results[0], results[1])
+        for result in results:
+            self.assertTrue(result.success, result.error)
+            self.assertEqual(result.markdown, "1. Disconnect power before maintenance.\n"
+                             "2. Do not service while power is on.\n3. Inspect every 30 days.\n")
+            self.assertEqual(result.source.location, "rules.pdf")
+            self.assertEqual([s.pdf_page_number for s in result.sources], [1])
+            page = result.sources[0]
+            self.assertEqual(page.extraction_method, "mineru_api")
+            self.assertEqual(result.markdown[page.markdown_start:page.markdown_end], result.markdown)
+
     def test_omitted_config_token_is_read_from_the_environment(self):
         with patch.dict(os.environ, {"MINERU_API_TOKEN": "test-token"}):
             with mineru_server() as api:

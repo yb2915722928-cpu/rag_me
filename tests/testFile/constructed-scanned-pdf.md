@@ -4,10 +4,10 @@
 
 ## 固定输入
 
-- [原扫描教学副本](/C:/Users/29157/.codex/worktrees/pdf-word-mineru/rag-me/tests/testFile/pdf_scanned_teaching.pdf)：4931 字节，SHA-256 `caf14142d35a2399b6cb2a4115b3ae9774ada2b8605109acc0f8409ec1899c2b`。与[原教学资料](/E:/projectOfLearning/Agent学习/MeLearn/学习记录/parse-03-PDF与Word/扫描PDF.pdf)字节相同；第 1 页只有图像，预期 Disconnect power before maintenance. / Inspect every month.。
-- [扫描表格样本](/C:/Users/29157/.codex/worktrees/pdf-word-mineru/rag-me/tests/testFile/pdf_scanned_maintenance_table.pdf)：SHA-256 `3c4bdd3465f6450a26be3b6074ada31f3c82f2b56ce6506cf03db998d383c0c0`。两页纯图像，无可提取文本层；第 1 页为标题、断电说明、不得带电维护、30 天检查、Equipment/Interval 表格（Pump/Monthly、Valve/Quarterly）、重新启动说明和印刷页码 41；第 2 页为 Inspection Limits、Temperature must not exceed 60 C. 及印刷页码 7。
+- [原扫描教学副本](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/pdf_scanned_teaching.pdf)：4931 字节，SHA-256 `caf14142d35a2399b6cb2a4115b3ae9774ada2b8605109acc0f8409ec1899c2b`。与[原教学资料](/E:/projectOfLearning/Agent学习/MeLearn/学习记录/parse-03-PDF与Word/扫描PDF.pdf)字节相同；第 1 页只有图像，预期 Disconnect power before maintenance. / Inspect every month.。
+- [扫描表格样本](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/pdf_scanned_maintenance_table.pdf)：SHA-256 `3c4bdd3465f6450a26be3b6074ada31f3c82f2b56ce6506cf03db998d383c0c0`。两页纯图像，无可提取文本层；第 1 页为标题、断电说明、不得带电维护、30 天检查、Equipment/Interval 表格（Pump/Monthly、Valve/Quarterly）、重新启动说明和印刷页码 41；第 2 页为 Inspection Limits、Temperature must not exceed 60 C. 及印刷页码 7。
 
-生成源头是[build_scanned_pdf_samples.py](/C:/Users/29157/.codex/worktrees/pdf-word-mineru/rag-me/tests/testFile/build_scanned_pdf_samples.py)。使用 Pillow 12.3.0 内置字体（不依赖系统字体），在 1800×2400 白底上绘制文字和表格线；pypdf 6.10.0 将 RGB 图像作为每页唯一主体写入 600×800 点的 PDF，不写文本指令。Pillow 仅用于一次性样本生成，不加入业务运行时依赖，测试只读取固定产物。
+生成源头是[build_scanned_pdf_samples.py](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/build_scanned_pdf_samples.py)。使用 Pillow 12.3.0 内置字体（不依赖系统字体），在 1800×2400 白底上绘制文字和表格线；pypdf 6.10.0 将 RGB 图像作为每页唯一主体写入 600×800 点的 PDF，不写文本指令。Pillow 仅用于一次性样本生成，不加入业务运行时依赖，测试只读取固定产物。
 
 ```powershell
 & 'C:\Users\29157\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe' -B tests/testFile/build_scanned_pdf_samples.py
@@ -17,9 +17,9 @@
 
 ## 真实结果
 
-[mineru_live_maintenance_table.json](/C:/Users/29157/.codex/worktrees/pdf-word-mineru/rag-me/tests/testFile/mineru_live_maintenance_table.json)来自公开 convert_file，使用共享项目 Python、pypdf 6.21.2、标准库 HTTP；实际模型配置 vlm、language=en。耗时 25.847 秒。正文、否定词、30 days、60 C 均通过原文定向核验，三行 HTML 表格分别为 Equipment/Interval、Pump/Monthly、Valve/Quarterly；来源区间指向 PDF 实际页序 1、2。未对正文进行业务纠错或填回预期文字。
+[mineru_live_maintenance_table.json](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/mineru_live_maintenance_table.json)来自公开 convert_file，使用共享项目 Python、pypdf 6.21.2、标准库 HTTP；实际模型配置 vlm、language=en。耗时 25.847 秒。正文、否定词、30 days、60 C 均通过原文定向核验，三行 HTML 表格分别为 Equipment/Interval、Pump/Monthly、Valve/Quarterly；来源区间指向 PDF 实际页序 1、2。未对正文进行业务纠错或填回预期文字。
 
-[mineru_live_historical_probe.json](/C:/Users/29157/.codex/worktrees/pdf-word-mineru/rag-me/tests/testFile/mineru_live_historical_probe.json)是先前直接 API 研究探针，原扫描教学 PDF 两条规则完整恢复，总耗时 14.616 秒，旧版内容列表两个 text 块、page_idx=0。它不是本模块公开入口运行，和新的公开入口证据分别标识。
+[mineru_live_historical_probe.json](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/mineru_live_historical_probe.json)是先前直接 API 研究探针，原扫描教学 PDF 两条规则完整恢复，总耗时 14.616 秒，旧版内容列表两个 text 块、page_idx=0。它不是本模块公开入口运行，和新的公开入口证据分别标识。
 
 原 Windows OCR 1×、2× 均漏字的[历史观察](/E:/projectOfLearning/Agent学习/MeLearn/学习记录/parse-03-PDF与Word/P1-20261009/实验观察.md)未修改。不能从倍率试验单独归因，也不把历史错漏当成本次云 API 结果。新结果只证明声明样本，不承诺任意复杂扫描表格或完整 RAG 链路通过。
 

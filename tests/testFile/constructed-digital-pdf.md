@@ -15,7 +15,7 @@
 
 ## 本地构造样本
 
-通过[生成脚本](/C:/Users/29157/.codex/worktrees/pdf-word-digital/rag-me/tests/testFile/build_digital_pdf_samples.py)生成固定 PDF。使用 PDF 标准字体 Helvetica 和明确的文本绘制指令，预期正文来自下面列出的输入文字；不从转换结果自动生成测试预期，也不在测试运行时重新生成文件。
+通过[生成脚本](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/build_digital_pdf_samples.py)生成固定 PDF。使用 PDF 标准字体 Helvetica 和明确的文本绘制指令，预期正文来自下面列出的输入文字；不从转换结果自动生成测试预期，也不在测试运行时重新生成文件。
 
 | 样本 | SHA-256 | 构造与预期事实 |
 | --- | --- | --- |

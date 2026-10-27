@@ -10,6 +10,19 @@ SAMPLES = Path(__file__).parent / "testFile"
 
 
 class DocxConversionTests(unittest.TestCase):
+    def test_ocr_page_selection_is_rejected_for_docx(self):
+        path = SAMPLES / "docx_teaching.docx"
+        results = (
+            content.convert_file(path, ocr_pages=(1,)),
+            content.convert_bytes(path.read_bytes(), format="docx", source=str(path), ocr_pages=(1,)),
+        )
+        for result in results:
+            self.assertFalse(result.success)
+            self.assertIsNone(result.markdown)
+            self.assertEqual(result.sources, [])
+            self.assertIn("ocr_pages", result.error)
+            self.assertIn("PDF", result.error)
+
     def test_heading_depth_beyond_markdown_retains_native_level_and_reports_flattening(self):
         result = content.convert_file(SAMPLES / "docx_deep_headings.docx")
 
