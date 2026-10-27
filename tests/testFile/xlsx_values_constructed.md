@@ -1,7 +1,7 @@
 # XLSX 值样本
 
-- 固定样本：[xlsx_values.xlsx](/C:/Users/29157/.codex/worktrees/tabular-values/rag-me/tests/testFile/xlsx_values.xlsx)
-- 构造器：[build_xlsx_values_samples.py](/C:/Users/29157/.codex/worktrees/tabular-values/rag-me/tests/testFile/build_xlsx_values_samples.py)
+- 固定样本：[xlsx_values.xlsx](/E:/aaa-project/rag-me/tests/testFile/xlsx_values.xlsx)
+- 构造器：[build_xlsx_values_samples.py](/E:/aaa-project/rag-me/tests/testFile/build_xlsx_values_samples.py)
 - openpyxl 3.1.5；工作表“值”，A 列是项目说明，B 列是被验证值，第 1 行为表头。
 - 文件大小：5856 字节。
 - SHA-256：4cadee678632423dc75a41f08d6b141b83e8853b46838bb0c4fbdfece8fc17aa。

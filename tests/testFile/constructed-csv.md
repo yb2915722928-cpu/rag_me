@@ -1,6 +1,6 @@
 # CSV 构造样本与固定预期
 
-本组是人为构造的教学／失败样本，不是真实报销政策。所有文件由 [build_csv_samples.py](/C:/Users/29157/.codex/worktrees/tabular-implementation/rag-me/tests/testFile/build_csv_samples.py) 按固定文字和编码写出；不调用被测模块，不生成测试期望。测试使用已经提交的字节文件，不在运行时重建。
+本组是人为构造的教学／失败样本，不是真实报销政策。所有文件由 [build_csv_samples.py](/E:/aaa-project/rag-me/tests/testFile/build_csv_samples.py) 按固定文字和编码写出；不调用被测模块，不生成测试期望。测试使用已经提交的字节文件，不在运行时重建。
 
 重建命令（仓库根目录）：
 
@@ -32,4 +32,4 @@ python tests/testFile/build_csv_samples.py
 
 三组证据均从公开转换结果取得：北京单行仅提供北京 500 元／晚；整表和北京加上海两行均提供北京 500 与上海 450 元／晚，且上下文一致。测试中的 50 元／晚是固定例子的算术核验，不是生产解析器的问答能力；单行未含上海不代表按行策略整体效果差。
 
-既有公开样本 [seaborn_iris.csv](/C:/Users/29157/.codex/worktrees/tabular-implementation/rag-me/tests/testFile/seaborn_iris.csv) 保持下载原字节；来源、大小、SHA-256 和 Git blob SHA 沿用 [sources.json](/C:/Users/29157/.codex/worktrees/tabular-implementation/rag-me/tests/testFile/sources.json)。公开入口验收 5 列、150 条数据，首条为 5.1／3.5／1.4／0.2／setosa。
+既有公开样本 [seaborn_iris.csv](/E:/aaa-project/rag-me/tests/testFile/seaborn_iris.csv) 保持下载原字节；来源、大小、SHA-256 和 Git blob SHA 沿用 [sources.json](/E:/aaa-project/rag-me/tests/testFile/sources.json)。公开入口验收 5 列、150 条数据，首条为 5.1／3.5／1.4／0.2／setosa。

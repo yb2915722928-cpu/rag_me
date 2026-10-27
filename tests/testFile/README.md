@@ -40,4 +40,4 @@
 | [seaborn_iris.csv](/E:/aaa-project/rag-me/tests/testFile/seaborn_iris.csv) | [seaborn-data 的 Iris 数据](https://github.com/mwaskom/seaborn-data/blob/master/iris.csv) | UTF-8，5 列、150 条数据；首条为 5.1、3.5、1.4、0.2、setosa。用于真实 CSV 读取与行列对应验收。 |
 | [pandas_test1.xlsx](/E:/aaa-project/rag-me/tests/testFile/pandas_test1.xlsx) | [pandas 的 Excel 测试数据](https://github.com/pandas-dev/pandas/blob/main/pandas/tests/io/data/excel/test1.xlsx) | ZIP 完整，包含 Sheet1–Sheet4；Sheet1 的 B1:E8 是 4 列表头 A–D 与 7 条数据。其他区域含空表头或仅表头工作表，需按验收目标显式配置区域，或验证默认规则下的明确失败。 |
 
-目前仅核对下载字节及上述格式事实，尚未通过表格模块执行转换。中文差旅标准、多层表头、合并范围、公式缓存和特殊格式需在功能实施时补充真实构造样本，并仍保存于本目录。
+表格模块通过固定真实文件验收。补充样本及构造方法见 [CSV](/E:/aaa-project/rag-me/tests/testFile/constructed-csv.md)、[XLSX 普通表](/E:/aaa-project/rag-me/tests/testFile/constructed-xlsx-tabular.md)、[表头与合并](/E:/aaa-project/rag-me/tests/testFile/xlsx_structure_constructed.md)、[值与公式缓存](/E:/aaa-project/rag-me/tests/testFile/xlsx_values_constructed.md)。这些样本与公开下载文件均保存在本目录，测试不联网下载。

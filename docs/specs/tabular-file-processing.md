@@ -102,6 +102,6 @@
 ## Further Notes
 
 - 范围、行为、测试接缝及最终共享理解均已由用户确认。发布时应用 enhancement 与 ready-for-agent 标签，无需额外 triage。
-- 当前阶段交付规格、领域术语和公开样本准备；独立表格处理业务代码及其验收测试尚待依据本规格实施。既有学习记录中的已提取单元格实验不等同于真实 CSV／XLSX 能力。
+- 实施交付见 [PR #19](https://github.com/yb2915722928-cpu/rag_me/pull/19)。既有学习记录中的已提取单元格实验不能替代本模块的真实 CSV／XLSX 验收。
 - openpyxl 官方说明：[公式不由该库执行](https://openpyxl.readthedocs.io/en/stable/simple_formulae.html)、[读取公式或文件保存值的区别](https://openpyxl.readthedocs.io/en/stable/api/openpyxl.reader.excel.html)、[合并单元格保留左上角值](https://openpyxl.readthedocs.io/en/stable/editing_worksheets.html)。这些文档支持读取与保留的技术边界，不证明本模块已实现。
 - 已发布为 [GitHub Issue #14](https://github.com/yb2915722928-cpu/rag_me/issues/14)。本地规格为工作副本，以 GitHub Issue 为事项与实施依据。
