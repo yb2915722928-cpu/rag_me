@@ -2,6 +2,8 @@
 
 当前实现 Issue #9：数字 PDF 的文本层提取。文件和字节入口返回相同的本模块结果类型，不经过上传 API、格式总路由或最终切块。
 
+Issue #10 的 DOCX 原生解析复用相同入口，调用示例、来源字段和计数规则见 [DOCX 说明](/C:/Users/29157/.codex/worktrees/pdf-word-docx/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/DOCX.md)。
+
 ```python
 import importlib
 from pathlib import Path

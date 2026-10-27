@@ -10,12 +10,17 @@ class Source:
 
 @dataclass
 class ContentSource:
-    """正文区间采用 Python 字符串切片，PDF 页序从 1 开始，不表示印刷页码。"""
+    """正文区间采用字符串切片；PDF 页序与 DOCX 章节/正文块位置分别表达，均非印刷页码。"""
 
     markdown_start: int
     markdown_end: int
     pdf_page_number: int | None
     extraction_method: str
+    section_path: tuple[str, ...] = ()
+    body_block_number: int | None = None
+    section_block_number: int | None = None
+    block_type: str | None = None
+    heading_level: int | None = None
 
 
 @dataclass
@@ -60,6 +65,10 @@ def convert_bytes(data, *, format, source) -> ConversionResult:
 
 
 def _convert_content(data: bytes, source: Source) -> ConversionResult:
+    if source.format == "docx":
+        from .docx import extract_docx
+
+        return extract_docx(data, source)
     from .pdf import extract_pdf
 
     return extract_pdf(data, source)
@@ -69,7 +78,7 @@ def _validate_options(format, source) -> Source:
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     input_format = format.strip().lower().lstrip(".")
-    if input_format != "pdf":
+    if input_format not in {"pdf", "docx"}:
         raise ValueError(f"Unsupported format: {input_format}")
     if not isinstance(source, str) or not source.strip():
         raise ValueError("source must be a nonempty string")
