@@ -38,6 +38,8 @@ python -m unittest tests.test_pdf_word_mixed -v
 python -m unittest discover -s tests -v
 ```
 
+合并集成分支最新 tip `50129d3` 后，完整回归共 108 项，106 项通过、2 项真实云 API 测试按默认设置跳过，耗时 4.601 秒；覆盖数字 PDF、纯扫描协议、DOCX 与文本网页。混合真实验收另行显式运行，1 项通过，默认跳过不替代下述真实证据。
+
 ## 真实 API 运行与结果
 
 [自动保存的真实证据](/C:/Users/29157/.codex/worktrees/pdf-word-mixed/rag-me/tests/testFile/mineru_live_mixed.json)来自[公开入口验收测试](/C:/Users/29157/.codex/worktrees/pdf-word-mixed/rag-me/tests/test_pdf_word_mixed_live.py)。环境为 Windows、Python 3.12.8、pypdf 6.21.2；复用 #11 客户端和标准库 HTTP，model_version=vlm、language=en、enable_table=true，默认 3 秒轮询、30 秒请求超时、300 秒轮询期限。2026-10-27 02:08:52 UTC 保存结果，公开转换本身实测 **9.570 秒**。
