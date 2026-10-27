@@ -31,7 +31,7 @@ class ConversionResult:
         return self.markdown is not None and self.error is None
 
 
-def convert_file(path, *, format=None, source=None) -> ConversionResult:
+def convert_file(path, *, format=None, source=None, mineru=None) -> ConversionResult:
     source_info = Source(str(path) if source is None else str(source))
     try:
         path = Path(path)
@@ -45,10 +45,10 @@ def convert_file(path, *, format=None, source=None) -> ConversionResult:
         data = path.read_bytes()
     except OSError as exc:
         return ConversionResult(None, source_info, error=f"Could not read '{path}': {exc}")
-    return _convert_content(data, source_info)
+    return _convert_content(data, source_info, mineru)
 
 
-def convert_bytes(data, *, format, source) -> ConversionResult:
+def convert_bytes(data, *, format, source, mineru=None) -> ConversionResult:
     source_info = Source(str(source))
     try:
         source_info = _validate_options(format, source)
@@ -56,13 +56,15 @@ def convert_bytes(data, *, format, source) -> ConversionResult:
             raise ValueError("data must be bytes")
     except ValueError as exc:
         return ConversionResult(None, source_info, error=str(exc))
-    return _convert_content(data, source_info)
+    return _convert_content(data, source_info, mineru)
 
 
-def _convert_content(data: bytes, source: Source) -> ConversionResult:
+def _convert_content(data: bytes, source: Source, mineru=None) -> ConversionResult:
     from .pdf import extract_pdf
 
-    return extract_pdf(data, source)
+    if mineru is not None and not isinstance(mineru, MinerUConfig):
+        return ConversionResult(None, source, error="mineru must be a MinerUConfig")
+    return extract_pdf(data, source, mineru)
 
 
 def _validate_options(format, source) -> Source:
@@ -74,3 +76,6 @@ def _validate_options(format, source) -> Source:
     if not isinstance(source, str) or not source.strip():
         raise ValueError("source must be a nonempty string")
     return Source(source, input_format)
+
+
+from .mineru import MinerUConfig

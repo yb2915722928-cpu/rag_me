@@ -1,0 +1,30 @@
+{
+  "input": "pdf_scanned_maintenance_table.pdf",
+  "sha256": "3c4bdd3465f6450a26be3b6074ada31f3c82f2b56ce6506cf03db998d383c0c0",
+  "model_version": "vlm",
+  "language": "en",
+  "seconds": 25.847,
+  "result": {
+    "markdown": "## Equipment Maintenance\n\nDisconnect power before maintenance.\n\nDo not service while power is on.\n\nInspect every 30 days.\n\n<table><tr><td>Equipment</td><td>Interval</td></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></table>\n\nRestart after inspection.\n\nPrinted page 41\n\nInspection Limits\n\nTemperature must not exceed 60 C.\n\nPrinted page 7\n",
+    "source": {
+      "location": "pdf_scanned_maintenance_table.pdf",
+      "format": "pdf"
+    },
+    "sources": [
+      {
+        "markdown_start": 0,
+        "markdown_end": 306,
+        "pdf_page_number": 1,
+        "extraction_method": "mineru_api"
+      },
+      {
+        "markdown_start": 307,
+        "markdown_end": 376,
+        "pdf_page_number": 2,
+        "extraction_method": "mineru_api"
+      }
+    ],
+    "warnings": [],
+    "error": null
+  }
+}

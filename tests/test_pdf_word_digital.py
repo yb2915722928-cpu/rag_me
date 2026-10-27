@@ -46,8 +46,9 @@ class DigitalPdfConversionTests(unittest.TestCase):
     def test_scanned_pdf_requires_ocr_instead_of_image_placeholder_success(self):
         path = SAMPLES / "pdf_scanned_teaching.pdf"
         results = (
-            content.convert_file(path),
-            content.convert_bytes(path.read_bytes(), format="pdf", source=str(path)),
+            content.convert_file(path, mineru=content.MinerUConfig(token="")),
+            content.convert_bytes(path.read_bytes(), format="pdf", source=str(path),
+                                  mineru=content.MinerUConfig(token="")),
         )
         for result in results:
             with self.subTest(result=result):

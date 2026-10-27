@@ -1,0 +1,103 @@
+{
+  "status": "completed",
+  "api_base": "<redacted-url>",
+  "model_version": "vlm",
+  "language": "en",
+  "is_ocr": true,
+  "network_calls": [
+    {
+      "method": "POST",
+      "endpoint": "/file-urls/batch",
+      "status": 200,
+      "seconds": 1.266
+    },
+    {
+      "method": "PUT",
+      "endpoint": "<signed-upload-url>",
+      "status": 200,
+      "seconds": 1.966
+    },
+    {
+      "method": "GET",
+      "endpoint": "/extract-results/batch/{batch_id}",
+      "status": 200,
+      "seconds": 1.24
+    },
+    {
+      "method": "GET",
+      "endpoint": "/extract-results/batch/{batch_id}",
+      "status": 200,
+      "seconds": 1.12
+    },
+    {
+      "method": "GET",
+      "endpoint": "/extract-results/batch/{batch_id}",
+      "status": 200,
+      "seconds": 1.301
+    },
+    {
+      "method": "GET",
+      "endpoint": "<signed-result-zip-url>",
+      "status": 200,
+      "seconds": 1.71
+    }
+  ],
+  "timings_seconds": {
+    "upload_complete": 3.233,
+    "parse_done": 12.903,
+    "total": 14.616
+  },
+  "input": {
+    "path": "E:\\projectOfLearning\\Agent学习\\MeLearn\\学习记录\\parse-03-PDF与Word\\扫描PDF.pdf",
+    "size_bytes": 4931,
+    "sha256": "caf14142d35a2399b6cb2a4115b3ae9774ada2b8605109acc0f8409ec1899c2b",
+    "original_pdf_pages": [
+      1
+    ]
+  },
+  "batch_id": "2d02a0c2-69a8-47fa-a000-703fe27833a2",
+  "zip": {
+    "size_bytes": 5173,
+    "sha256": "fc09e7f7331c67b273a875970a4bf04441e020786afa0d38aae73ee1c701b69e",
+    "markdown_members": [
+      "full.md"
+    ],
+    "content_list_members": [
+      "0aed6ddc-d618-42bb-a082-6c5cd9eb0fd3_content_list.json"
+    ]
+  },
+  "schema": {
+    "top_level": "array",
+    "block_count": 2,
+    "block_types": [
+      "text"
+    ],
+    "block_keys": [
+      "bbox",
+      "page_idx",
+      "text",
+      "type"
+    ],
+    "page_idx_values": [
+      0
+    ],
+    "mapped_original_pdf_pages": [
+      1
+    ]
+  },
+  "checks": {
+    "normalization": "case, punctuation and whitespace only; no OCR correction",
+    "markdown": {
+      "Disconnect power before maintenance.": true,
+      "Inspect every month.": true
+    },
+    "content_list_text": {
+      "Disconnect power before maintenance.": true,
+      "Inspect every month.": true
+    },
+    "all_blocks_have_page_idx": true,
+    "all_page_indices_zero": true,
+    "table_blocks": 0
+  },
+  "markdown": "Disconnect power before maintenance.\n\nInspect every month."
+}

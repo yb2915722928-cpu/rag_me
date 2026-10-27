@@ -51,3 +51,7 @@ python -m unittest discover -s tests -v
 ```
 
 固定输入及摘要见[样本说明](/C:/Users/29157/.codex/worktrees/pdf-word-digital/rag-me/tests/testFile/constructed-digital-pdf.md)。测试读取真实文件，通过公开入口断言正文与来源，不替换 pypdf、不调用内部辅助函数。测试不访问网络。
+
+## 扫描 PDF
+
+Issue #11 已接通 MinerU 官方精准解析 API，公开入口新增可选 `mineru=MinerUConfig(...)`，默认从 `MINERU_API_TOKEN` 读取凭据。纯扫描 PDF 的上传、轮询、正文、页序及失败约定见 [MINERU.md](/C:/Users/29157/.codex/worktrees/pdf-word-mineru/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/MINERU.md)。混合 PDF 的逐页处理由 #12 接续。
