@@ -96,6 +96,26 @@ def read_xlsx(data, source, context, options, warnings: list[str]) -> list[Table
 def _read_sheet(sheet, cached_sheet, source, context, bounds, header_rows, warnings):
     left, top, right, bottom = bounds
     location = f"XLSX sheet {sheet.title}"
+    columns, header_rows, merges = _read_header(
+        sheet, cached_sheet, source, bounds, header_rows, warnings)
+    rows = []
+    for row in sheet.iter_rows(min_row=header_rows[-1] + 1, max_row=bottom, min_col=left, max_col=right):
+        values = [_read_cell(sheet, cached_sheet, source, cell.row, cell.column, merges, warnings)
+                  for cell in row]
+        if not any(cell.text.strip() for cell in values):
+            continue
+        rows.append(Row(values, columns, context,
+                        _position(source, sheet.title, row[0].row, row[0].row, left, right)))
+    if not rows:
+        raise ValueError(f"{location}: no data records after header row {header_rows[-1]}")
+    return Table(columns, rows, context,
+                 _position(source, sheet.title, header_rows[0], rows[-1].source.row_end, left, right))
+
+
+def _read_header(sheet, cached_sheet, source, bounds, header_rows, warnings):
+    """按真实合并关系展开完整列名，拒绝空层、重名及表头/数据跨界。"""
+    left, top, right, bottom = bounds
+    location = f"XLSX sheet {sheet.title}"
     merges = _selected_merges(sheet, (left, header_rows[0] if header_rows else top, right, bottom))
     if header_rows is None:
         header_rows = next(((row[0].row,) for row in sheet.iter_rows(
@@ -131,18 +151,7 @@ def _read_sheet(sheet, cached_sheet, source, context, bounds, header_rows, warni
         columns.append(Column(name, cells[0].source, [cell.source for cell in cells]))
     if len({column.name for column in columns}) != len(columns):
         raise ValueError(f"{location}: duplicate column names at header rows {header_rows}")
-    rows = []
-    for row in sheet.iter_rows(min_row=header_rows[-1] + 1, max_row=bottom, min_col=left, max_col=right):
-        values = [_read_cell(sheet, cached_sheet, source, cell.row, cell.column, merges, warnings)
-                  for cell in row]
-        if not any(cell.text.strip() for cell in values):
-            continue
-        rows.append(Row(values, columns, context,
-                        _position(source, sheet.title, row[0].row, row[0].row, left, right)))
-    if not rows:
-        raise ValueError(f"{location}: no data records after header row {header_rows[-1]}")
-    return Table(columns, rows, context,
-                 _position(source, sheet.title, header_rows[0], rows[-1].source.row_end, left, right))
+    return columns, header_rows, merges
 
 
 def _selected_merges(sheet, bounds):
@@ -176,8 +185,8 @@ def _read_cell(sheet, cached_sheet, source, row, col, merges, warnings, *, heade
     if header:
         if covered:
             result.text = adapt_cell(anchor, cached_sheet.cell(anchor.row, anchor.column), position, warnings).text
-    elif anchor.data_type == "s" and anchor.value is not None and anchor.value.strip():
-        if covered:
+    elif anchor.data_type == "s":
+        if covered and anchor.value is not None and anchor.value.strip():
             result.text = f"{anchor.value}（合并共同标签，锚点 {position.merged_anchor}，范围 {merged}）"
     elif anchor.value is not None:
         if covered:
