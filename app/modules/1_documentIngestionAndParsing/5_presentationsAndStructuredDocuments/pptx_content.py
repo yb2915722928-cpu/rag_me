@@ -55,7 +55,7 @@ def _extract_shape(writer, shape, page, parent_path, title_id):
     elif shape.has_table:
         position.kind = "table"
         _write_table(writer, shape.table, position)
-    elif shape.has_text_frame:
+    elif shape.has_text_frame and shape.text.strip():
         position.kind = "title" if not parent_path and shape.shape_id == title_id else "text"
         if position.kind == "title":
             writer.sources.append(position)
@@ -66,6 +66,8 @@ def _extract_shape(writer, shape, page, parent_path, title_id):
             writer.review("shape_relationships_unverified", "Shape text was extracted; shape meaning, arrows and relationships were not verified.", position)
     else:
         position.kind = {
+            MSO_SHAPE_TYPE.AUTO_SHAPE: "shape",
+            MSO_SHAPE_TYPE.FREEFORM: "shape",
             MSO_SHAPE_TYPE.PICTURE: "picture",
             MSO_SHAPE_TYPE.LINKED_PICTURE: "picture",
             MSO_SHAPE_TYPE.LINE: "connector",
@@ -121,7 +123,7 @@ def _write_table(writer, table, position):
 
 
 def _markdown_text(text):
-    text = re.sub(r"([\\`*_{}\[\]<>#+.!|~-])", r"\\\1", text)
+    text = re.sub(r"([\\`*_{}\[\]<>#+.!|~&-])", r"\\\1", text)
     return text.replace("\v", "<br>").replace("\n", "<br>")
 
 

@@ -110,8 +110,52 @@ class PresentationConversionTests(unittest.TestCase):
         self.assertEqual(result.markdown, "# 第 1 页\n\n")
         self.assertTrue(any(item.code == "picture_unverified" for item in result.review_issues))
 
+    def test_empty_shapes_keep_locations_and_review_without_inventing_text_or_spans(self):
+        path = SAMPLES / "pptx_empty_shapes.pptx"
+        result = content.convert_file(path, source=path.name)
+
+        self.assertEqual(result, content.convert_bytes(path.read_bytes(), format="pptx", source=path.name))
+        self.assertTrue(result.success, result.error)
+        self.assertTrue(result.requires_review)
+        self.assertEqual(result.markdown, "# 第 1 页\n\n")
+        objects = [item for item in result.sources if item.shape_path]
+        self.assertEqual([(item.shape_path, item.shape_name) for item in objects], [
+            ((2,), "空白矩形"), ((3,), "仅空白字符的矩形"), ((4,), "空白文本框"),
+        ])
+        issues = [item for item in result.review_issues if item.source.shape_path]
+        self.assertEqual(len(issues), 3)
+        for item, issue in zip(objects, issues):
+            self.assertEqual(item, issue.source)
+            self.assertEqual(item.slide_number, 1)
+            self.assertIsNotNone(item.bounds_emu)
+            self.assertIsNone(item.markdown_start)
+            self.assertIsNone(item.markdown_end)
+            self.assertNotIn(item.kind, ("title", "text"))
+            self.assertIn("not extracted", issue.message)
+
+    def test_title_paragraph_and_notes_preserve_literal_html_entities_in_markdown_and_export(self):
+        path = SAMPLES / "pptx_entity_literals.pptx"
+        result = content.convert_file(path, source=path.name)
+
+        self.assertEqual(result, content.convert_bytes(path.read_bytes(), format="pptx", source=path.name))
+        self.assertTrue(result.success, result.error)
+        paragraphs = [item for item in result.sources if item.paragraph_number is not None]
+        self.assertEqual([item.kind for item in paragraphs], ["title_paragraph", "text", "notes_paragraph"])
+        self.assertEqual(paragraphs[0].slide_title, "AT&amp;T &lt;10000 &copy;")
+        expected = {
+            "title_paragraph": "## AT\\&amp;T \\&lt;10000 \\&copy;\n\n",
+            "text": "- AT\\&amp;T \\&lt;10000 \\&copy;\n\n",
+            "notes_paragraph": "- AT\\&amp;T \\&lt;10000 \\&copy;\n\n",
+        }
+        for item in paragraphs:
+            with self.subTest(kind=item.kind):
+                self.assertEqual(result.markdown[item.markdown_start:item.markdown_end], expected[item.kind])
+        with tempfile.TemporaryDirectory() as directory:
+            output = content.export_markdown(result, Path(directory) / "entities.md")
+            self.assertEqual(output.read_text(encoding="utf-8"), result.markdown)
+
     def test_corruption_and_no_slides_fail_atomically_without_export(self):
-        for name in ("pptx_corrupt.pptx", "pptx_empty.pptx", "pptx_atomic_failure.pptx", "pptx_atomic_shape_failure.pptx", "pptx_corrupt_compression.pptx"):
+        for name in ("pptx_corrupt.pptx", "pptx_empty.pptx", "pptx_atomic_failure.pptx", "pptx_atomic_shape_failure.pptx", "pptx_atomic_root_failure.pptx", "pptx_corrupt_compression.pptx"):
             with self.subTest(name=name):
                 path = SAMPLES / name
                 result = content.convert_bytes(path.read_bytes(), format="pptx", source=name)

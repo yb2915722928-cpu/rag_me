@@ -100,21 +100,43 @@ def build_tables():
     presentation.save(ROOT / "pptx_tables.pptx")
 
 
+def build_empty_shapes():
+    presentation = Presentation()
+    slide = presentation.slides.add_slide(presentation.slide_layouts[6])
+    empty = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(1), Inches(1), Inches(2), Inches(1))
+    empty.name = "空白矩形"
+    whitespace = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(4), Inches(1), Inches(2), Inches(1))
+    whitespace.name = "仅空白字符的矩形"
+    whitespace.text = " \t\n\v "
+    textbox(slide.shapes, 1, 3, [("", 0), (" \t ", 1)]).name = "空白文本框"
+    presentation.save(ROOT / "pptx_empty_shapes.pptx")
+
+
+def build_entity_literals():
+    presentation = Presentation()
+    slide = presentation.slides.add_slide(presentation.slide_layouts[5])
+    text = "AT&amp;T &lt;10000 &copy;"
+    slide.shapes.title.text = text
+    textbox(slide.shapes, 1, 2, [(text, 0)])
+    slide.notes_slide.notes_text_frame.text = text
+    presentation.save(ROOT / "pptx_entity_literals.pptx")
+
+
 def build_failures():
-    """保留有效前七页；压缩损坏样本只把末页 DEFLATE 块类型改为保留值。"""
-    Presentation().save(ROOT / "pptx_empty.pptx")
-    (ROOT / "pptx_corrupt.pptx").write_bytes(b"not a presentation\n")
+    """保留有效前七页；每个输出新开原包，避免 writestr 修改 ZipInfo 后污染其他案例。"""
     source = (ROOT / "pptx_refund.pptx").read_bytes()
-    with ZipFile(BytesIO(source)) as archive, ZipFile(ROOT / "pptx_atomic_failure.pptx", "w", ZIP_DEFLATED) as output:
-        for member in archive.infolist():
-            data = b"<broken" if member.filename == "ppt/slides/slide8.xml" else archive.read(member.filename)
-            output.writestr(member, data)
-    with ZipFile(BytesIO(source)) as archive, ZipFile(ROOT / "pptx_atomic_shape_failure.pptx", "w", ZIP_DEFLATED) as output:
-        for member in archive.infolist():
-            data = archive.read(member.filename)
-            if member.filename == "ppt/slides/slide8.xml":
-                data = data.replace(b'id="3"', b'id="invalid"', 1)
-            output.writestr(member, data)
+    with ZipFile(BytesIO(source)) as archive:
+        slide = archive.read("ppt/slides/slide8.xml")
+    cases = (
+        ("pptx_atomic_failure.pptx", b"<broken"),
+        ("pptx_atomic_shape_failure.pptx", slide.replace(b'id="3"', b'id="invalid"', 1)),
+        ("pptx_atomic_root_failure.pptx", slide.replace(b"<p:sld ", b"<p:wrong ", 1).replace(b"</p:sld>", b"</p:wrong>", 1)),
+    )
+    for name, replacement in cases:
+        with ZipFile(BytesIO(source)) as archive, ZipFile(ROOT / name, "w", ZIP_DEFLATED) as output:
+            for member in archive.infolist():
+                data = replacement if member.filename == "ppt/slides/slide8.xml" else archive.read(member.filename)
+                output.writestr(member, data)
     with ZipFile(BytesIO(source)) as archive:
         member = archive.getinfo("ppt/slides/slide8.xml")
         name_length, extra_length = unpack_from("<HH", source, member.header_offset + 26)
@@ -128,4 +150,8 @@ if __name__ == "__main__":
     build_refund()
     build_visual()
     build_tables()
+    build_empty_shapes()
+    build_entity_literals()
+    Presentation().save(ROOT / "pptx_empty.pptx")
+    (ROOT / "pptx_corrupt.pptx").write_bytes(b"not a presentation\n")
     build_failures()

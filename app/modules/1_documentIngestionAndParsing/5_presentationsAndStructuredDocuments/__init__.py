@@ -51,7 +51,7 @@ def _convert_content(data, source, encoding):
 
     try:
         return extract_pptx(data, source)
-    except (ValueError, OSError, BadZipFile, ZlibError, KeyError, IndexError, XMLSyntaxError, InvalidXmlError) as exc:
+    except (ValueError, OSError, BadZipFile, ZlibError, KeyError, IndexError, AttributeError, XMLSyntaxError, InvalidXmlError) as exc:
         return ConversionResult(None, source, error=f"PPTX reading failed: {exc}")
 
 
