@@ -1,6 +1,6 @@
 # PDF 与 Word 解析
 
-当前实现 Issue #9：数字 PDF 的文本层提取。文件和字节入口返回相同的本模块结果类型，不经过上传 API、格式总路由或最终切块。
+数字 PDF 使用本地文本层提取（#9），DOCX 使用原生结构（#10），纯扫描 PDF 使用 MinerU 官方 API（#11）。文件和字节入口返回相同的本模块结果类型，不依赖摄取上传服务、格式总路由或最终切块。
 
 Issue #10 的 DOCX 原生解析复用相同入口，调用示例、来源字段和计数规则见 [DOCX 说明](/C:/Users/29157/.codex/worktrees/pdf-word-docx/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/DOCX.md)。
 
@@ -27,8 +27,8 @@ print(result.warnings)
 
 ## 入口与结果
 
-- `convert_file(path, *, format=None, source=None)`：默认用扩展名确定格式、路径字符串标识来源；可显式覆盖格式和来源。
-- `convert_bytes(data, *, format, source)`：接收 `bytes`、明确格式及非空来源字符串；格式接受大小写、前置点和两端空白，例如 `.PDF`。
+- `convert_file(path, *, format=None, source=None, mineru=None)`：默认用扩展名确定格式、路径字符串标识来源；可显式覆盖格式和来源。
+- `convert_bytes(data, *, format, source, mineru=None)`：接收 `bytes`、明确格式及非空来源字符串；格式接受大小写、前置点和两端空白，例如 `.PDF`。
 - `ConversionResult`：`markdown: str | None`、`source: Source`、`sources: list[ContentSource]`、`warnings: list[str]`、`error: str | None`，以及只读 `success` 属性。
 - `Source`：文档的 `location` 和规范化 `format`。
 - `ContentSource`：`markdown_start`、`markdown_end`、`pdf_page_number`、`extraction_method`。区间按 Python 字符串索引、左闭右开；不是 UTF-8 字节偏移。页序从 1 开始，表示文件中的实际 PDF 页序，不推测印刷页码。当前处理路径是 `text_layer`。
@@ -41,7 +41,7 @@ print(result.warnings)
 
 警告会明确说明：文本可提取不等于任意标题层级、双栏或表格对应关系已经恢复。当前不实现通用版面恢复或业务事实纠错；代表样本通过不能推广为复杂 PDF 无损。
 
-无文字且含图像的页面报告需要 OCR；整份结果失败，不把已提取的部分或图片占位当成整篇正文。扫描页后续由 Issue #11 接 MinerU 官方托管 API，本切片不安装或调用本地识字引擎。无图像且无文字的页面单独报告无可用正文、不生成来源区间；整篇均无正文时失败。页面解析异常会指出实际 PDF 页序。
+无文字且含图像的纯扫描 PDF 由 Issue #11 接 MinerU 官方托管 API；无凭据时返回明确失败，不把图片引用当成正文。混合 PDF 的逐页识字与合并由 #12 接续，当前不会返回遗漏扫描页的部分成功。无图像且无文字的页面单独报告无可用正文、不生成来源区间；整篇均无正文时失败。页面解析异常会指出实际 PDF 页序。
 
 ## 复现
 
@@ -53,3 +53,7 @@ python -m unittest discover -s tests -v
 ```
 
 固定输入及摘要见[样本说明](/C:/Users/29157/.codex/worktrees/pdf-word-digital/rag-me/tests/testFile/constructed-digital-pdf.md)。测试读取真实文件，通过公开入口断言正文与来源，不替换 pypdf、不调用内部辅助函数。测试不访问网络。
+
+## 扫描 PDF
+
+Issue #11 已接通 MinerU 官方精准解析 API，公开入口新增可选 `mineru=MinerUConfig(...)`，默认从 `MINERU_API_TOKEN` 读取凭据。纯扫描 PDF 的上传、轮询、正文、页序及失败约定见 [MINERU.md](/C:/Users/29157/.codex/worktrees/pdf-word-mineru/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/MINERU.md)。混合 PDF 的逐页处理由 #12 接续。

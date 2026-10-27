@@ -6,7 +6,7 @@ from pypdf.errors import PyPdfError
 from . import ContentSource, ConversionResult, Source
 
 
-def extract_pdf(data: bytes, source: Source) -> ConversionResult:
+def extract_pdf(data: bytes, source: Source, mineru=None) -> ConversionResult:
     try:
         reader = PdfReader(BytesIO(data))
         pages = list(reader.pages)
@@ -39,6 +39,10 @@ def extract_pdf(data: bytes, source: Source) -> ConversionResult:
         markdown += text
         sources.append(ContentSource(start, len(markdown), page_number, "text_layer"))
     if ocr_pages:
+        if not sources:
+            from .mineru import extract_scanned_pdf
+
+            return extract_scanned_pdf(data, source, len(pages), ocr_pages, mineru)
         return ConversionResult(
             None, source, warnings=warnings,
             error=f"OCR required for PDF pages: {', '.join(map(str, ocr_pages))}",
