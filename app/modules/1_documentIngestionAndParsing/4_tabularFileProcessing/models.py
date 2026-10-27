@@ -18,6 +18,10 @@ class SourcePosition:
     column_end: int
     line_start: int | None = None
     line_end: int | None = None
+    sheet: str | None = None
+    coordinate: str | None = None
+    merged_anchor: str | None = None
+    merged_range: str | None = None
 
 
 @dataclass
@@ -26,6 +30,19 @@ class TableContext:
     version: str | None = None
     applicability: str | None = None
     notes: str | None = None
+
+
+@dataclass
+class XlsxSheetOptions:
+    sheet: str
+    cell_range: str | None = None
+    header_rows: tuple[int, ...] | None = None
+    context: TableContext | None = None
+
+
+@dataclass
+class XlsxOptions:
+    sheets: tuple[XlsxSheetOptions, ...] | None = None
 
 
 @dataclass
@@ -39,6 +56,11 @@ class Cell:
     raw_value: object
     text: str
     source: SourcePosition
+    data_type: str | None = None
+    number_format: str | None = None
+    formula: str | None = None
+    cached_value: object = None
+    cache_status: str | None = None
 
 
 @dataclass

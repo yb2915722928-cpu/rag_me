@@ -4,6 +4,12 @@ from .models import SourcePosition, Table, TableContext
 
 
 def render_source(position: SourcePosition) -> str:
+    if position.sheet is not None:
+        return (
+            f"来源：{position.source.location}；工作表：{position.sheet}；"
+            f"区域：{position.coordinate}；行 {position.row_start}–{position.row_end}；"
+            f"列 {position.column_start}–{position.column_end}"
+        )
     return (
         f"来源：{position.source.location}；记录 {position.row_start}–{position.row_end}；"
         f"字段 {position.column_start}–{position.column_end}；"
