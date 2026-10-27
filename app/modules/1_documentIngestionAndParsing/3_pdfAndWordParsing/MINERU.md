@@ -1,6 +1,6 @@
-# 纯扫描 PDF：MinerU 官方精准解析 API
+# 扫描与混合 PDF：MinerU 官方精准解析 API
 
-Issue #11 使用[现行官方云 API](https://mineru.net/apiManage/docs)。数字 PDF 继续本地文本层；DOCX 使用原生结构。本切片只处理纯扫描 PDF，数字/扫描混合文档的逐页派发和合并由 #12 完成。
+Issue #11 使用[官方云 API](https://mineru.net/apiManage/docs)，Issue #12 复用同一客户端处理混合 PDF。数字页继续本地文本层，扫描页复制为一份选页 PDF 上传；DOCX 使用原生结构。没有新增 provider、本机 OCR 或其他上传服务。
 
 ## 公开调用
 
@@ -28,6 +28,8 @@ same = parsing.convert_bytes(pdf_bytes, format="pdf", source="scan.pdf", mineru=
 3. 上传后自动创建任务，不再二次提交。按 batch_id GET `/api/v4/extract-results/batch/{batch_id}`，识别 waiting-file/pending/running/converting/done/failed。
 4. done 后下载 ZIP，在内存读取真实 `*_content_list.json` 或 `content_list.json`。不按上传文件名构造云端随机前缀，不误读 `*_content_list_v2.json`，不依赖最新开源 4.0 自托管产物格式。
 
+混合 PDF 在上述流程前只复制需要识字的原页，保持页面内容流、图像及页面尺寸；全页均需识字时仍上传原始字节。上传文件的 API `page_idx` 按选页后的零基顺序解释，例如原第 2、4 页对应 API 0、1。正文来源、漏页、无凭据、服务失败及表格损失诊断均使用原 PDF 页序；批次失败无法进一步定位单页时列出本批原页，不猜测失败页。两条路径的正文按原 PDF 页序合并，每页仅有一个来源区间，数字页不会重复上传或追加 OCR 正文。
+
 管理 API 仅使用 Authorization Bearer 认证，不使用旧 pro 文档的额外 token 用户头。当前官方单文件限制为 200 MB、200 页；本地上传接口章节写每批 50 个文件，页面总览仍写 200，本切片只上传一个文件。超额及格式错误通过业务状态码返回独立诊断，不增加自动分片或后台服务。
 
 HTTP 失败、业务 code 非零、远端 failed、未知状态、等待超时、非法响应、损坏 ZIP、缺少旧版内容列表、非法 page_idx、缺失正文页均返回明确诊断。返回错误会去除当前凭据及 URL；不记录请求头或签名地址。没有自动重提任务或本地 OCR 回退。
@@ -44,6 +46,7 @@ HTTP 失败、业务 code 非零、远端 failed、未知状态、等待超时�
 
 ```powershell
 python -m unittest tests.test_pdf_word_mineru -v
+python -m unittest tests.test_pdf_word_mixed -v
 python -m unittest discover -s tests -v
 ```
 
@@ -56,10 +59,22 @@ $env:MINERU_LIVE_TEST='1'
 python -m unittest tests.test_pdf_word_mineru_live -v
 ```
 
+单独复测混合 PDF（不重复 #11 的独立扫描验收）：
+
+```powershell
+$env:MINERU_MIXED_LIVE_TEST='1'
+$env:MINERU_MIXED_LIVE_EVIDENCE='tests/testFile/mineru_live_mixed.json'
+python -m unittest tests.test_pdf_word_mixed_live -v
+```
+
+该测试只通过公开文件入口执行一次真实任务，记录原始结果与输入摘要，检查四页的独立事实、顺序、来源区间及 API 0、1 → 原页 2、4 的映射。两个公开入口的等价性及实际上传内容由默认本地 HTTP 测试共同验证。
+
 不要在聊天、命令输出或提交中展示 Token。`MINERU_LIVE_EVIDENCE` 可指定脱敏结果 JSON 的输出位置；不设置时不写文件。实时运行会提交实际解析任务，仅在明确需要复测时启用。
 
 ## 2026-10-27 已完成的真实验收
 
 通过公开 convert_file 运行两页扫描表格教学 PDF：约 25.847 秒，完整保留断电说明、Do not service while power is on、30 days、60 C、Pump—Monthly、Valve—Quarterly，表格仍在说明与 Restart 段落之间。来源为实际第 1、2 页，没有使用印刷页码 41、7。首个标题返回二级 Markdown 标题，第二页标题未返回层级；不将标题文字存在等同于任意标题层级恢复。
 
-输入摘要、生成方法、red→green 记录和脱敏真实结果见[扫描样本说明](/C:/Users/29157/.codex/worktrees/pdf-word-mineru/rag-me/tests/testFile/constructed-scanned-pdf.md)。原历史扫描教学样本曾在本地 OCR 漏字；真实 MinerU 研究探针完整恢复两条规则，该记录保留为历史对照，不改写旧失败观察。探针成功与本次公开入口成功分别记录。
+输入摘要、生成方法、red→green 记录和脱敏真实结果见[扫描样本说明](/C:/Users/29157/.codex/worktrees/pdf-word-mixed/rag-me/tests/testFile/constructed-scanned-pdf.md)。原历史扫描教学样本曾在本地 OCR 漏字；真实 MinerU 研究探针完整恢复两条规则，该记录保留为历史对照，不改写旧失败观察。探针成功与本次公开入口成功分别记录。
+
+混合样本经公开文件入口处理耗时 9.570 秒：数字原第 1 页资产编号 PUMP-A17、第 3 页扭矩 12 Nm 逐字保留；两页扫描正文落在原第 2、4 页，断电、不得带电维护、30 days、60 C 和两组表格对应关系通过。正文中印刷页码 90、41、12、7 没有被当成来源页序。扫描首页标题实际为二级标题，另一扫描页只返回标题文字，仍不承诺统一标题层级。详见[混合固定样本与真实记录](/C:/Users/29157/.codex/worktrees/pdf-word-mixed/rag-me/tests/testFile/constructed-mixed-pdf.md)。文本非空不足以证明文字正确或结构完整，混合合并也不会修补上游 OCR 或版面损失；不代表完整 RAG 链路通过。

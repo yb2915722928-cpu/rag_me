@@ -22,7 +22,8 @@ HISTORY = [
 
 
 @contextmanager
-def mineru_server(blocks=HISTORY, input_name="pdf_scanned_teaching.pdf", failure=None):
+def mineru_server(blocks=HISTORY, input_name="pdf_scanned_teaching.pdf", failure=None,
+                  inspect_upload=None):
     pdf = (SAMPLES / input_name).read_bytes()
     archive = BytesIO()
     with ZipFile(archive, "w") as zipped:
@@ -57,6 +58,7 @@ def mineru_server(blocks=HISTORY, input_name="pdf_scanned_teaching.pdf", failure
                 return self.reply({"code": 0, "data": {"batch_id": "test-batch"}})
             if (self.path != "/api/v4/file-urls/batch"
                     or self.headers.get("Authorization") != "Bearer test-token"
+                    or len(data["files"]) != 1
                     or data["model_version"] != "vlm"
                     or not data["files"][0]["is_ocr"]):
                 return self.reply({"code": -1, "msg": "invalid apply request"}, 400)
@@ -69,7 +71,8 @@ def mineru_server(blocks=HISTORY, input_name="pdf_scanned_teaching.pdf", failure
             data = self.rfile.read(int(self.headers["Content-Length"]))
             if failure == "upload-http":
                 return self.reply(b"unavailable", 503)
-            if (self.path != "/signed-upload" or data != pdf
+            valid_pdf = inspect_upload(data) if inspect_upload else data == pdf
+            if (self.path != "/signed-upload" or not valid_pdf
                     or self.headers.get("Authorization")
                     or self.headers.get("Content-Type")):
                 return self.reply(b"invalid raw upload", 400)

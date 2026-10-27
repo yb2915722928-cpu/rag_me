@@ -2,6 +2,8 @@
 
 RAG 项目。目前实现的文本与网页类内容模块将本地 TXT、Markdown、JSON、静态 HTML 和 MHTML 转为整篇 Markdown，并支持 UTF-8 导出。
 
+[PDF 与 Word 模块](/C:/Users/29157/.codex/worktrees/pdf-word-mixed/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/README.md)支持数字 PDF 文本层、DOCX 原生结构和 MinerU 扫描识字；混合 PDF 仅上传需要识字的原页，按原始页序合并正文与来源。扫描路径需要调用方配置 MinerU Token，默认测试通过本地 HTTP 系统边界验证，真实 API 验收须显式启用。
+
 ## 安装与验证
 
 使用 Python 3.11 或更新版本：
