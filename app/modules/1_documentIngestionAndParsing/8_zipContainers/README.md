@@ -1,6 +1,8 @@
 # ZIP 容器
 
-#40 实现逐成员受限读取，直接复用轻量 TXT/Markdown、JSON/XML、CSV 的真实解析入口；返回整包摘要和逐成员原生结果，不拼接全包正文。文档、图片、音视频的默认 API 由 #41–#43 独立接入；本工单没有云端开关，也不会以现有本地文档解析替代尚未接通的 API。
+逐成员受限读取 ZIP，返回整包摘要和逐成员原生结果，不拼接全包正文。TXT/Markdown、JSON/XML、CSV 复用轻量本地解析；PDF（含数字 PDF）、DOCX、PPTX、XLSX、HTML/MHTML 默认使用 MinerU，图片和音视频默认使用阶跃 API。没有云端启用开关，API 缺配置或失败不自动回退本地重解析。
+
+各类参数、来源语义及真实验收入口分别见[文档 API](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/DOCUMENTS.md)、[图片 API](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/IMAGES.md)和[音视频 API](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/MEDIA.md)。使用运行时 MINERU_API_TOKEN、STEP_API_KEY、STEP_BASE_URL、STEP_MODEL；可选 STEP_ASR_MODEL 沿用既有默认值。核心和 CLI 不自动载入环境文件。
 
 公开入口见 [convert_file / convert_bytes](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/__init__.py)，预算和结果见 [models.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/models.py)。Python 需要 3.11 或以上，依赖沿用仓库现有安装流程。
 
@@ -58,7 +60,7 @@ payload = report.to_dict()
 
 CRC 失败的读取调用不会返回当前块，预算按本次请求与剩余声明范围保守计费。预算限制容器持有的展开输入，不能声称限制标准库解压器、子格式解码或媒体准备的所有内存。截止在成员与读取块间检查，不能强制打断运行中的解析器/API；外部请求仍采用自己的超时。
 
-后续远端结果 ZIP 也必须受调用方同一个 `ZipLimits` 约束，分派会独立传递该对象。这里不引入批处理、重试、任务队列或沙箱。
+远端结果 ZIP 同样受调用方 `ZipLimits` 约束，分派独立传递该对象。每个结果包分别执行下载、成员数、单成员与累计展开量限制，不混入输入容器的 total_bytes_read。这里不引入批处理、自动重试、任务队列或沙箱。
 
 ## CLI
 
@@ -74,12 +76,12 @@ stdout 是 UTF-8 JSON，包含计算得到的整包/原生成功与待核验属�
 
 可以指定 `--source`、`--max-archive-bytes`、`--max-members`、`--max-member-bytes`、`--max-total-bytes`、`--timeout-seconds`；`--parser-options` 只接收按类别组织的 JSON。CLI 不自动加载环境文件，也不把配置写进报告。
 
-## 接入后续处理器
+## 格式分派
 
-[dispatch.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/dispatch.py) 的 `convert_member(data, *, format, source, parser_options, limits)` 是简单分支接入点，返回 `(result_kind, 原生结果)`。后续独立适配文件接收本类别选项，文档适配器额外接收同一个 `limits`。不需要注册系统、通用插件接口或跨业务模块重构。
+[dispatch.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/dispatch.py) 的 `convert_member(data, *, format, source, parser_options, limits)` 通过明确分支返回 `(result_kind, 原生结果)`。各独立适配文件接收本类别选项，文档适配器额外接收同一个 `limits`。不使用注册系统、通用插件接口或跨业务模块重构。
 
 原生结果以自己的 `success` 判断，包括正常空文字；待核验不会改成失败，异常只隔离到对应成员。API 缺配置或调用失败必须明确失败，不能回退到本地重解析。
 
 ## 验证
 
-固定样本与构造方法见 [zip_samples.md](/E:/aaa-project/rag-me/tests/testFile/zip_samples.md)，阶段 red → green 和实际命令见 [IMPLEMENTATION.md](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/IMPLEMENTATION.md)。测试通过公开文件/字节入口调用真实子解析器，CLI 使用真实子进程，只有截止测试控制系统时钟。本工单不运行真实收费 API。
+基础固定样本与构造方法见 [zip_samples.md](/E:/aaa-project/rag-me/tests/testFile/zip_samples.md)，基础 red → green 和命令见 [IMPLEMENTATION.md](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/IMPLEMENTATION.md)。默认测试通过公开文件/字节入口运行真实本地解析或本地 HTTP 协议服务，CLI 使用真实子进程；显式真实 API 验收与默认协议回归分别记录，不把可控响应当作识别质量证据。
