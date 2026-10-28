@@ -55,7 +55,7 @@ def build():
         "method": "清晰图含两条连续折线及向下箭头；模糊图对 y=[350,640) 连线带高斯模糊；截断图只保留 y=[0,350)。",
         "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。",
         "samples": samples,
-    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 if __name__ == "__main__":
