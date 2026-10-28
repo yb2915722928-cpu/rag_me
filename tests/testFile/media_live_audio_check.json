@@ -1,0 +1,61 @@
+{
+  "checked_at": "2026-10-28T06:12:09.389993+00:00",
+  "records": [
+    {
+      "case": "audio",
+      "sample": "media_rules.wav",
+      "seconds": 7.263,
+      "result": {
+        "text": "[0.000–15.024 秒 · 语音转写]\n企业订单超过一万元，按右侧分支处理。是不是所有订单都要负责人审批？不是，其他由财务审批。未经批准不得付款。",
+        "source": {
+          "location": "E:\\aaa-project\\rag-me\\tests\\testFile\\media_rules.wav",
+          "format": "wav",
+          "sha256": "507eae5363f417b7e510c9452e69c344c0dbd6af235310c5687eb53ec541d1ad",
+          "media_type": "audio",
+          "duration_seconds": 15.024263,
+          "media_id": null,
+          "media_version": null,
+          "audio_stream_index": 0
+        },
+        "task": "transcribe",
+        "status": "content",
+        "question": null,
+        "segments": [
+          {
+            "kind": "audio",
+            "start_seconds": 0.0,
+            "end_seconds": 15.02425,
+            "text": "企业订单超过一万元，按右侧分支处理。是不是所有订单都要负责人审批？不是，其他由财务审批。未经批准不得付款。",
+            "status": "content",
+            "requested_model": "stepaudio-2.5-asr",
+            "response_model": null,
+            "prompt_version": null,
+            "speaker": null,
+            "time_precision": "segment",
+            "review_notes": []
+          }
+        ],
+        "review_issues": [
+          "媒体派生文字尚待对照同一版本原音视频核验。",
+          "时间仅定位实际处理片段，不是逐句或逐词时间。"
+        ],
+        "warnings": [
+          "同步 ASR 不提供说话人区分；speaker 保持未知。"
+        ],
+        "error": null
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "original_identity": true,
+        "amount_condition": true,
+        "question_context": true,
+        "negation_and_other_branch": true,
+        "payment_denial": true,
+        "unknown_speakers": true
+      },
+      "quality_passed": true
+    }
+  ],
+  "limitation": "合成中文语音及固定短视频的定向验收，需对照原媒体核验，不代表任意音视频均准确。片段级时间，无自动说话人区分。"
+}

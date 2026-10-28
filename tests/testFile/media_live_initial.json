@@ -1,0 +1,117 @@
+{
+  "checked_at": "2026-10-28T06:08:36.124614+00:00",
+  "records": [
+    {
+      "case": "audio",
+      "sample": "media_rules.wav",
+      "seconds": 1.43,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "E:\\aaa-project\\rag-me\\tests\\testFile\\media_rules.wav",
+          "format": "wav",
+          "sha256": "507eae5363f417b7e510c9452e69c344c0dbd6af235310c5687eb53ec541d1ad",
+          "media_type": "audio",
+          "duration_seconds": 15.024263,
+          "media_id": null,
+          "media_version": null,
+          "audio_stream_index": 0
+        },
+        "task": "transcribe",
+        "status": "failed",
+        "question": null,
+        "segments": [],
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "stage": "audio",
+          "start_seconds": 0.0,
+          "http_status": null
+        }
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false,
+        "original_identity": true
+      },
+      "quality_passed": false
+    },
+    {
+      "case": "both",
+      "sample": "media_rules.mp4",
+      "seconds": 7.895,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "E:\\aaa-project\\rag-me\\tests\\testFile\\media_rules.mp4",
+          "format": "mp4",
+          "sha256": "c54cbbc7b370fec4a656184987e45fec784fe4f46190c396681e2657f13d4d78",
+          "media_type": "video",
+          "duration_seconds": 15.023991,
+          "media_id": null,
+          "media_version": null,
+          "audio_stream_index": 1
+        },
+        "task": "both",
+        "status": "failed",
+        "question": "请根据视频中的条件与箭头，分别说明两个分支由谁审批；依据不足时明确说明无法确认的关系及原因。",
+        "segments": [],
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "stage": "video",
+          "start_seconds": 0.0,
+          "http_status": null
+        }
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false,
+        "original_identity": true
+      },
+      "quality_passed": false
+    },
+    {
+      "case": "uncertain",
+      "sample": "media_uncertain.mp4",
+      "seconds": 0.369,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "E:\\aaa-project\\rag-me\\tests\\testFile\\media_uncertain.mp4",
+          "format": "mp4",
+          "sha256": "e2017ce5965603a60ac597dacb67fdbf988303e809a5403ee91f323defe5f367",
+          "media_type": "video",
+          "duration_seconds": 4.0,
+          "media_id": null,
+          "media_version": null,
+          "audio_stream_index": null
+        },
+        "task": "video",
+        "status": "failed",
+        "question": "请根据视频中的条件与箭头，分别说明两个分支由谁审批；依据不足时明确说明无法确认的关系及原因。",
+        "segments": [],
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "stage": "video",
+          "start_seconds": 0.0,
+          "http_status": null
+        }
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false,
+        "original_identity": true
+      },
+      "quality_passed": false
+    }
+  ],
+  "limitation": "合成中文语音及固定短视频的定向验收，需对照原媒体核验，不代表任意音视频均准确。片段级时间，无自动说话人区分。"
+}
