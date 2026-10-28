@@ -1,0 +1,24 @@
+{
+  "text": null,
+  "source": {
+    "location": "image_ocr_rules.png",
+    "format": "png",
+    "sha256": "08e1cd1de64b6516cd00a1b0d67b4e5fd0f51975fe76f16da534ecaee0598206",
+    "width": 1100,
+    "height": 340
+  },
+  "task": "ocr",
+  "status": "failed",
+  "requested_model": "step-5-preview",
+  "response_model": null,
+  "prompt_version": "ocr-v1",
+  "review_issues": [],
+  "warnings": [],
+  "error": {
+    "code": "network_error",
+    "message": "StepFun connection failed or timed out",
+    "http_status": null
+  },
+  "success": false,
+  "requires_review": false
+}

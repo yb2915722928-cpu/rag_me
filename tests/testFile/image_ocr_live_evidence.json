@@ -1,0 +1,182 @@
+{
+  "checked_at": "2026-10-28T02:49:46.906656+00:00",
+  "environment_file": "E:\\aaa-project\\rag-me\\.env",
+  "records": [
+    {
+      "sample": "image_ocr_rules.png",
+      "seconds": 0.326,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "image_ocr_rules.png",
+          "format": "png",
+          "sha256": "08e1cd1de64b6516cd00a1b0d67b4e5fd0f51975fe76f16da534ecaee0598206",
+          "width": 1100,
+          "height": 340
+        },
+        "task": "ocr",
+        "status": "failed",
+        "requested_model": "step-5-preview",
+        "response_model": null,
+        "prompt_version": "ocr-v1",
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "http_status": null
+        }
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false
+      },
+      "quality_passed": false
+    },
+    {
+      "sample": "image_ocr_rules.jpg",
+      "seconds": 9.687,
+      "result": {
+        "text": "金额超过 1 万元时，须负责人审批。\n其他情况由财务审批。\n未经批准不得付款。\n温度不得超过 60 °C；每 30 天检查一次。",
+        "source": {
+          "location": "image_ocr_rules.jpg",
+          "format": "jpeg",
+          "sha256": "7c196d0fd8c21bcb745aa04c020c87efe68ed094da97b1857efa8b414895be59",
+          "width": 1100,
+          "height": 340
+        },
+        "task": "ocr",
+        "status": "content",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "ocr-v1",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          }
+        ],
+        "warnings": [],
+        "error": null
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "金额超过1万元时须负责人审批": true,
+        "其他情况由财务审批": true,
+        "未经批准不得付款": true,
+        "温度不得超过60c": true,
+        "每30天检查一次": true
+      },
+      "quality_passed": true
+    },
+    {
+      "sample": "image_ocr_rules.webp",
+      "seconds": 5.293,
+      "result": {
+        "text": "金额超过 1 万元时，须负责人审批。\n其他情况由财务审批。\n未经批准不得付款。\n温度不得超过 60 °C；每 30 天检查一次。",
+        "source": {
+          "location": "image_ocr_rules.webp",
+          "format": "webp",
+          "sha256": "15b0b88968043707cd5b2824224c4f666dc00c4a99c1d18b50131a9cd9eeec36",
+          "width": 1100,
+          "height": 340
+        },
+        "task": "ocr",
+        "status": "content",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "ocr-v1",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          }
+        ],
+        "warnings": [],
+        "error": null
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "金额超过1万元时须负责人审批": true,
+        "其他情况由财务审批": true,
+        "未经批准不得付款": true,
+        "温度不得超过60c": true,
+        "每30天检查一次": true
+      },
+      "quality_passed": true
+    },
+    {
+      "sample": "image_ocr_blank.png",
+      "seconds": 6.611,
+      "result": {
+        "text": "",
+        "source": {
+          "location": "image_ocr_blank.png",
+          "format": "png",
+          "sha256": "4a1483d14bef0ac574d2b29a8bc63d5763e4886e5a08b17192bd6c96c262ef7d",
+          "width": 320,
+          "height": 240
+        },
+        "task": "ocr",
+        "status": "no_text",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "ocr-v1",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          },
+          {
+            "code": "model_uncertainty",
+            "message": "Image appears blank/white; no discernible text."
+          }
+        ],
+        "warnings": [
+          "本次未取得可用文字，不证明图片没有文字。"
+        ],
+        "error": null
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "normal_empty": true
+      },
+      "quality_passed": true
+    },
+    {
+      "sample": "image_ocr_stepfun_clear.png",
+      "seconds": 0.249,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "image_ocr_stepfun_clear.png",
+          "format": "png",
+          "sha256": "8d2b557a7f88abdc7bacbacf16b5e6e458eff78f5485ca5a23c7dab15a9e0d15",
+          "width": 600,
+          "height": 400
+        },
+        "task": "ocr",
+        "status": "failed",
+        "requested_model": "step-5-preview",
+        "response_model": null,
+        "prompt_version": "ocr-v1",
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "http_status": null
+        }
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false
+      },
+      "quality_passed": false
+    }
+  ],
+  "limitation": "仅验证固定样本；成功不代表任意图片的条件、否定和单位均正确，仍需核验。"
+}
