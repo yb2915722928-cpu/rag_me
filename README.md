@@ -143,3 +143,24 @@ else:
 [音视频模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/README.md)通过文件、字节或命令行处理本地音视频，可选择语音转写、视频画面理解或两者。模型计算使用阶跃 API，本机仅运行 FFmpeg/FFprobe 做媒体准备，默认逐片串行处理。
 
 结果区分语音原话与画面派生文字，保留原媒体版本、真实片段范围和待核验状态；时间为片段级定位，说话人保持未知。本模块提供后续 RAG 的媒体表示，不包含上传、存储、索引和完整问答。
+
+## ZIP 容器
+
+[ZIP 模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/README.md)通过文件、字节或命令行逐成员处理资料包，返回整包摘要、成员来源和独立解析结果。一个成员失败时保留其他成员结果并报告部分成功；目录和系统元数据单独计为忽略项，不拼成一篇 Markdown。
+
+```python
+from importlib import import_module
+
+containers = import_module(
+    "app.modules.1_documentIngestionAndParsing.8_zipContainers"
+)
+result = containers.convert_file(
+    "资料包.zip",
+    parser_options={"image": {"task": "ocr"}, "media": {"task": "transcribe"}},
+)
+print(result.to_dict())
+```
+
+面向低配置服务器，PDF（含数字 PDF）、DOCX、PPTX、XLSX 和 HTML 默认走 MinerU API，MHTML 轻量选择主 HTML 部分后提交。图片和音视频沿用阶跃 API；ZIP、TXT/Markdown、JSON/XML/CSV 及现有媒体准备在本地完成。按[配置示例](/E:/aaa-project/rag-me/.env.example)提供 MINERU_API_TOKEN 和 STEP 配置，核心入口只使用运行时环境或显式配置，不自行加载环境文件。API 缺配置或失败明确报告，不自动回退本地重解析。
+
+成员数量、压缩大小、单成员和累计展开量及协作式截止均有限制；首版不递归内嵌 ZIP、不解密密码包、不按成员原路径解压。API 返回的来源粒度与本地解析器可能不同，缺少的原生单元格或对象位置如实说明。语义关系和生成内容仍需核验，API 成功不等于内容质量通过。
