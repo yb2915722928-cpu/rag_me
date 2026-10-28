@@ -1,0 +1,159 @@
+{
+  "builder": "zip_image_build_samples.py",
+  "source": "Reuse repository-authored fixed images; original builders and facts remain in image_* manifests.",
+  "archives": [
+    {
+      "archive": "zip_image_formats.zip",
+      "sha256": "d27353864162254ee6b5f265de1ad709a3676a9b73df551e935798ebad18cb91",
+      "members": [
+        {
+          "member_path": "before.txt",
+          "entry_index": 1,
+          "source_sample": null,
+          "bytes": 11,
+          "sha256": "8ac9d6e778bb8be6647517d6fd6fd3ba034782b128dd3bbc2ee48a613c260501"
+        },
+        {
+          "member_path": "图片/rules.png",
+          "entry_index": 2,
+          "source_sample": "image_ocr_rules.png",
+          "bytes": 44011,
+          "sha256": "08e1cd1de64b6516cd00a1b0d67b4e5fd0f51975fe76f16da534ecaee0598206"
+        },
+        {
+          "member_path": "图片/rules.jpg",
+          "entry_index": 3,
+          "source_sample": "image_ocr_rules.jpg",
+          "bytes": 69334,
+          "sha256": "7c196d0fd8c21bcb745aa04c020c87efe68ed094da97b1857efa8b414895be59"
+        },
+        {
+          "member_path": "图片/rules.jpeg",
+          "entry_index": 4,
+          "source_sample": "image_ocr_rules.jpg",
+          "bytes": 69334,
+          "sha256": "7c196d0fd8c21bcb745aa04c020c87efe68ed094da97b1857efa8b414895be59"
+        },
+        {
+          "member_path": "图片/rules.webp",
+          "entry_index": 5,
+          "source_sample": "image_ocr_rules.webp",
+          "bytes": 14168,
+          "sha256": "15b0b88968043707cd5b2824224c4f666dc00c4a99c1d18b50131a9cd9eeec36"
+        },
+        {
+          "member_path": "after.txt",
+          "entry_index": 6,
+          "source_sample": null,
+          "bytes": 10,
+          "sha256": "6160e4660363766fb8bf959388939ae2db219df6ebb9abe09677d195f224485e"
+        }
+      ]
+    },
+    {
+      "archive": "zip_image_ocr.zip",
+      "sha256": "63ed1a1989cd58467dfbee317a55a0b430bd521cefd05e3ee0b2dfd148c9fecd",
+      "members": [
+        {
+          "member_path": "rules.png",
+          "entry_index": 1,
+          "source_sample": "image_ocr_rules.png",
+          "bytes": 44011,
+          "sha256": "08e1cd1de64b6516cd00a1b0d67b4e5fd0f51975fe76f16da534ecaee0598206"
+        }
+      ]
+    },
+    {
+      "archive": "zip_image_describe.zip",
+      "sha256": "be65f3a8b897bc374c74b03beda9ac824d6561dd481cd8f54a05595aa68cebd5",
+      "members": [
+        {
+          "member_path": "camping.webp",
+          "entry_index": 1,
+          "source_sample": "image_description_camping.webp",
+          "bytes": 4310,
+          "sha256": "f93f54b9f7bcbba9f0e7d8f2f013ecc7263bf81d0bbfa22b10d5b3ebd700fbdb"
+        }
+      ]
+    },
+    {
+      "archive": "zip_image_understand.zip",
+      "sha256": "41733b2305bef6cb6393ca2db9d89b16670f2d66b085086fb8d85b65d6a4a23c",
+      "members": [
+        {
+          "member_path": "approval.png",
+          "entry_index": 1,
+          "source_sample": "image_understanding_clear.png",
+          "bytes": 31196,
+          "sha256": "a9e36b411a144ff50a935be51ebdd4294a053380b5e5dcbac18132e6f2787e01"
+        }
+      ]
+    },
+    {
+      "archive": "zip_image_uncertain.zip",
+      "sha256": "7760c21f728babcf50fb017666b68d747832c505b1c8528710b4239452f04dcf",
+      "members": [
+        {
+          "member_path": "approval.png",
+          "entry_index": 1,
+          "source_sample": "image_understanding_truncated.png",
+          "bytes": 20049,
+          "sha256": "254d3d1bca560c6f2164f70ff8078df2e3394a6900dd5f2669666c348f6b0cd6"
+        }
+      ]
+    },
+    {
+      "archive": "zip_image_blank.zip",
+      "sha256": "7a8443f4f30c9a20b975c7b30e8e77ea4d9348ddae9ad8060611901712e2b526",
+      "members": [
+        {
+          "member_path": "blank.png",
+          "entry_index": 1,
+          "source_sample": "image_ocr_blank.png",
+          "bytes": 778,
+          "sha256": "4a1483d14bef0ac574d2b29a8bc63d5763e4886e5a08b17192bd6c96c262ef7d"
+        }
+      ]
+    },
+    {
+      "archive": "zip_image_crop.zip",
+      "sha256": "33aef942eae5f00372544427e27e4d9e681e3c042a42a03e5d98ee718d39dad4",
+      "members": [
+        {
+          "member_path": "crop.png",
+          "entry_index": 1,
+          "source_sample": "image_provenance_crop.png",
+          "bytes": 23728,
+          "sha256": "736abe346736fe62951854cc84dc28708fad0725574b18661cea83020ec80c73"
+        }
+      ]
+    },
+    {
+      "archive": "zip_image_corrupt.zip",
+      "sha256": "cac35b62dd6b17fb22a29fabec83ed3a8d7cb9875068755be7089eaaa65c50f2",
+      "members": [
+        {
+          "member_path": "before.txt",
+          "entry_index": 1,
+          "source_sample": null,
+          "bytes": 11,
+          "sha256": "8ac9d6e778bb8be6647517d6fd6fd3ba034782b128dd3bbc2ee48a613c260501"
+        },
+        {
+          "member_path": "broken.png",
+          "entry_index": 2,
+          "source_sample": "image_ocr_corrupt.png",
+          "bytes": 120,
+          "sha256": "9038ae062ac8f14bf62dc84b375c3fd80772ecf46537e1f162541814436d3d25"
+        },
+        {
+          "member_path": "after.txt",
+          "entry_index": 3,
+          "source_sample": null,
+          "bytes": 10,
+          "sha256": "6160e4660363766fb8bf959388939ae2db219df6ebb9abe09677d195f224485e"
+        }
+      ]
+    }
+  ]
+}

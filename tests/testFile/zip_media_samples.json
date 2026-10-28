@@ -1,0 +1,188 @@
+{
+  "builder": "zip_media_build_samples.py",
+  "source": "复用本仓库固定原创媒体；成员字节与既有媒体样本相同，未调用 API。",
+  "limitation": "协议响应不证明识别质量；live 使用合成中文语音及审批图示短视频。",
+  "archives": [
+    {
+      "filename": "zip_media_audio.zip",
+      "bytes": 893988,
+      "sha256": "d018a72209a7ed9a41aa583b5ea24c1244cf5d61df74c88ea5488b647060605d",
+      "members": [
+        {
+          "member_path": "音频/规则.wav",
+          "original": "media_rules.wav",
+          "bytes": 662616,
+          "sha256": "507eae5363f417b7e510c9452e69c344c0dbd6af235310c5687eb53ec541d1ad"
+        },
+        {
+          "member_path": "音频/规则.mp3",
+          "original": "media_rules.mp3",
+          "bytes": 60622,
+          "sha256": "ad2ac4d069b746a84083df3ba802ccbfc841ffb2e538500fe61e20d6f58d6c60"
+        },
+        {
+          "member_path": "音频/规则.m4a",
+          "original": "media_rules.m4a",
+          "bytes": 116378,
+          "sha256": "1d6f01426b250908954eb67a9640231a1bba48ef7e9ec28921458b6068671b76"
+        },
+        {
+          "member_path": "音频/规则.ogg",
+          "original": "media_rules.ogg",
+          "bytes": 67028,
+          "sha256": "e2f014d378ac68ca7ec6a9b186cf23258e9c31b50850e3f44cff303e0f9652fd"
+        },
+        {
+          "member_path": "音频/规则.flac",
+          "original": "media_rules.flac",
+          "bytes": 258374,
+          "sha256": "f6c6692f295a1ae16f0089c1f1e6c27936b927f40df12a01805417bc3187ceeb"
+        },
+        {
+          "member_path": "说明.txt",
+          "original": null,
+          "bytes": 33,
+          "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+        }
+      ]
+    },
+    {
+      "filename": "zip_media_video.zip",
+      "bytes": 6749,
+      "sha256": "302017ae5cf1b148ebc3ebd5f1777230a35477d0a03fb573bebe5bca58854318",
+      "members": [
+        {
+          "member_path": "画面/时间线.mp4",
+          "original": "media_timeline.mp4",
+          "bytes": 3716,
+          "sha256": "163715c1212d229a356102cacf046d9b2b5e29b5bc171d1460992a6a026cfde3"
+        },
+        {
+          "member_path": "画面/时间线.mov",
+          "original": "media_timeline.mov",
+          "bytes": 3663,
+          "sha256": "fe3dd60654ef428b694bb0c155f3566348a1cfa23e47998835e0215c3b25cd0e"
+        },
+        {
+          "member_path": "画面/时间线.mkv",
+          "original": "media_timeline.mkv",
+          "bytes": 3415,
+          "sha256": "83495cd2de4166243cf013a6a43f535ca37036b2bdaa1e5fb7c1dc80bb8d0e39"
+        },
+        {
+          "member_path": "说明.txt",
+          "original": null,
+          "bytes": 33,
+          "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+        }
+      ]
+    },
+    {
+      "filename": "zip_media_delayed.zip",
+      "bytes": 2014,
+      "sha256": "71716797f44ac85a4397b761486fd63b5e750a45561f94862bdd59900c33aa11",
+      "members": [
+        {
+          "member_path": "片段/延迟.mp4",
+          "original": "video_extra_delayed.mp4",
+          "bytes": 4989,
+          "sha256": "1690dcf6a6910eb3e7f6501a6ac06f97adf2340a309ceaa86084949071821d7c"
+        },
+        {
+          "member_path": "说明.txt",
+          "original": null,
+          "bytes": 33,
+          "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+        }
+      ]
+    },
+    {
+      "filename": "zip_media_failures.zip",
+      "bytes": 3365,
+      "sha256": "9c8734a83a07ff2c83ec80230bb7e3d857b7b562c00aba639b0c1d4c8bf60d8e",
+      "members": [
+        {
+          "member_path": "损坏.mp4",
+          "original": "media_corrupt.mp4",
+          "bytes": 23,
+          "sha256": "00364135816b3de65cbefa10735a3c6b926bc3fbeb69ffe4f38bedc2e58233a2"
+        },
+        {
+          "member_path": "编码限制.mkv",
+          "original": "video_extra_huffyuv.mkv",
+          "bytes": 97148,
+          "sha256": "44ee88ff7c59fa55e4d6abd88059074fcb21b8d6c5732e0464926265076ec137"
+        },
+        {
+          "member_path": "正常.mp4",
+          "original": "media_timeline.mp4",
+          "bytes": 3716,
+          "sha256": "163715c1212d229a356102cacf046d9b2b5e29b5bc171d1460992a6a026cfde3"
+        },
+        {
+          "member_path": "说明.txt",
+          "original": null,
+          "bytes": 33,
+          "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+        }
+      ]
+    },
+    {
+      "filename": "zip_media_silence.zip",
+      "bytes": 379,
+      "sha256": "b0ba9aaab374bffc73bf5f7e835a69f85b2d0ca6fa699967fe206904a4c0e418",
+      "members": [
+        {
+          "member_path": "静音.wav",
+          "original": "media_silence.wav",
+          "bytes": 64044,
+          "sha256": "20eaebffe1816e0ffa6f7f854f5ef4ea80d5349faaf0ce1fec1b713e7fde58fa"
+        },
+        {
+          "member_path": "说明.txt",
+          "original": null,
+          "bytes": 33,
+          "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+        }
+      ]
+    },
+    {
+      "filename": "zip_media_live_audio.zip",
+      "bytes": 416222,
+      "sha256": "7b3b0326a542e886618c20eda2c79c408002684b0021144e5f3a7333332bf2ef",
+      "members": [
+        {
+          "member_path": "培训/规则.wav",
+          "original": "media_rules.wav",
+          "bytes": 662616,
+          "sha256": "507eae5363f417b7e510c9452e69c344c0dbd6af235310c5687eb53ec541d1ad"
+        },
+        {
+          "member_path": "说明.txt",
+          "original": null,
+          "bytes": 33,
+          "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+        }
+      ]
+    },
+    {
+      "filename": "zip_media_live_video.zip",
+      "bytes": 287036,
+      "sha256": "e7df3a131c3b9103438a01968bf31604076571b6ec1069babf87ad5db8cda18f",
+      "members": [
+        {
+          "member_path": "培训/规则.mp4",
+          "original": "media_rules.mp4",
+          "bytes": 289556,
+          "sha256": "c54cbbc7b370fec4a656184987e45fec784fe4f46190c396681e2657f13d4d78"
+        },
+        {
+          "member_path": "说明.txt",
+          "original": null,
+          "bytes": 33,
+          "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+        }
+      ]
+    }
+  ]
+}

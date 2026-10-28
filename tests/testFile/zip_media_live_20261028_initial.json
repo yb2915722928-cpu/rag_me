@@ -1,0 +1,465 @@
+{
+  "checked_at": "2026-10-28T08:10:59.871136+00:00",
+  "records": [
+    {
+      "case": "audio",
+      "archive": {
+        "filename": "zip_media_live_audio.zip",
+        "bytes": 416222,
+        "sha256": "7b3b0326a542e886618c20eda2c79c408002684b0021144e5f3a7333332bf2ef",
+        "members": [
+          {
+            "member_path": "培训/规则.wav",
+            "original": "media_rules.wav",
+            "bytes": 662616,
+            "sha256": "507eae5363f417b7e510c9452e69c344c0dbd6af235310c5687eb53ec541d1ad"
+          },
+          {
+            "member_path": "说明.txt",
+            "original": null,
+            "bytes": 33,
+            "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+          }
+        ]
+      },
+      "seconds": 7.238,
+      "result": {
+        "source": "zip-media-live:audio",
+        "members": [
+          {
+            "source": {
+              "container": "zip-media-live:audio",
+              "member_path": "培训/规则.wav",
+              "entry_index": 1
+            },
+            "format": "wav",
+            "status": "success",
+            "result_kind": "media",
+            "result": {
+              "text": "[0.000–15.024 秒 · 语音转写]\n企业订单超过一万元，按右侧分支处理。是不是所有订单都要负责人审批？不是，其他由财务审批。未经批准不得付款。",
+              "source": {
+                "location": "zip-media-live:audio!/培训/规则.wav#1",
+                "format": "wav",
+                "sha256": "507eae5363f417b7e510c9452e69c344c0dbd6af235310c5687eb53ec541d1ad",
+                "media_type": "audio",
+                "duration_seconds": 15.024263,
+                "media_id": null,
+                "media_version": null,
+                "audio_stream_index": 0
+              },
+              "task": "transcribe",
+              "status": "content",
+              "question": null,
+              "segments": [
+                {
+                  "kind": "audio",
+                  "start_seconds": 0.0,
+                  "end_seconds": 15.02425,
+                  "text": "企业订单超过一万元，按右侧分支处理。是不是所有订单都要负责人审批？不是，其他由财务审批。未经批准不得付款。",
+                  "status": "content",
+                  "requested_model": "stepaudio-2.5-asr",
+                  "response_model": null,
+                  "prompt_version": null,
+                  "speaker": null,
+                  "time_precision": "segment",
+                  "review_notes": []
+                }
+              ],
+              "review_issues": [
+                "媒体派生文字尚待对照同一版本原音视频核验。",
+                "时间仅定位实际处理片段，不是逐句或逐词时间。"
+              ],
+              "warnings": [
+                "同步 ASR 不提供说话人区分；speaker 保持未知。"
+              ],
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 662616
+          },
+          {
+            "source": {
+              "container": "zip-media-live:audio",
+              "member_path": "说明.txt",
+              "entry_index": 2
+            },
+            "format": "txt",
+            "status": "success",
+            "result_kind": "text",
+            "result": {
+              "markdown": "其他成员仍可独立读取。",
+              "source": {
+                "location": "zip-media-live:audio!/说明.txt#2",
+                "format": "txt",
+                "encoding": null,
+                "content_id": null,
+                "content_location": null,
+                "mime_index": null
+              },
+              "encoding": "utf-8",
+              "warnings": [],
+              "error": null,
+              "success": true,
+              "requires_review": false
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 33
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 662649,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 2,
+          "success": 2,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "zip_success": true,
+        "member_count": true,
+        "archive_sha256": true,
+        "sibling_success": true,
+        "media_success": true,
+        "source_sha256": true,
+        "member_source": true,
+        "task": true,
+        "requires_review": true,
+        "real_ranges": true,
+        "unknown_speakers": true,
+        "modality_separation": true,
+        "amount_condition": true,
+        "question_context": true,
+        "negation_and_other_branch": true,
+        "payment_denial": true
+      },
+      "automated_quality_passed": true,
+      "manual_review": "pending"
+    },
+    {
+      "case": "video",
+      "archive": {
+        "filename": "zip_media_live_video.zip",
+        "bytes": 287036,
+        "sha256": "e7df3a131c3b9103438a01968bf31604076571b6ec1069babf87ad5db8cda18f",
+        "members": [
+          {
+            "member_path": "培训/规则.mp4",
+            "original": "media_rules.mp4",
+            "bytes": 289556,
+            "sha256": "c54cbbc7b370fec4a656184987e45fec784fe4f46190c396681e2657f13d4d78"
+          },
+          {
+            "member_path": "说明.txt",
+            "original": null,
+            "bytes": 33,
+            "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+          }
+        ]
+      },
+      "seconds": 18.62,
+      "result": {
+        "source": "zip-media-live:video",
+        "members": [
+          {
+            "source": {
+              "container": "zip-media-live:video",
+              "member_path": "培训/规则.mp4",
+              "entry_index": 1
+            },
+            "format": "mp4",
+            "status": "success",
+            "result_kind": "media",
+            "result": {
+              "text": "[0.000–15.000 秒 · 画面信息]\n画面主题是一张标题为“付款审批流程”的流程图。中央菱形判断框内文字为“金额超过 1 万元？”；菱形下侧标注“是”，右侧标注“否（其他情况）”。箭头连接关系为：标注“是”的箭头从菱形向下指向左下角矩形节点“负责人审批”；标注“否（其他情况）”的箭头从菱形向右再向下指向右下角矩形节点“财务审批”。据此可确认两个分支的审批方：金额超过 1 万元的分支由“负责人”审批；金额未超过 1 万元的分支由“财务”审批。",
+              "source": {
+                "location": "zip-media-live:video!/培训/规则.mp4#1",
+                "format": "mp4",
+                "sha256": "c54cbbc7b370fec4a656184987e45fec784fe4f46190c396681e2657f13d4d78",
+                "media_type": "video",
+                "duration_seconds": 15.023991,
+                "media_id": null,
+                "media_version": null,
+                "audio_stream_index": null
+              },
+              "task": "video",
+              "status": "content",
+              "question": "请根据视频中的条件与箭头，分别说明两个分支由谁审批；依据不足时明确说明无法确认的关系及原因。",
+              "segments": [
+                {
+                  "kind": "video",
+                  "start_seconds": 0.0,
+                  "end_seconds": 15.0,
+                  "text": "画面主题是一张标题为“付款审批流程”的流程图。中央菱形判断框内文字为“金额超过 1 万元？”；菱形下侧标注“是”，右侧标注“否（其他情况）”。箭头连接关系为：标注“是”的箭头从菱形向下指向左下角矩形节点“负责人审批”；标注“否（其他情况）”的箭头从菱形向右再向下指向右下角矩形节点“财务审批”。据此可确认两个分支的审批方：金额超过 1 万元的分支由“负责人”审批；金额未超过 1 万元的分支由“财务”审批。",
+                  "status": "content",
+                  "requested_model": "step-5-preview",
+                  "response_model": "step-5-preview",
+                  "prompt_version": "video-v1",
+                  "speaker": null,
+                  "time_precision": "segment",
+                  "review_notes": []
+                }
+              ],
+              "review_issues": [
+                "媒体派生文字尚待对照同一版本原音视频核验。",
+                "时间仅定位实际处理片段，不是逐句或逐词时间。"
+              ],
+              "warnings": [
+                "视频模型可能遗漏短暂画面或动作；画面解释不能替代原视频证据。"
+              ],
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 289556
+          },
+          {
+            "source": {
+              "container": "zip-media-live:video",
+              "member_path": "说明.txt",
+              "entry_index": 2
+            },
+            "format": "txt",
+            "status": "success",
+            "result_kind": "text",
+            "result": {
+              "markdown": "其他成员仍可独立读取。",
+              "source": {
+                "location": "zip-media-live:video!/说明.txt#2",
+                "format": "txt",
+                "encoding": null,
+                "content_id": null,
+                "content_location": null,
+                "mime_index": null
+              },
+              "encoding": "utf-8",
+              "warnings": [],
+              "error": null,
+              "success": true,
+              "requires_review": false
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 33
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 289589,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 2,
+          "success": 2,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "zip_success": true,
+        "member_count": true,
+        "archive_sha256": true,
+        "sibling_success": true,
+        "media_success": true,
+        "source_sha256": true,
+        "member_source": true,
+        "task": true,
+        "requires_review": true,
+        "real_ranges": true,
+        "unknown_speakers": true,
+        "modality_separation": true,
+        "above_10000_to_manager": true,
+        "other_to_finance": true,
+        "question": true
+      },
+      "automated_quality_passed": true,
+      "manual_review": "pending"
+    },
+    {
+      "case": "both",
+      "archive": {
+        "filename": "zip_media_live_video.zip",
+        "bytes": 287036,
+        "sha256": "e7df3a131c3b9103438a01968bf31604076571b6ec1069babf87ad5db8cda18f",
+        "members": [
+          {
+            "member_path": "培训/规则.mp4",
+            "original": "media_rules.mp4",
+            "bytes": 289556,
+            "sha256": "c54cbbc7b370fec4a656184987e45fec784fe4f46190c396681e2657f13d4d78"
+          },
+          {
+            "member_path": "说明.txt",
+            "original": null,
+            "bytes": 33,
+            "sha256": "2ffc52d778b004679bfa2d763b4f98976fefe7c14bc6aeb346dbdce2b1856363"
+          }
+        ]
+      },
+      "seconds": 17.871,
+      "result": {
+        "source": "zip-media-live:both",
+        "members": [
+          {
+            "source": {
+              "container": "zip-media-live:both",
+              "member_path": "培训/规则.mp4",
+              "entry_index": 1
+            },
+            "format": "mp4",
+            "status": "success",
+            "result_kind": "media",
+            "result": {
+              "text": "[0.000–15.024 秒 · 语音转写]\n企业订单超过一万元，按右侧分支处理。是不是所有订单都要负责人审批？不是，其他由财务审批。未经批准不得付款。\n\n[0.000–15.000 秒 · 画面信息]\n画面主题是“付款审批流程”的判断分支图。可见文字包括顶部标题“付款审批流程”，判断节点“金额超过 1 万元？”，分支标签“是”与“否（其他情况）”，以及两个矩形节点“负责人审批”和“财务审批”。箭头关系为：从“金额超过 1 万元？”向下标有“是”的箭头指向左下“负责人审批”节点；从右侧标有“否（其他情况）”的箭头先向右再向下指向右下“财务审批”节点。因此按图中条件，金额超过 1 万元时进入负责人审批分支，其他情况进入财务审批分支。",
+              "source": {
+                "location": "zip-media-live:both!/培训/规则.mp4#1",
+                "format": "mp4",
+                "sha256": "c54cbbc7b370fec4a656184987e45fec784fe4f46190c396681e2657f13d4d78",
+                "media_type": "video",
+                "duration_seconds": 15.023991,
+                "media_id": null,
+                "media_version": null,
+                "audio_stream_index": 1
+              },
+              "task": "both",
+              "status": "content",
+              "question": "请根据视频中的条件与箭头，分别说明两个分支由谁审批；依据不足时明确说明无法确认的关系及原因。",
+              "segments": [
+                {
+                  "kind": "audio",
+                  "start_seconds": 0.0,
+                  "end_seconds": 15.023991,
+                  "text": "企业订单超过一万元，按右侧分支处理。是不是所有订单都要负责人审批？不是，其他由财务审批。未经批准不得付款。",
+                  "status": "content",
+                  "requested_model": "stepaudio-2.5-asr",
+                  "response_model": null,
+                  "prompt_version": null,
+                  "speaker": null,
+                  "time_precision": "segment",
+                  "review_notes": []
+                },
+                {
+                  "kind": "video",
+                  "start_seconds": 0.0,
+                  "end_seconds": 15.0,
+                  "text": "画面主题是“付款审批流程”的判断分支图。可见文字包括顶部标题“付款审批流程”，判断节点“金额超过 1 万元？”，分支标签“是”与“否（其他情况）”，以及两个矩形节点“负责人审批”和“财务审批”。箭头关系为：从“金额超过 1 万元？”向下标有“是”的箭头指向左下“负责人审批”节点；从右侧标有“否（其他情况）”的箭头先向右再向下指向右下“财务审批”节点。因此按图中条件，金额超过 1 万元时进入负责人审批分支，其他情况进入财务审批分支。",
+                  "status": "content",
+                  "requested_model": "step-5-preview",
+                  "response_model": "step-5-preview",
+                  "prompt_version": "video-v1",
+                  "speaker": null,
+                  "time_precision": "segment",
+                  "review_notes": []
+                }
+              ],
+              "review_issues": [
+                "媒体派生文字尚待对照同一版本原音视频核验。",
+                "时间仅定位实际处理片段，不是逐句或逐词时间。"
+              ],
+              "warnings": [
+                "同步 ASR 不提供说话人区分；speaker 保持未知。",
+                "视频模型可能遗漏短暂画面或动作；画面解释不能替代原视频证据。"
+              ],
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 289556
+          },
+          {
+            "source": {
+              "container": "zip-media-live:both",
+              "member_path": "说明.txt",
+              "entry_index": 2
+            },
+            "format": "txt",
+            "status": "success",
+            "result_kind": "text",
+            "result": {
+              "markdown": "其他成员仍可独立读取。",
+              "source": {
+                "location": "zip-media-live:both!/说明.txt#2",
+                "format": "txt",
+                "encoding": null,
+                "content_id": null,
+                "content_location": null,
+                "mime_index": null
+              },
+              "encoding": "utf-8",
+              "warnings": [],
+              "error": null,
+              "success": true,
+              "requires_review": false
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 33
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 289589,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 2,
+          "success": 2,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "zip_success": true,
+        "member_count": true,
+        "archive_sha256": true,
+        "sibling_success": true,
+        "media_success": true,
+        "source_sha256": true,
+        "member_source": true,
+        "task": true,
+        "requires_review": true,
+        "real_ranges": true,
+        "unknown_speakers": true,
+        "modality_separation": true,
+        "amount_condition": true,
+        "question_context": true,
+        "negation_and_other_branch": true,
+        "payment_denial": true,
+        "above_10000_to_manager": true,
+        "other_to_finance": true,
+        "question": true
+      },
+      "automated_quality_passed": true,
+      "manual_review": "pending"
+    }
+  ],
+  "expected": {
+    "transcript": "企业订单超过一万元，按右侧分支处理。是不是所有订单都要负责人审批？不是，其他由财务审批。未经批准不得付款。",
+    "visual_branches": [
+      "金额超过1万元 → 负责人审批",
+      "其他情况 → 财务审批"
+    ]
+  },
+  "limitation": "固定合成中文语音与审批图示短视频的定向验收；自动核验不能代替人工对照原媒体。片段级时间不等于词级时间；说话人未知；不得推广为任意媒体的识别质量。",
+  "preflight": {
+    "selection_valid": true,
+    "explicit_env_file_exists": true
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "kind": "ZIP public-entry live acceptance",
+  "started_at": "2026-10-28T08:18:37.426853+00:00",
+  "selected_cases": [
+    "pdf_scan",
+    "pdf_mixed"
+  ],
+  "cases": [
+    {
+      "case": "pdf_scan",
+      "input": "pdf_scanned_maintenance_table.pdf",
+      "source_sha256": "3c4bdd3465f6450a26be3b6074ada31f3c82f2b56ce6506cf03db998d383c0c0",
+      "archive_sha256": "f03c27a228e6303d363e42f6f57c1cd5bf9c4e41baa06a25f1b88bb543a80c22",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": false,
+        "facts": false,
+        "table_rows": false,
+        "review_is_explicit": false,
+        "markdown_ranges_unavailable": true,
+        "pdf_original_pages": false
+      },
+      "entry": "convert_file",
+      "seconds": 1.78,
+      "result": {
+        "source": "zip_document_live_pdf_scan.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_pdf_scan.zip",
+              "member_path": "pdf_scanned_maintenance_table.pdf",
+              "entry_index": 1
+            },
+            "format": "pdf",
+            "status": "failed",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_pdf_scan.zip!/pdf_scanned_maintenance_table.pdf#1",
+              "format": "pdf",
+              "provider": "mineru",
+              "requested_model": "vlm",
+              "markdown": null,
+              "markdown_file": null,
+              "structured_json": {},
+              "content_list_file": null,
+              "html": null,
+              "html_file": null,
+              "artifacts": [],
+              "sources": [],
+              "warnings": [],
+              "review_items": [],
+              "main_html": null,
+              "error": "MinerU document failed: MinerU network request failed or timed out",
+              "success": false,
+              "requires_review": false
+            },
+            "error": "MinerU document failed: MinerU network request failed or timed out",
+            "reason": "parse_error",
+            "bytes_read": 108416
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 108416,
+        "success": false,
+        "requires_review": false,
+        "status": "failed",
+        "counts": {
+          "total": 1,
+          "success": 0,
+          "failed": 1,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "Disconnect power before maintenance.": false,
+          "Restart after inspection.": false,
+          "Temperature must not exceed 60 C.": false
+        },
+        "table_rows": {
+          "Equipment / Interval": false,
+          "Pump / Monthly": false,
+          "Valve / Quarterly": false
+        },
+        "pdf_pages": [],
+        "service_page_indices": [],
+        "json_shapes": {}
+      }
+    },
+    {
+      "case": "pdf_mixed",
+      "input": "pdf_mixed_maintenance.pdf",
+      "source_sha256": "4d87b329c3d618ba54a6a8bacd870e595186104e26eb56ea6f46224b701e1c71",
+      "archive_sha256": "88330d8cb39806e5172b87c0c68bdaa9f44b572d08351b284b85319338421034",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": false,
+        "facts": false,
+        "table_rows": false,
+        "review_is_explicit": false,
+        "markdown_ranges_unavailable": true,
+        "pdf_original_pages": false
+      },
+      "entry": "convert_bytes",
+      "seconds": 5.635,
+      "result": {
+        "source": "zip_document_live_pdf_mixed.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_pdf_mixed.zip",
+              "member_path": "pdf_mixed_maintenance.pdf",
+              "entry_index": 1
+            },
+            "format": "pdf",
+            "status": "failed",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_pdf_mixed.zip!/pdf_mixed_maintenance.pdf#1",
+              "format": "pdf",
+              "provider": "mineru",
+              "requested_model": "vlm",
+              "markdown": null,
+              "markdown_file": null,
+              "structured_json": {},
+              "content_list_file": null,
+              "html": null,
+              "html_file": null,
+              "artifacts": [],
+              "sources": [],
+              "warnings": [],
+              "review_items": [],
+              "main_html": null,
+              "error": "MinerU document failed: MinerU network request failed or timed out",
+              "success": false,
+              "requires_review": false
+            },
+            "error": "MinerU document failed: MinerU network request failed or timed out",
+            "reason": "parse_error",
+            "bytes_read": 109198
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 109198,
+        "success": false,
+        "requires_review": false,
+        "status": "failed",
+        "counts": {
+          "total": 1,
+          "success": 0,
+          "failed": 1,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "Digital Intake": false,
+          "Asset code: PUMP-A17.": false,
+          "Disconnect power before maintenance.": false,
+          "Digital Release": false,
+          "Torque setting: 12 Nm.": false,
+          "Temperature must not exceed 60 C.": false
+        },
+        "table_rows": {
+          "Equipment / Interval": false,
+          "Pump / Monthly": false,
+          "Valve / Quarterly": false
+        },
+        "pdf_pages": [],
+        "service_page_indices": [],
+        "json_shapes": {}
+      }
+    }
+  ]
+}

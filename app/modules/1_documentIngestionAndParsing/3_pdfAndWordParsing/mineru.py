@@ -32,12 +32,21 @@ class MinerUClient:
         self.config = config
 
     def extract(self, data: bytes, page_count: int) -> list[dict]:
-        headers = {"Authorization": f"Bearer {self.config.token}"}
+        archive = self.extract_document(data, filename="document.pdf", is_ocr=True)
+        return _read_content_list(archive, page_count)
+
+    def extract_document(self, data: bytes, *, filename: str, model_version: str = "vlm",
+                         is_ocr: bool | None = None, max_archive_bytes: int | None = None,
+                         check_result_deadline=None) -> bytes:
+        """保留服务结果包；可选截止回调只协作检查结果下载，不中断上传或轮询。"""
         request = {
-            "files": [{"name": "document.pdf", "is_ocr": True}],
-            "model_version": "vlm", "language": self.config.language,
-            "enable_table": True,
+            "files": [{"name": filename}], "model_version": model_version,
         }
+        if model_version != "MinerU-HTML":
+            request.update(language=self.config.language, enable_table=True)
+            if is_ocr is not None:
+                request["files"][0]["is_ocr"] = is_ocr
+        headers = {"Authorization": f"Bearer {self.config.token}"}
         applied = self._json("/file-urls/batch", headers, request)
         self._upload(applied["file_urls"][0], data)
         deadline = time.monotonic() + self.config.max_wait
@@ -52,8 +61,8 @@ class MinerUClient:
             time.sleep(min(self.config.poll_interval, max(0, deadline - time.monotonic())))
         else:
             raise MinerUError("MinerU polling timed out")
-        archive = self._read(result["full_zip_url"])
-        return _read_content_list(archive, page_count)
+        return self._read(result["full_zip_url"], max_bytes=max_archive_bytes,
+                          check_deadline=check_result_deadline)
 
     def _json(self, endpoint, headers, body=None):
         data = None if body is None else json.dumps(body).encode("utf-8")
@@ -87,11 +96,24 @@ class MinerUClient:
                 raise MinerUError("MinerU completed response requires full_zip_url")
         return result
 
-    def _read(self, url, headers=None, data=None, method=None):
+    def _read(self, url, headers=None, data=None, method=None, max_bytes=None, check_deadline=None):
+        if check_deadline is not None:
+            check_deadline()
         request = Request(url, data=data, headers=headers or {}, method=method)
         try:
             with urlopen(request, timeout=self.config.request_timeout) as response:
-                return response.read()
+                if max_bytes is None:
+                    return response.read()
+                content = bytearray()
+                while True:
+                    chunk = response.read(min(64 * 1024, max_bytes - len(content) + 1))
+                    if check_deadline is not None:
+                        check_deadline()
+                    if len(content) + len(chunk) > max_bytes:
+                        raise MinerUError("MinerU result ZIP exceeds max_archive_bytes")
+                    if not chunk:
+                        return bytes(content)
+                    content.extend(chunk)
         except HTTPError as exc:
             raise MinerUError(f"MinerU request HTTP {exc.code}") from None
         except (URLError, OSError, HTTPException):
