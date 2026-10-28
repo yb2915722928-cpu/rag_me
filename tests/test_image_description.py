@@ -1,13 +1,14 @@
 import base64
 from contextlib import contextmanager
 from dataclasses import asdict, replace
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 import importlib
 import json
 from pathlib import Path
-import threading
 import time
 import unittest
+
+from tests.image_test_support import image_server
 
 
 images = importlib.import_module("app.modules.1_documentIngestionAndParsing.6_imageProcessing")
@@ -46,17 +47,10 @@ def description_server(reply=None, *, http_status=200, delay=0):
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                 pass
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01})
-    thread.start()
-    try:
+    with image_server(Handler) as base_url:
         yield images.StepFunConfig(api_key="description-test-key",
-                                   base_url=f"http://127.0.0.1:{server.server_port}/v1",
+                                   base_url=base_url,
                                    model="step-5-preview", timeout=1), exchanges
-    finally:
-        server.shutdown()
-        thread.join()
-        server.server_close()
 
 
 class ImageDescriptionTests(unittest.TestCase):
