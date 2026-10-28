@@ -1,0 +1,47 @@
+{
+  "checked_at": "2026-10-28T03:05:51.900142+00:00",
+  "environment_file": "E:\\aaa-project\\rag-me\\.env",
+  "records": [
+    {
+      "sample": "image_understanding_blurred.png",
+      "expected": {
+        "status": "uncertain",
+        "known": "可辨条件、是/否标签及两个审批节点",
+        "reason": "关键连线与箭头被模糊，不能确认条件和审批人的完整对应"
+      },
+      "seconds": 0.29,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "image_understanding_blurred.png",
+          "format": "png",
+          "sha256": "88ee2f464d4cc3bf4ac8a7a8441b1fe490a4cfba2c81bd736d44af185bf8873c",
+          "width": 1200,
+          "height": 850
+        },
+        "task": "understand",
+        "status": "failed",
+        "requested_model": "step-5-preview",
+        "response_model": null,
+        "prompt_version": "understand-v1",
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "http_status": null
+        },
+        "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。"
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false,
+        "status": false,
+        "question": true,
+        "image_identity": true
+      },
+      "quality_passed": false
+    }
+  ],
+  "limitation": "固定样本的语义检查仍需人工核对实际输出；结构化状态及来源均不证明任意图片关系正确。每图单次请求，无自动重试或回退。"
+}
