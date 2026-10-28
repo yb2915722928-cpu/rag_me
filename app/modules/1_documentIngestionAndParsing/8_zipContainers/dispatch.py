@@ -30,4 +30,14 @@ def convert_member(data: bytes, *, format: str, source: str, parser_options: dic
             data, format=format, source=source, limits=limits,
             **parser_options.get("document", {}),
         )
+    if format in ("png", "jpg", "jpeg", "webp"):
+        parser = import_module(".image_api", __package__)
+        return "image", parser.convert_bytes(
+            data, format=format, source=source, limits=limits, **parser_options.get("image", {}),
+        )
+    if format in ("wav", "mp3", "m4a", "ogg", "flac", "mp4", "mov", "mkv"):
+        parser = import_module(".media_api", __package__)
+        return "media", parser.convert_bytes(
+            data, format=format, source=source, **parser_options.get("media", {}),
+        )
     raise UnsupportedFormat(f"Unsupported format: {format or '(no suffix)'}")
