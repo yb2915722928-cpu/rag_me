@@ -46,7 +46,7 @@ result = text_web.convert_bytes(
 - JSON 输出可重新解析的 JSON 代码围栏，保留原结构和值；Markdown 规范化保护代码空白和已有结构。
 - 成功正文、来源信息、编码及警告分别返回；失败结果的 `markdown` 为 `None`，`error` 提供失败原因。导出失败结果会抛出 `ValueError`，不会创建或覆盖目标文件；成功导出只包含正文，写入错误按普通文件 I/O 异常处理。
 
-模块处理已取得的文件内容，不抓取网址、不执行 JavaScript，也不进行最终文档切块。图片只保留空扩展点。
+模块处理已取得的文件内容，不抓取网址、不执行 JavaScript，也不进行最终文档切块。独立图片由后述图片模块处理；本模块不自动提取或识别网页内嵌图片。
 
 ## PDF 与 DOCX 解析
 
@@ -129,3 +129,11 @@ else:
 `success` 与 `requires_review` 独立：完成提取后，分栏阅读顺序、箭头、图文对应和条件归属仍需对照原页。图片页不宣称 OCR；母版、版式继承内容与嵌入文件不展开。无需安装 PowerPoint，不调用视觉模型或上传资料。损坏包及后续页解析失败时整篇失败，导出失败结果不会覆盖文件。固定文件与重建方法见 [PPTX 样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-pptx.md)。
 
 [JSON](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/JSON.md) 复用原有严格解析和完整结构表示，补充 JSON Pointer 及父节点来源，保留值类型与数组顺序，不把对象字段排列推断为业务步骤。
+
+## 独立图片处理
+
+[图片模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/README.md)通过文件或字节入口处理静态 PNG、JPEG、WebP，一次明确选择图像识字（OCR）、图像描述或按问题进行视觉理解。三类任务统一调用阶跃星辰视觉 API，使用 STEP_API_KEY、STEP_BASE_URL、STEP_MODEL 配置；可运行入口负责明确载入本地环境文件，核心模块使用运行时环境或显式配置。
+
+结果将图片派生文字与图片版本标识、来源信息、模型及提示词版本、待核验事项和错误分开返回。未识别到文字、无法确认关系与调用失败有不同含义；成功不等于内容已核验。裁剪图可以携带原图映射和文档来源，模块不推测缺失区域之外的关系。
+
+所有固定样本位于[测试样本目录](/E:/aaa-project/rag-me/tests/testFile/)。默认回归使用本地 HTTP 服务验证真实请求与结果契约，真实识图质量通过显式启用的阶跃星辰验收记录核对。模块止于图片处理与表示，不提供原图存储、自动嵌图提取、向量索引或完整 RAG 问答。
