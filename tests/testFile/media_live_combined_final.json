@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-10-28T06:15:15.327739+00:00",
+  "records": [
+    {
+      "case": "both",
+      "sample": "media_rules.mp4",
+      "seconds": 5.213,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "E:\\aaa-project\\rag-me\\tests\\testFile\\media_rules.mp4",
+          "format": "mp4",
+          "sha256": "c54cbbc7b370fec4a656184987e45fec784fe4f46190c396681e2657f13d4d78",
+          "media_type": "video",
+          "duration_seconds": 15.023991,
+          "media_id": null,
+          "media_version": null,
+          "audio_stream_index": 1
+        },
+        "task": "both",
+        "status": "failed",
+        "question": "请根据视频中的条件与箭头，分别说明两个分支由谁审批；依据不足时明确说明无法确认的关系及原因。",
+        "segments": [],
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "stage": "audio",
+          "start_seconds": 0.0,
+          "http_status": null
+        }
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false,
+        "original_identity": true
+      },
+      "quality_passed": false
+    }
+  ],
+  "limitation": "合成中文语音及固定短视频的定向验收，需对照原媒体核验，不代表任意音视频均准确。片段级时间，无自动说话人区分。"
+}
