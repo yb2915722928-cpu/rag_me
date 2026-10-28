@@ -1,0 +1,50 @@
+{
+  "source": "本地 FFmpeg lavfi 正弦音构造；原创测试素材，可自由复用；无语音、无外部模型。",
+  "builder": "audio_extra_build_samples.py",
+  "ffmpeg": "ffmpeg version 8.1.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+  "container_start_seconds": 5,
+  "tracks": [
+    {
+      "index": 0,
+      "default": false,
+      "duration_seconds": 3.75,
+      "tones": [
+        [
+          0,
+          1.25,
+          300
+        ],
+        [
+          1.25,
+          2.5,
+          600
+        ],
+        [
+          2.5,
+          3.75,
+          900
+        ]
+      ]
+    },
+    {
+      "index": 1,
+      "default": true,
+      "duration_seconds": 3.75,
+      "tones": [
+        [
+          0,
+          3.75,
+          1800
+        ]
+      ]
+    }
+  ],
+  "samples": [
+    {
+      "filename": "audio_extra_tracks_offset.m4a",
+      "bytes": 168901,
+      "sha256": "d7093be2856a8a1c1fc74e7b9bc81899f10e3ea074590044a87dfe4220efdaf5"
+    }
+  ],
+  "limitation": "仅验证选轨、原时间及上传波形，不证明语音识别质量。不同 FFmpeg 版本重建后须重新核对并提交摘要。"
+}

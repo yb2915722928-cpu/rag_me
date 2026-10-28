@@ -19,7 +19,8 @@ def convert_file(path, *, task=None, format=None, source=None, question=None,
     source_info = Source(source if isinstance(source, str) else None)
     try:
         path = Path(path)
-        source_info.location = str(path) if source is None else source
+        if source is None:
+            source_info.location = str(path)
         options = _validate(source_info, path.suffix if format is None else format,
                             task, question, media_id, media_version, options)
     except (TypeError, ValueError) as exc:
