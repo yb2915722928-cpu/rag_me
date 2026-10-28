@@ -80,6 +80,6 @@ MKV 在缺少流时长时需要单独解释容器时长：FFmpeg 的 Matroska �
 本地固定响应只验证协议与媒体来源关系。真实模型验收由集成分支单独执行，证据保持原样：
 
 - [关系不完整视频](/E:/aaa-project/rag-me/tests/testFile/media_live_video_check.json)：原生视频 API 返回 uncertain，指出缺少终点及审批人，保留可见条件和具体原因，定向检查通过。
-- [清晰审批图联合运行](/E:/aaa-project/rag-me/tests/testFile/media_live_combined_check.json)：实际画面输出保留“超过 1 万元→负责人审批”“其他情况→财务审批”。历史检查未忽略数字间空白而误判失败；以实际输出及[验证说明](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/VALIDATION.md)为准。
+- [清晰审批图联合运行](/E:/aaa-project/rag-me/tests/testFile/media_live_combined_check.json)：实际画面输出保留“超过 1 万元→负责人审批”“其他情况→财务审批”。历史检查未忽略数字间空白而误判失败；[同一响应复核](/E:/aaa-project/rag-me/tests/testFile/media_live_combined_revalidated.json)已修正检查并通过，历史证据原样保留，详见[验证说明](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/VALIDATION.md)。
 
 当前网络存在间歇 TLS 中断，失败返回 network_error；上述有限样本不能证明服务稳定或任意动态视频均准确。重新运行、原媒体保存与人工内容核验由调用方决定。此补充实现不执行外部模型调用，也不覆盖已有运行证据。
