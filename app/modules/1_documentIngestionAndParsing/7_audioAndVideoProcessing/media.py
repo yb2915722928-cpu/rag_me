@@ -28,6 +28,7 @@ class MediaInfo:
     duration: float
     audio_stream: int | None
     video_stream: int | None
+    video_start: float
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,7 @@ class Clip:
 
 
 def probe(path: Path, format: str, options: ProcessingOptions) -> MediaInfo:
+    """Matroska 的容器 duration 是末端时间戳，需扣除非零播放起点。"""
     payload = _run([options.ffprobe, "-v", "error", "-show_format", "-show_streams",
                     "-of", "json", str(path)], options.media_timeout)
     try:
@@ -58,17 +60,20 @@ def probe(path: Path, format: str, options: ProcessingOptions) -> MediaInfo:
                            - origin for s in selected)
         else:
             duration = float(container["duration"])
+            if "matroska" in actual:
+                duration -= origin
         if not math.isfinite(duration) or duration <= 0:
             raise ValueError
         return MediaInfo(duration, None if audio is None else int(audio["index"]),
-                         None if video is None else int(video["index"]))
+                         None if video is None else int(video["index"]),
+                         0.0 if video is None else float(video.get("start_time", origin)) - origin)
     except (KeyError, TypeError, ValueError, StopIteration):
         raise MediaError("media_probe_error", "Media has no readable finite duration or streams") from None
 
 
 def prepare(path: Path, directory: Path, kind: str, info: MediaInfo,
             options: ProcessingOptions) -> list[Clip]:
-    """切点受关键帧影响；禁用负 DTS 平移，以免 B 帧使清单时间偏离原片。"""
+    """禁用负 DTS 平移；清单首段从零计数，延迟画面的起点需取视频流时间。"""
     audio = kind == "audio"
     index = info.audio_stream if audio else info.video_stream
     seconds = options.audio_segment_seconds if audio else options.video_segment_seconds
@@ -89,6 +94,8 @@ def prepare(path: Path, directory: Path, kind: str, info: MediaInfo,
         with listing.open(encoding="utf-8", newline="") as handle:
             for name, start, end in csv.reader(handle):
                 start, end = max(0.0, float(start)), min(info.duration, float(end))
+                if not audio and not clips:
+                    start = max(start, info.video_start)
                 clip_path = directory / Path(name).name
                 if (not math.isfinite(start) or not math.isfinite(end) or end <= start
                         or not clip_path.is_file() or clip_path.stat().st_size == 0):
