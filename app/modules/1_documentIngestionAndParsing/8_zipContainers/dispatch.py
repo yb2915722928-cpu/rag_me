@@ -24,6 +24,12 @@ def convert_member(data: bytes, *, format: str, source: str, parser_options: dic
         return "csv", parser.convert_bytes(
             data, format=format, source=source, **parser_options.get("csv", {}),
         )
+    if format in ("pdf", "docx", "pptx", "xlsx", "html", "htm", "mhtml", "mht"):
+        parser = import_module(".document_api", __package__)
+        return "document", parser.convert_bytes(
+            data, format=format, source=source, limits=limits,
+            **parser_options.get("document", {}),
+        )
     if format in ("png", "jpg", "jpeg", "webp"):
         parser = import_module(".image_api", __package__)
         return "image", parser.convert_bytes(
