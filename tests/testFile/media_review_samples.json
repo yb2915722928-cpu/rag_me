@@ -1,0 +1,62 @@
+{
+  "source": "本地 FFmpeg lavfi 纯色画面与正弦音构造；原创测试素材，可自由复用，无语音、无外部模型。",
+  "builder": "media_review_build_samples.py",
+  "ffmpeg": "ffmpeg version 8.1.2-full_build-www.gyan.dev Copyright (c) 2000-2026 the FFmpeg developers",
+  "playback_duration_seconds": 6,
+  "video": {
+    "index": 0,
+    "range_seconds": [
+      0,
+      6
+    ],
+    "color": "red"
+  },
+  "audio_tracks": [
+    {
+      "index": 1,
+      "default": false,
+      "range_seconds": [
+        1.25,
+        3.25
+      ],
+      "sample_rate": 16000,
+      "sample_count": 32000,
+      "tones": [
+        [
+          1.25,
+          2.25,
+          300
+        ],
+        [
+          2.25,
+          3.25,
+          600
+        ]
+      ]
+    },
+    {
+      "index": 2,
+      "default": true,
+      "range_seconds": [
+        0,
+        6
+      ],
+      "frequency_hz": 1800
+    }
+  ],
+  "samples": [
+    {
+      "filename": "media_review_delayed_audio.mp4",
+      "bytes": 103537,
+      "sha256": "537b31b340837c9d63d1aa9435e78f05f2f97e8237646c3b7d98324bf35d7db7",
+      "container_start_seconds": 0
+    },
+    {
+      "filename": "media_review_delayed_audio_offset.mp4",
+      "bytes": 103561,
+      "sha256": "3ab25e196bf6550d2b9c9d4523539a1591668a3dc62887c3a8c7fe3ed06a1ba2",
+      "container_start_seconds": 5
+    }
+  ],
+  "limitation": "仅验证延迟首音轨的上传波形、原时间及联合排序，不证明模型识别质量；重建后须重新核对摘要。"
+}
