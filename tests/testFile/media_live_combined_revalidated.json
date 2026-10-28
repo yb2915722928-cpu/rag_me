@@ -1,0 +1,18 @@
+{
+  "kind": "saved_response_revalidation",
+  "source_evidence": "media_live_combined_check.json",
+  "reason": "历史检查未归一数字间空白；重新核验保留的真实API输出，没有再次调用API。",
+  "checks": {
+    "success": true,
+    "requires_review": true,
+    "original_identity": true,
+    "amount_condition": true,
+    "question_context": true,
+    "negation_and_other_branch": true,
+    "payment_denial": true,
+    "unknown_speakers": true,
+    "above_10000_to_manager": true,
+    "other_to_finance": true
+  },
+  "quality_passed": true
+}

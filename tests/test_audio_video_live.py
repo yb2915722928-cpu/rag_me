@@ -39,8 +39,8 @@ class AudioVideoLiveTests(unittest.TestCase):
                           "original_identity": result.source.sha256 == next(
                               s["sha256"] for s in MANIFEST["samples"] if s["filename"] == filename)}
                 if result.success:
-                    audio = "".join(s.text for s in result.segments if s.kind == "audio")
-                    video = "".join(s.text for s in result.segments if s.kind == "video")
+                    audio = re.sub(r"\s+", "", "".join(s.text for s in result.segments if s.kind == "audio"))
+                    video = re.sub(r"\s+", "", "".join(s.text for s in result.segments if s.kind == "video"))
                     if task in ("transcribe", "both"):
                         checks.update({
                             "amount_condition": bool(re.search(r"超过.{0,8}(?:1万|一万|10000)", audio)),
