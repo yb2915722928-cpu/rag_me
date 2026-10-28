@@ -51,6 +51,24 @@ def provenance_server(*, text=TEXT, status="content", http_status=200, image=CRO
 
 
 class ImageProvenanceTests(unittest.TestCase):
+    def test_description_reuses_document_and_crop_source_for_content_and_failure(self):
+        document = images.DocumentSource("payment-policy", "v1", images.DocumentPosition("pdf_page", 3))
+        crop = images.CropMapping("source-image", 1200, 600, (120, 180, 1120, 440))
+        for http_status in (200, 503):
+            with self.subTest(http_status=http_status), provenance_server(
+                text="一张付款条件的文字截图。", http_status=http_status,
+            ) as config:
+                file = images.convert_file(CROP, task="describe", document=document, crop=crop, config=config)
+                data = images.convert_bytes(CROP.read_bytes(), format="png", source=str(CROP), task="describe",
+                                            document=document, crop=crop, config=config)
+            self.assertEqual(file, data)
+            self.assertEqual(file.success, http_status == 200)
+            self.assertEqual(file.source.document, document)
+            self.assertEqual(file.source.crop, crop)
+            self.assertEqual((file.source.width, file.source.height), (1000, 260))
+            self.assertEqual(file.source.sha256, HASHES[CROP.name])
+            self.assertEqual(file.prompt_version, "describe-v1")
+
     def test_unknown_document_facts_stay_empty_and_whole_image_has_no_invented_subregion(self):
         with provenance_server(image=ORIGINAL) as config:
             result = images.convert_file(ORIGINAL, source="report-v9-page-99.png", task="ocr", config=config)

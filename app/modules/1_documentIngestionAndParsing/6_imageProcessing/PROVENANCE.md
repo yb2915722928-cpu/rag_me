@@ -2,6 +2,8 @@
 
 公开入口 `convert_file` / `convert_bytes` 的 `document`、`crop` 和 `is_cropped` 参数共用同一来源契约。来源独立放在结果的 `source` 中，正常正文、空 OCR 和失败都能保留已确定的事实；所有模型文字仍需核验。
 
+已交付的 `task="describe"` 复用相同来源流程，无任务专属元数据复制；正常描述和失败均经文件与字节入口验证。
+
 ## 文档来源
 
 ```python
