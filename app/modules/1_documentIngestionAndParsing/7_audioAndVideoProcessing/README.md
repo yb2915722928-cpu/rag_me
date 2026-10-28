@@ -62,6 +62,8 @@ else:
 
 视频任务可选非空问题；没有问题时概括可见画面。纯转写不接受问题。音频支持 WAV、MP3、M4A、OGG、FLAC；视频支持可复制码流封装为 MP4 的 MP4、MOV、MKV。不能封装的编码需调用方预先转码，模块会明确报错，不自动进行整片重编码。
 
+单独任务的输入和定位说明见[音频转写](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/AUDIO.md)与[视频理解](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/VIDEO.md)。
+
 ## 结果与边界
 
 [结果模型](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/models.py)分别保存整份派生文字、片段列表、来源、警告、待核验事项和错误：
