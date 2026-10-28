@@ -1,0 +1,53 @@
+{
+  "method": "Locally authored synthetic payment rules; Pillow ImageDraw on white RGB; black text at (140,60), (150,210), (140,500), font 36, line spacing 20; crop = original.crop((120,180,1120,440)); v2 changes 1 to 2 in crop text",
+  "source": "Constructed locally; no downloaded images or model-generated truth",
+  "license": "Project-authored fixture; follows repository license; system font not redistributed",
+  "pillow": "12.2.0",
+  "font": "C:\\Windows\\Fonts\\msyh.ttc",
+  "font_sha256": "d79c55e68b1131eea0cc1c47be4f572d964f28c682e143db2ad09c1e4cb07a3f",
+  "document": {
+    "document_id": "payment-policy",
+    "business_version": "approved-2026-10",
+    "position": {
+      "kind": "pdf_page",
+      "index": 3
+    }
+  },
+  "crop": {
+    "original_image_id": "archive/payment-rules/source-image-01",
+    "original_width": 1200,
+    "original_height": 600,
+    "bbox": [
+      120,
+      180,
+      1120,
+      440
+    ]
+  },
+  "coordinate_system": "original top-left, zero-based pixels, right/bottom excluded",
+  "expected_crop_text": "付款条件\n金额超过 1 万元时，须负责人审批。\n未经批准不得付款。",
+  "excluded_text": "其他情况由财务审批",
+  "samples": [
+    {
+      "filename": "image_provenance_original.png",
+      "width": 1200,
+      "height": 600,
+      "bytes": 45438,
+      "sha256": "cbcfba1d55318f9bb11c7344fc84b995cd37c275be41137f1cdfdaa4770a30db"
+    },
+    {
+      "filename": "image_provenance_crop.png",
+      "width": 1000,
+      "height": 260,
+      "bytes": 23728,
+      "sha256": "736abe346736fe62951854cc84dc28708fad0725574b18661cea83020ec80c73"
+    },
+    {
+      "filename": "image_provenance_crop_v2.png",
+      "width": 1000,
+      "height": 260,
+      "bytes": 24114,
+      "sha256": "2bf342fa4cdfb23a9dd738ffb7debab7ca36fdebc8de8b68ad8b4caf9b38cca0"
+    }
+  ]
+}

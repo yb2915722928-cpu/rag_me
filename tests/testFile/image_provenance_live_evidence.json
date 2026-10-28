@@ -1,0 +1,129 @@
+{
+  "checked_at": "2026-10-28T03:06:12.788145+00:00",
+  "environment_file": "E:\\aaa-project\\rag-me\\.env",
+  "fixture_manifest": "image_provenance_samples.json",
+  "records": [
+    {
+      "entry": "file",
+      "sample": "image_provenance_crop.png",
+      "seconds": 6.533,
+      "result": {
+        "text": "付款条件\n金额超过 1 万元时，须负责人审批。\n未经批准不得付款。",
+        "source": {
+          "location": "acceptance/crop.png",
+          "format": "png",
+          "sha256": "736abe346736fe62951854cc84dc28708fad0725574b18661cea83020ec80c73",
+          "width": 1000,
+          "height": 260,
+          "document": {
+            "document_id": "payment-policy",
+            "business_version": "approved-2026-10",
+            "position": {
+              "kind": "pdf_page",
+              "index": 3
+            }
+          },
+          "crop": {
+            "original_image_id": "archive/payment-rules/source-image-01",
+            "original_width": 1200,
+            "original_height": 600,
+            "bbox": [
+              120,
+              180,
+              1120,
+              440
+            ]
+          }
+        },
+        "task": "ocr",
+        "status": "content",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "ocr-v1",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          }
+        ],
+        "warnings": [],
+        "error": null
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "crop_title": true,
+        "condition_number_and_approver": true,
+        "negation": true,
+        "outside_region_not_invented": true,
+        "document_source": true,
+        "original_region": true,
+        "cropped_input_dimensions": true,
+        "input_byte_version": true
+      },
+      "quality_passed": true
+    },
+    {
+      "entry": "bytes",
+      "sample": "image_provenance_crop.png",
+      "seconds": 6.555,
+      "result": {
+        "text": "付款条件\n金额超过 1 万元时，须负责人审批。\n未经批准不得付款。",
+        "source": {
+          "location": "acceptance/crop.png",
+          "format": "png",
+          "sha256": "736abe346736fe62951854cc84dc28708fad0725574b18661cea83020ec80c73",
+          "width": 1000,
+          "height": 260,
+          "document": {
+            "document_id": "payment-policy",
+            "business_version": "approved-2026-10",
+            "position": {
+              "kind": "pdf_page",
+              "index": 3
+            }
+          },
+          "crop": {
+            "original_image_id": "archive/payment-rules/source-image-01",
+            "original_width": 1200,
+            "original_height": 600,
+            "bbox": [
+              120,
+              180,
+              1120,
+              440
+            ]
+          }
+        },
+        "task": "ocr",
+        "status": "content",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "ocr-v1",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          }
+        ],
+        "warnings": [],
+        "error": null
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "crop_title": true,
+        "condition_number_and_approver": true,
+        "negation": true,
+        "outside_region_not_invented": true,
+        "document_source": true,
+        "original_region": true,
+        "cropped_input_dimensions": true,
+        "input_byte_version": true
+      },
+      "quality_passed": true
+    }
+  ],
+  "manual_region_check": "Original 1200x600, bbox (120,180,1120,440), crop 1000x260; payment condition and negation lie inside; finance rule lies outside",
+  "limitation": "Only this fixed, axis-aligned crop is checked; provenance does not prove arbitrary OCR correct; no retries or fallback; caller retains original image and its access method"
+}
