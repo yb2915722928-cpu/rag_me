@@ -1,11 +1,12 @@
 import base64
 from contextlib import contextmanager
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 import importlib
 import json
 from pathlib import Path
-import threading
 import unittest
+
+from tests.image_test_support import image_server
 
 
 images = importlib.import_module("app.modules.1_documentIngestionAndParsing.6_imageProcessing")
@@ -37,16 +38,9 @@ def step_server(reply=None, *, status=200):
             self.end_headers()
             self.wfile.write(payload)
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
-    thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01})
-    thread.start()
-    try:
-        yield images.StepFunConfig(api_key="test-key", base_url=f"http://127.0.0.1:{server.server_port}/v1",
+    with image_server(Handler) as base_url:
+        yield images.StepFunConfig(api_key="test-key", base_url=base_url,
                                    model="step-5-preview", timeout=2), requests
-    finally:
-        server.shutdown()
-        thread.join()
-        server.server_close()
 
 
 class ImageUnderstandingTests(unittest.TestCase):
