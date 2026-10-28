@@ -1,0 +1,104 @@
+{
+  "checked_at": "2026-10-28T08:13:11.226511+00:00",
+  "records": [
+    {
+      "case": "no_text",
+      "entry": "convert_file",
+      "seconds": 8.481,
+      "source_summary": {
+        "archive": "zip_image_blank.zip",
+        "sha256": "7a8443f4f30c9a20b975c7b30e8e77ea4d9348ddae9ad8060611901712e2b526",
+        "member": {
+          "member_path": "blank.png",
+          "entry_index": 1,
+          "source_sample": "image_ocr_blank.png",
+          "bytes": 778,
+          "sha256": "4a1483d14bef0ac574d2b29a8bc63d5763e4886e5a08b17192bd6c96c262ef7d"
+        }
+      },
+      "report": {
+        "source": "zip_image_blank.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_image_blank.zip",
+              "member_path": "blank.png",
+              "entry_index": 1
+            },
+            "format": "png",
+            "status": "success",
+            "result_kind": "image",
+            "result": {
+              "text": "",
+              "source": {
+                "location": "zip_image_blank.zip!/blank.png#1",
+                "format": "png",
+                "sha256": "4a1483d14bef0ac574d2b29a8bc63d5763e4886e5a08b17192bd6c96c262ef7d",
+                "width": 320,
+                "height": 240,
+                "document": null,
+                "crop": null
+              },
+              "task": "ocr",
+              "status": "no_text",
+              "requested_model": "step-5-preview",
+              "response_model": "step-5-preview",
+              "prompt_version": "ocr-v1",
+              "review_issues": [
+                {
+                  "code": "unverified_model_output",
+                  "message": "模型产出尚待对照原图核验。"
+                },
+                {
+                  "code": "model_uncertainty",
+                  "message": "图片为空白/纯白，未检测到可辨认文字。"
+                },
+                {
+                  "code": "model_uncertainty",
+                  "message": "未取得文字不代表原图一定不含文字；如需确认，请提供原始文件或更高分辨率图像。"
+                }
+              ],
+              "warnings": [
+                "本次未取得可用文字，不证明图片没有文字。"
+              ],
+              "error": null,
+              "question": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 778
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 778,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "archive_identity": true,
+        "success": true,
+        "requires_review": true,
+        "one_successful_member": true,
+        "member_identity": true,
+        "image_identity": true,
+        "source_location": true,
+        "native_contract": true,
+        "json_contract": true,
+        "empty_ocr": true
+      },
+      "quality_passed": true
+    }
+  ],
+  "limitation": "每例单次请求，无重试或本地回退。自动语义检查仍需人工对照固定原图；不证明任意图片质量。"
+}

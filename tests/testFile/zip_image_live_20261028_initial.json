@@ -1,0 +1,578 @@
+{
+  "checked_at": "2026-10-28T08:11:43.298772+00:00",
+  "records": [
+    {
+      "case": "ocr",
+      "entry": "convert_file",
+      "seconds": 7.331,
+      "source_summary": {
+        "archive": "zip_image_ocr.zip",
+        "sha256": "63ed1a1989cd58467dfbee317a55a0b430bd521cefd05e3ee0b2dfd148c9fecd",
+        "member": {
+          "member_path": "rules.png",
+          "entry_index": 1,
+          "source_sample": "image_ocr_rules.png",
+          "bytes": 44011,
+          "sha256": "08e1cd1de64b6516cd00a1b0d67b4e5fd0f51975fe76f16da534ecaee0598206"
+        }
+      },
+      "report": {
+        "source": "zip_image_ocr.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_image_ocr.zip",
+              "member_path": "rules.png",
+              "entry_index": 1
+            },
+            "format": "png",
+            "status": "success",
+            "result_kind": "image",
+            "result": {
+              "text": "金额超过 1 万元时，须负责人审批。\n其他情况由财务审批。\n未经批准不得付款。\n温度不得超过 60 °C；每 30 天检查一次。",
+              "source": {
+                "location": "zip_image_ocr.zip!/rules.png#1",
+                "format": "png",
+                "sha256": "08e1cd1de64b6516cd00a1b0d67b4e5fd0f51975fe76f16da534ecaee0598206",
+                "width": 1100,
+                "height": 340,
+                "document": null,
+                "crop": null
+              },
+              "task": "ocr",
+              "status": "content",
+              "requested_model": "step-5-preview",
+              "response_model": "step-5-preview",
+              "prompt_version": "ocr-v1",
+              "review_issues": [
+                {
+                  "code": "unverified_model_output",
+                  "message": "模型产出尚待对照原图核验。"
+                }
+              ],
+              "warnings": [],
+              "error": null,
+              "question": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 44011
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 44011,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "archive_identity": true,
+        "success": true,
+        "requires_review": true,
+        "one_successful_member": true,
+        "member_identity": true,
+        "image_identity": true,
+        "source_location": true,
+        "native_contract": true,
+        "json_contract": true,
+        "above_10000_to_manager": true,
+        "other_to_finance": true,
+        "negative_rule": true,
+        "temperature": true,
+        "interval": true
+      },
+      "quality_passed": true
+    },
+    {
+      "case": "describe",
+      "entry": "convert_file",
+      "seconds": 8.955,
+      "source_summary": {
+        "archive": "zip_image_describe.zip",
+        "sha256": "be65f3a8b897bc374c74b03beda9ac824d6561dd481cd8f54a05595aa68cebd5",
+        "member": {
+          "member_path": "camping.webp",
+          "entry_index": 1,
+          "source_sample": "image_description_camping.webp",
+          "bytes": 4310,
+          "sha256": "f93f54b9f7bcbba9f0e7d8f2f013ecc7263bf81d0bbfa22b10d5b3ebd700fbdb"
+        }
+      },
+      "report": {
+        "source": "zip_image_describe.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_image_describe.zip",
+              "member_path": "camping.webp",
+              "entry_index": 1
+            },
+            "format": "webp",
+            "status": "success",
+            "result_kind": "image",
+            "result": {
+              "text": "扁平风格自然风景插画，描绘户外露营场景。画面背景为浅蓝色天空，右上方有黄色圆形太阳；中景可见两座灰色山峰，顶部有白色积雪。山前是一片蓝色湖泊，湖岸及前景为绿色草地。画面右侧有一座橙色帐篷，帐篷正面为深色三角开口；左侧一棵、右侧两棵深绿色松树分布于草地。整体主题为露营、湖泊与山林自然风光。",
+              "source": {
+                "location": "zip_image_describe.zip!/camping.webp#1",
+                "format": "webp",
+                "sha256": "f93f54b9f7bcbba9f0e7d8f2f013ecc7263bf81d0bbfa22b10d5b3ebd700fbdb",
+                "width": 960,
+                "height": 640,
+                "document": null,
+                "crop": null
+              },
+              "task": "describe",
+              "status": "content",
+              "requested_model": "step-5-preview",
+              "response_model": "step-5-preview",
+              "prompt_version": "describe-v1",
+              "review_issues": [
+                {
+                  "code": "unverified_model_output",
+                  "message": "模型产出尚待对照原图核验。"
+                }
+              ],
+              "warnings": [],
+              "error": null,
+              "question": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 4310
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 4310,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "archive_identity": true,
+        "success": true,
+        "requires_review": true,
+        "one_successful_member": true,
+        "member_identity": true,
+        "image_identity": true,
+        "source_location": true,
+        "native_contract": true,
+        "json_contract": true,
+        "tent": true,
+        "mountains": true,
+        "water": true,
+        "trees": true,
+        "no_invented_people": true
+      },
+      "quality_passed": true
+    },
+    {
+      "case": "understand",
+      "entry": "convert_file",
+      "seconds": 6.719,
+      "source_summary": {
+        "archive": "zip_image_understand.zip",
+        "sha256": "41733b2305bef6cb6393ca2db9d89b16670f2d66b085086fb8d85b65d6a4a23c",
+        "member": {
+          "member_path": "approval.png",
+          "entry_index": 1,
+          "source_sample": "image_understanding_clear.png",
+          "bytes": 31196,
+          "sha256": "a9e36b411a144ff50a935be51ebdd4294a053380b5e5dcbac18132e6f2787e01"
+        }
+      },
+      "report": {
+        "source": "zip_image_understand.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_image_understand.zip",
+              "member_path": "approval.png",
+              "entry_index": 1
+            },
+            "format": "png",
+            "status": "success",
+            "result_kind": "image",
+            "result": {
+              "text": "图中付款审批流程的决策节点为“金额超过 1 万元？”。从该菱形节点分出两条分支：一条箭头标注“是”，向下指向矩形节点“负责人审批”；另一条箭头标注“否（其他情况）”，从菱形右侧延伸后向下指向矩形节点“财务审批”。因此，两条分支的审批人分别为负责人和财务。",
+              "source": {
+                "location": "zip_image_understand.zip!/approval.png#1",
+                "format": "png",
+                "sha256": "a9e36b411a144ff50a935be51ebdd4294a053380b5e5dcbac18132e6f2787e01",
+                "width": 1200,
+                "height": 850,
+                "document": null,
+                "crop": null
+              },
+              "task": "understand",
+              "status": "content",
+              "requested_model": "step-5-preview",
+              "response_model": "step-5-preview",
+              "prompt_version": "understand-v2",
+              "review_issues": [
+                {
+                  "code": "unverified_model_output",
+                  "message": "模型产出尚待对照原图核验。"
+                }
+              ],
+              "warnings": [],
+              "error": null,
+              "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。",
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 31196
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 31196,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "archive_identity": true,
+        "success": true,
+        "requires_review": true,
+        "one_successful_member": true,
+        "member_identity": true,
+        "image_identity": true,
+        "source_location": true,
+        "native_contract": true,
+        "json_contract": true,
+        "above_10000_to_manager": true,
+        "other_to_finance": true
+      },
+      "quality_passed": true
+    },
+    {
+      "case": "no_text",
+      "entry": "convert_file",
+      "seconds": 0.285,
+      "source_summary": {
+        "archive": "zip_image_blank.zip",
+        "sha256": "7a8443f4f30c9a20b975c7b30e8e77ea4d9348ddae9ad8060611901712e2b526",
+        "member": {
+          "member_path": "blank.png",
+          "entry_index": 1,
+          "source_sample": "image_ocr_blank.png",
+          "bytes": 778,
+          "sha256": "4a1483d14bef0ac574d2b29a8bc63d5763e4886e5a08b17192bd6c96c262ef7d"
+        }
+      },
+      "report": {
+        "source": "zip_image_blank.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_image_blank.zip",
+              "member_path": "blank.png",
+              "entry_index": 1
+            },
+            "format": "png",
+            "status": "failed",
+            "result_kind": "image",
+            "result": {
+              "text": null,
+              "source": {
+                "location": "zip_image_blank.zip!/blank.png#1",
+                "format": "png",
+                "sha256": "4a1483d14bef0ac574d2b29a8bc63d5763e4886e5a08b17192bd6c96c262ef7d",
+                "width": 320,
+                "height": 240,
+                "document": null,
+                "crop": null
+              },
+              "task": "ocr",
+              "status": "failed",
+              "requested_model": "step-5-preview",
+              "response_model": null,
+              "prompt_version": "ocr-v1",
+              "review_issues": [],
+              "warnings": [],
+              "error": {
+                "code": "network_error",
+                "message": "StepFun connection failed or timed out",
+                "http_status": null
+              },
+              "question": null,
+              "success": false,
+              "requires_review": false
+            },
+            "error": "StepFun connection failed or timed out",
+            "reason": "parse_error",
+            "bytes_read": 778
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 778,
+        "success": false,
+        "requires_review": false,
+        "status": "failed",
+        "counts": {
+          "total": 1,
+          "success": 0,
+          "failed": 1,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "archive_identity": true,
+        "success": false,
+        "requires_review": false,
+        "one_successful_member": false,
+        "member_identity": true,
+        "image_identity": true,
+        "source_location": true,
+        "native_contract": false,
+        "json_contract": false,
+        "empty_ocr": false
+      },
+      "quality_passed": false
+    },
+    {
+      "case": "uncertain",
+      "entry": "convert_bytes",
+      "seconds": 12.881,
+      "source_summary": {
+        "archive": "zip_image_uncertain.zip",
+        "sha256": "7760c21f728babcf50fb017666b68d747832c505b1c8528710b4239452f04dcf",
+        "member": {
+          "member_path": "approval.png",
+          "entry_index": 1,
+          "source_sample": "image_understanding_truncated.png",
+          "bytes": 20049,
+          "sha256": "254d3d1bca560c6f2164f70ff8078df2e3394a6900dd5f2669666c348f6b0cd6"
+        }
+      },
+      "report": {
+        "source": "zip_image_uncertain.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_image_uncertain.zip",
+              "member_path": "approval.png",
+              "entry_index": 1
+            },
+            "format": "png",
+            "status": "success",
+            "result_kind": "image",
+            "result": {
+              "text": "图中可见标题“付款审批流程”与一个菱形决策框，框内文字为“金额超过 1万元?”；从该菱形右侧引出一条箭头并标注“否（其他情况）”，但此箭头向下后即进入未显示区域，没有对应的审批节点或审批人。菱形下方的分支线条也仅露出起始部分，没有箭头标注、没有连接对象，且全图未出现任何审批人员、部门或审批节点。因此，两条分支分别由谁审批无法依据本图确认。",
+              "source": {
+                "location": "zip_image_uncertain.zip!/approval.png#1",
+                "format": "png",
+                "sha256": "254d3d1bca560c6f2164f70ff8078df2e3394a6900dd5f2669666c348f6b0cd6",
+                "width": 1200,
+                "height": 350,
+                "document": null,
+                "crop": null
+              },
+              "task": "understand",
+              "status": "uncertain",
+              "requested_model": "step-5-preview",
+              "response_model": "step-5-preview",
+              "prompt_version": "understand-v2",
+              "review_issues": [
+                {
+                  "code": "unverified_model_output",
+                  "message": "模型产出尚待对照原图核验。"
+                },
+                {
+                  "code": "model_uncertainty",
+                  "message": "“否（其他情况）”分支箭头终点被截断/未显示，无法确认其指向的审批对象。"
+                },
+                {
+                  "code": "model_uncertainty",
+                  "message": "图中未显示“是”分支的箭头方向、连接关系及终点节点。"
+                },
+                {
+                  "code": "model_uncertainty",
+                  "message": "全图不存在任何可识别的审批人员或审批节点，缺少判断审批归属的必需信息。"
+                }
+              ],
+              "warnings": [],
+              "error": null,
+              "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。",
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 20049
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 20049,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "archive_identity": true,
+        "success": true,
+        "requires_review": true,
+        "one_successful_member": true,
+        "member_identity": true,
+        "image_identity": true,
+        "source_location": true,
+        "native_contract": true,
+        "json_contract": true,
+        "keeps_known_condition": true,
+        "explicit_unknown": true,
+        "reason": true,
+        "no_invented_cover": true
+      },
+      "quality_passed": true
+    },
+    {
+      "case": "crop",
+      "entry": "convert_file",
+      "seconds": 7.125,
+      "source_summary": {
+        "archive": "zip_image_crop.zip",
+        "sha256": "33aef942eae5f00372544427e27e4d9e681e3c042a42a03e5d98ee718d39dad4",
+        "member": {
+          "member_path": "crop.png",
+          "entry_index": 1,
+          "source_sample": "image_provenance_crop.png",
+          "bytes": 23728,
+          "sha256": "736abe346736fe62951854cc84dc28708fad0725574b18661cea83020ec80c73"
+        }
+      },
+      "report": {
+        "source": "zip_image_crop.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_image_crop.zip",
+              "member_path": "crop.png",
+              "entry_index": 1
+            },
+            "format": "png",
+            "status": "success",
+            "result_kind": "image",
+            "result": {
+              "text": "付款条件\n金额超过 1 万元时，须负责人审批。\n未经批准不得付款。",
+              "source": {
+                "location": "zip_image_crop.zip!/crop.png#1",
+                "format": "png",
+                "sha256": "736abe346736fe62951854cc84dc28708fad0725574b18661cea83020ec80c73",
+                "width": 1000,
+                "height": 260,
+                "document": {
+                  "document_id": "payment-policy",
+                  "business_version": "approved-2026-10",
+                  "position": {
+                    "kind": "pdf_page",
+                    "index": 3
+                  }
+                },
+                "crop": {
+                  "original_image_id": "archive/payment-rules/source-image-01",
+                  "original_width": 1200,
+                  "original_height": 600,
+                  "bbox": [
+                    120,
+                    180,
+                    1120,
+                    440
+                  ]
+                }
+              },
+              "task": "ocr",
+              "status": "content",
+              "requested_model": "step-5-preview",
+              "response_model": "step-5-preview",
+              "prompt_version": "ocr-v1",
+              "review_issues": [
+                {
+                  "code": "unverified_model_output",
+                  "message": "模型产出尚待对照原图核验。"
+                }
+              ],
+              "warnings": [],
+              "error": null,
+              "question": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 23728
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 23728,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "checks": {
+        "archive_identity": true,
+        "success": true,
+        "requires_review": true,
+        "one_successful_member": true,
+        "member_identity": true,
+        "image_identity": true,
+        "source_location": true,
+        "native_contract": true,
+        "json_contract": true,
+        "above_10000_to_manager": true,
+        "negative_rule": true,
+        "no_outside_crop_rule": true,
+        "document_source": true,
+        "original_mapping": true
+      },
+      "quality_passed": true
+    }
+  ],
+  "limitation": "每例单次请求，无重试或本地回退。自动语义检查仍需人工对照固定原图；不证明任意图片质量。"
+}

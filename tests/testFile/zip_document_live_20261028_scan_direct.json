@@ -1,0 +1,1398 @@
+{
+  "kind": "ZIP public-entry live acceptance",
+  "checked_at": "2026-10-28T08:23:24.788243+00:00",
+  "configuration": {
+    "poll_interval": 15,
+    "language": "en",
+    "diagnostic_transport": "process-local direct urllib opener, no global proxy change"
+  },
+  "cases": [
+    {
+      "case": "pdf_scan",
+      "input": "pdf_scanned_maintenance_table.pdf",
+      "source_sha256": "3c4bdd3465f6450a26be3b6074ada31f3c82f2b56ce6506cf03db998d383c0c0",
+      "seconds": 18.322,
+      "entry": "convert_file",
+      "result": {
+        "source": "zip_document_live_pdf_scan.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_pdf_scan.zip",
+              "member_path": "pdf_scanned_maintenance_table.pdf",
+              "entry_index": 1
+            },
+            "format": "pdf",
+            "status": "success",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_pdf_scan.zip!/pdf_scanned_maintenance_table.pdf#1",
+              "format": "pdf",
+              "provider": "mineru",
+              "requested_model": "vlm",
+              "markdown": "## Equipment Maintenance\n\nDisconnect power before maintenance.\n\nDo not service while power is on.\n\nInspect every 30 days.\n\n<table><tr><td>Equipment</td><td>Interval</td></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></table>\n\nRestart after inspection.\n\nInspection Limits\n\nTemperature must not exceed 60 C.",
+              "markdown_file": "full.md",
+              "structured_json": {
+                "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list_v2.json": [
+                  [
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "Equipment Maintenance"
+                          }
+                        ],
+                        "level": 2
+                      },
+                      "bbox": [
+                        63,
+                        65,
+                        451,
+                        93
+                      ]
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "Disconnect power before maintenance."
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        61,
+                        138,
+                        518,
+                        161
+                      ]
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "Do not service while power is on."
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        61,
+                        180,
+                        441,
+                        202
+                      ]
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "Inspect every 30 days."
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        61,
+                        221,
+                        325,
+                        246
+                      ]
+                    },
+                    {
+                      "type": "table",
+                      "content": {
+                        "image_source": {
+                          "path": "images/ca0ca0193c5b22d66df00e45b7dfe27290782cb20f857f8db005cde3e8b086d0.jpg"
+                        },
+                        "table_caption": [],
+                        "table_footnote": [],
+                        "html": "<table><tr><td>Equipment</td><td>Interval</td></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></table>",
+                        "table_type": "simple_table",
+                        "table_nest_level": 1
+                      },
+                      "bbox": [
+                        65,
+                        321,
+                        931,
+                        510
+                      ]
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "Restart after inspection."
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        61,
+                        605,
+                        338,
+                        628
+                      ]
+                    },
+                    {
+                      "type": "page_footer",
+                      "content": {
+                        "page_footer_content": [
+                          {
+                            "type": "text",
+                            "content": "Printed page 41"
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        63,
+                        910,
+                        250,
+                        932
+                      ]
+                    }
+                  ],
+                  [
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "Inspection Limits"
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        61,
+                        65,
+                        335,
+                        93
+                      ]
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "Temperature must not exceed 60 C."
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        61,
+                        147,
+                        478,
+                        170
+                      ]
+                    },
+                    {
+                      "type": "page_footer",
+                      "content": {
+                        "page_footer_content": [
+                          {
+                            "type": "text",
+                            "content": "Printed page 7"
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        63,
+                        910,
+                        235,
+                        932
+                      ]
+                    }
+                  ]
+                ],
+                "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json": [
+                  {
+                    "type": "text",
+                    "text": "Equipment Maintenance",
+                    "text_level": 2,
+                    "bbox": [
+                      63,
+                      65,
+                      451,
+                      93
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "Disconnect power before maintenance.",
+                    "bbox": [
+                      61,
+                      138,
+                      518,
+                      161
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "Do not service while power is on.",
+                    "bbox": [
+                      61,
+                      180,
+                      441,
+                      202
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "Inspect every 30 days.",
+                    "bbox": [
+                      61,
+                      221,
+                      325,
+                      246
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "table",
+                    "img_path": "images/ca0ca0193c5b22d66df00e45b7dfe27290782cb20f857f8db005cde3e8b086d0.jpg",
+                    "table_caption": [],
+                    "table_footnote": [],
+                    "table_body": "<table><tr><td>Equipment</td><td>Interval</td></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></table>",
+                    "bbox": [
+                      65,
+                      321,
+                      931,
+                      510
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "Restart after inspection.",
+                    "bbox": [
+                      61,
+                      605,
+                      338,
+                      628
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "footer",
+                    "text": "Printed page 41",
+                    "bbox": [
+                      63,
+                      910,
+                      250,
+                      932
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "Inspection Limits",
+                    "bbox": [
+                      61,
+                      65,
+                      335,
+                      93
+                    ],
+                    "page_idx": 1
+                  },
+                  {
+                    "type": "text",
+                    "text": "Temperature must not exceed 60 C.",
+                    "bbox": [
+                      61,
+                      147,
+                      478,
+                      170
+                    ],
+                    "page_idx": 1
+                  },
+                  {
+                    "type": "footer",
+                    "text": "Printed page 7",
+                    "bbox": [
+                      63,
+                      910,
+                      235,
+                      932
+                    ],
+                    "page_idx": 1
+                  }
+                ],
+                "246810ed-166d-4bb4-9ade-acea1a1fb3b2_model.json": [
+                  [
+                    {
+                      "type": "paragraph_title",
+                      "bbox": [
+                        0.064,
+                        0.066,
+                        0.452,
+                        0.094
+                      ],
+                      "angle": 0,
+                      "content": "Equipment Maintenance"
+                    },
+                    {
+                      "type": "text",
+                      "bbox": [
+                        0.063,
+                        0.139,
+                        0.519,
+                        0.162
+                      ],
+                      "angle": 0,
+                      "content": "Disconnect power before maintenance.",
+                      "merge_prev": false
+                    },
+                    {
+                      "type": "text",
+                      "bbox": [
+                        0.063,
+                        0.181,
+                        0.443,
+                        0.203
+                      ],
+                      "angle": 0,
+                      "content": "Do not service while power is on.",
+                      "merge_prev": false
+                    },
+                    {
+                      "type": "text",
+                      "bbox": [
+                        0.062,
+                        0.222,
+                        0.325,
+                        0.247
+                      ],
+                      "angle": 0,
+                      "content": "Inspect every 30 days.",
+                      "merge_prev": false
+                    },
+                    {
+                      "type": "table",
+                      "bbox": [
+                        0.065,
+                        0.322,
+                        0.933,
+                        0.511
+                      ],
+                      "angle": 0,
+                      "content": "<table><tr><td>Equipment</td><td>Interval</td></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></table>"
+                    },
+                    {
+                      "type": "text",
+                      "bbox": [
+                        0.063,
+                        0.605,
+                        0.339,
+                        0.629
+                      ],
+                      "angle": 0,
+                      "content": "Restart after inspection.",
+                      "merge_prev": false
+                    },
+                    {
+                      "type": "footer",
+                      "bbox": [
+                        0.064,
+                        0.91,
+                        0.25,
+                        0.933
+                      ],
+                      "angle": 0,
+                      "content": "Printed page 41"
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.067,
+                        0.067,
+                        0.45,
+                        0.095
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.068,
+                        0.141,
+                        0.516,
+                        0.161
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.067,
+                        0.182,
+                        0.439,
+                        0.203
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.065,
+                        0.224,
+                        0.322,
+                        0.245
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.066,
+                        0.606,
+                        0.337,
+                        0.628
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    }
+                  ],
+                  [
+                    {
+                      "type": "text",
+                      "bbox": [
+                        0.062,
+                        0.066,
+                        0.336,
+                        0.094
+                      ],
+                      "angle": 0,
+                      "content": "Inspection Limits",
+                      "merge_prev": false
+                    },
+                    {
+                      "type": "text",
+                      "bbox": [
+                        0.062,
+                        0.148,
+                        0.479,
+                        0.17
+                      ],
+                      "angle": 0,
+                      "content": "Temperature must not exceed 60 C.",
+                      "merge_prev": false
+                    },
+                    {
+                      "type": "footer",
+                      "bbox": [
+                        0.064,
+                        0.91,
+                        0.236,
+                        0.933
+                      ],
+                      "angle": 0,
+                      "content": "Printed page 7"
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.066,
+                        0.067,
+                        0.334,
+                        0.093
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.067,
+                        0.149,
+                        0.476,
+                        0.17
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    }
+                  ]
+                ],
+                "layout.json": {
+                  "pdf_info": [
+                    {
+                      "preproc_blocks": [
+                        {
+                          "bbox": [
+                            38,
+                            52,
+                            271,
+                            75
+                          ],
+                          "type": "title",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                38,
+                                52,
+                                271,
+                                75
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    38,
+                                    52,
+                                    271,
+                                    75
+                                  ],
+                                  "type": "text",
+                                  "content": "Equipment Maintenance"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 0,
+                          "level": 2
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            111,
+                            311,
+                            129
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                111,
+                                311,
+                                129
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    111,
+                                    311,
+                                    129
+                                  ],
+                                  "type": "text",
+                                  "content": "Disconnect power before maintenance."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 1,
+                          "merge_prev": false
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            144,
+                            265,
+                            162
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                144,
+                                265,
+                                162
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    144,
+                                    265,
+                                    162
+                                  ],
+                                  "type": "text",
+                                  "content": "Do not service while power is on."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 2,
+                          "merge_prev": false
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            177,
+                            195,
+                            197
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                177,
+                                195,
+                                197
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    177,
+                                    195,
+                                    197
+                                  ],
+                                  "type": "text",
+                                  "content": "Inspect every 30 days."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 3,
+                          "merge_prev": false
+                        },
+                        {
+                          "type": "table",
+                          "bbox": [
+                            39,
+                            257,
+                            559,
+                            408
+                          ],
+                          "blocks": [
+                            {
+                              "bbox": [
+                                39,
+                                257,
+                                559,
+                                408
+                              ],
+                              "type": "table_body",
+                              "angle": 0,
+                              "lines": [
+                                {
+                                  "bbox": [
+                                    39,
+                                    257,
+                                    559,
+                                    408
+                                  ],
+                                  "spans": [
+                                    {
+                                      "bbox": [
+                                        39,
+                                        257,
+                                        559,
+                                        408
+                                      ],
+                                      "type": "table",
+                                      "html": "<table><tr><td>Equipment</td><td>Interval</td></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></table>",
+                                      "image_path": "ca0ca0193c5b22d66df00e45b7dfe27290782cb20f857f8db005cde3e8b086d0.jpg"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "index": 4
+                            }
+                          ],
+                          "index": 4
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            484,
+                            203,
+                            503
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                484,
+                                203,
+                                503
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    484,
+                                    203,
+                                    503
+                                  ],
+                                  "type": "text",
+                                  "content": "Restart after inspection."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 5,
+                          "merge_prev": false
+                        }
+                      ],
+                      "discarded_blocks": [
+                        {
+                          "bbox": [
+                            38,
+                            728,
+                            150,
+                            746
+                          ],
+                          "type": "footer",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                38,
+                                728,
+                                150,
+                                746
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    38,
+                                    728,
+                                    150,
+                                    746
+                                  ],
+                                  "type": "text",
+                                  "content": "Printed page 41"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 6
+                        }
+                      ],
+                      "page_size": [
+                        600,
+                        800
+                      ],
+                      "page_idx": 0,
+                      "para_blocks": [
+                        {
+                          "bbox": [
+                            38,
+                            52,
+                            271,
+                            75
+                          ],
+                          "type": "title",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                38,
+                                52,
+                                271,
+                                75
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    38,
+                                    52,
+                                    271,
+                                    75
+                                  ],
+                                  "type": "text",
+                                  "content": "Equipment Maintenance"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 0,
+                          "level": 2
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            111,
+                            311,
+                            129
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                111,
+                                311,
+                                129
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    111,
+                                    311,
+                                    129
+                                  ],
+                                  "type": "text",
+                                  "content": "Disconnect power before maintenance."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 1,
+                          "merge_prev": false
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            144,
+                            265,
+                            162
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                144,
+                                265,
+                                162
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    144,
+                                    265,
+                                    162
+                                  ],
+                                  "type": "text",
+                                  "content": "Do not service while power is on."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 2,
+                          "merge_prev": false
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            177,
+                            195,
+                            197
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                177,
+                                195,
+                                197
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    177,
+                                    195,
+                                    197
+                                  ],
+                                  "type": "text",
+                                  "content": "Inspect every 30 days."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 3,
+                          "merge_prev": false
+                        },
+                        {
+                          "type": "table",
+                          "bbox": [
+                            39,
+                            257,
+                            559,
+                            408
+                          ],
+                          "blocks": [
+                            {
+                              "bbox": [
+                                39,
+                                257,
+                                559,
+                                408
+                              ],
+                              "type": "table_body",
+                              "angle": 0,
+                              "lines": [
+                                {
+                                  "bbox": [
+                                    39,
+                                    257,
+                                    559,
+                                    408
+                                  ],
+                                  "spans": [
+                                    {
+                                      "bbox": [
+                                        39,
+                                        257,
+                                        559,
+                                        408
+                                      ],
+                                      "type": "table",
+                                      "html": "<table><tr><td>Equipment</td><td>Interval</td></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></table>",
+                                      "image_path": "ca0ca0193c5b22d66df00e45b7dfe27290782cb20f857f8db005cde3e8b086d0.jpg"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "index": 4
+                            }
+                          ],
+                          "index": 4
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            484,
+                            203,
+                            503
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                484,
+                                203,
+                                503
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    484,
+                                    203,
+                                    503
+                                  ],
+                                  "type": "text",
+                                  "content": "Restart after inspection."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 5,
+                          "merge_prev": false
+                        }
+                      ]
+                    },
+                    {
+                      "preproc_blocks": [
+                        {
+                          "bbox": [
+                            37,
+                            52,
+                            201,
+                            75
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                52,
+                                201,
+                                75
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    52,
+                                    201,
+                                    75
+                                  ],
+                                  "type": "text",
+                                  "content": "Inspection Limits"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 0,
+                          "merge_prev": false
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            118,
+                            287,
+                            136
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                118,
+                                287,
+                                136
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    118,
+                                    287,
+                                    136
+                                  ],
+                                  "type": "text",
+                                  "content": "Temperature must not exceed 60 C."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 1,
+                          "merge_prev": false
+                        }
+                      ],
+                      "discarded_blocks": [
+                        {
+                          "bbox": [
+                            38,
+                            728,
+                            141,
+                            746
+                          ],
+                          "type": "footer",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                38,
+                                728,
+                                141,
+                                746
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    38,
+                                    728,
+                                    141,
+                                    746
+                                  ],
+                                  "type": "text",
+                                  "content": "Printed page 7"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 2
+                        }
+                      ],
+                      "page_size": [
+                        600,
+                        800
+                      ],
+                      "page_idx": 1,
+                      "para_blocks": [
+                        {
+                          "bbox": [
+                            37,
+                            52,
+                            201,
+                            75
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                52,
+                                201,
+                                75
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    52,
+                                    201,
+                                    75
+                                  ],
+                                  "type": "text",
+                                  "content": "Inspection Limits"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 0,
+                          "merge_prev": false
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            118,
+                            287,
+                            136
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                37,
+                                118,
+                                287,
+                                136
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    37,
+                                    118,
+                                    287,
+                                    136
+                                  ],
+                                  "type": "text",
+                                  "content": "Temperature must not exceed 60 C."
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 1,
+                          "merge_prev": false
+                        }
+                      ]
+                    }
+                  ],
+                  "_backend": "hybrid",
+                  "_effort": "medium",
+                  "_ocr_enable": true,
+                  "_version_name": "3.4.4"
+                }
+              },
+              "content_list_file": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+              "html": null,
+              "html_file": null,
+              "artifacts": [
+                "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list_v2.json",
+                "full.md",
+                "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                "246810ed-166d-4bb4-9ade-acea1a1fb3b2_model.json",
+                "246810ed-166d-4bb4-9ade-acea1a1fb3b2_origin.pdf",
+                "layout.json",
+                "images/ca0ca0193c5b22d66df00e45b7dfe27290782cb20f857f8db005cde3e8b086d0.jpg"
+              ],
+              "sources": [
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 0,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 1,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 2,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 3,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 4,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 5,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 6,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 7,
+                  "service_page_index": 1,
+                  "pdf_page_number": 2,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 8,
+                  "service_page_index": 1,
+                  "pdf_page_number": 2,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json",
+                  "block_index": 9,
+                  "service_page_index": 1,
+                  "pdf_page_number": 2,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                }
+              ],
+              "warnings": [],
+              "review_items": [
+                "Markdown character ranges are unavailable; structured block order is separate.",
+                "Reading order and table relationships require verification against the input."
+              ],
+              "main_html": null,
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 108416
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 108416,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": true,
+        "facts": true,
+        "table_rows": true,
+        "review_is_explicit": true,
+        "markdown_ranges_unavailable": true,
+        "pdf_original_pages": true
+      },
+      "observations": {
+        "facts": {
+          "Disconnect power before maintenance.": true,
+          "Restart after inspection.": true,
+          "Temperature must not exceed 60 C.": true
+        },
+        "table_rows": {
+          "Equipment / Interval": true,
+          "Pump / Monthly": true,
+          "Valve / Quarterly": true
+        },
+        "pdf_pages": [
+          1,
+          2
+        ],
+        "service_page_indices": [
+          0,
+          1
+        ],
+        "json_shapes": {
+          "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list_v2.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          },
+          "246810ed-166d-4bb4-9ade-acea1a1fb3b2_content_list.json": {
+            "type": "list",
+            "first_fields": [
+              "bbox",
+              "page_idx",
+              "text",
+              "text_level",
+              "type"
+            ],
+            "fields": []
+          },
+          "246810ed-166d-4bb4-9ade-acea1a1fb3b2_model.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          },
+          "layout.json": {
+            "type": "dict",
+            "first_fields": [],
+            "fields": [
+              "_backend",
+              "_effort",
+              "_ocr_enable",
+              "_version_name",
+              "pdf_info"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

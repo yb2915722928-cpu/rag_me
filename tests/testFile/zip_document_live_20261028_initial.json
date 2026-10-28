@@ -1,0 +1,2520 @@
+{
+  "kind": "ZIP public-entry live acceptance",
+  "started_at": "2026-10-28T08:15:43.741515+00:00",
+  "selected_cases": [
+    "pdf_digital",
+    "pdf_scan",
+    "pdf_mixed",
+    "docx",
+    "pptx",
+    "xlsx",
+    "html",
+    "mhtml"
+  ],
+  "cases": [
+    {
+      "case": "pdf_digital",
+      "input": "pdf_digital_teaching.pdf",
+      "source_sha256": "6567b43bf59c2ee4794ca32df98eebb6b2edab5311018ebc607a23da01350b03",
+      "archive_sha256": "b005c1db1da902c0daabd6653cdd4fe5c67e6412ad61a87e9405d008e7cf6c80",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": true,
+        "facts": true,
+        "table_rows": true,
+        "review_is_explicit": true,
+        "markdown_ranges_unavailable": true,
+        "pdf_original_pages": true
+      },
+      "entry": "convert_file",
+      "seconds": 16.943,
+      "result": {
+        "source": "zip_document_live_pdf_digital.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_pdf_digital.zip",
+              "member_path": "pdf_digital_teaching.pdf",
+              "entry_index": 1
+            },
+            "format": "pdf",
+            "status": "success",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_pdf_digital.zip!/pdf_digital_teaching.pdf#1",
+              "format": "pdf",
+              "provider": "mineru",
+              "requested_model": "vlm",
+              "markdown": "## Equipment Maintenance\n\nDisconnect power before maintenance.\n\nInspect every month.",
+              "markdown_file": "full.md",
+              "structured_json": {
+                "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_model.json": [
+                  [
+                    {
+                      "type": "paragraph_title",
+                      "bbox": [
+                        0.064,
+                        0.037,
+                        0.53,
+                        0.071
+                      ],
+                      "angle": 0,
+                      "content": null
+                    },
+                    {
+                      "type": "text",
+                      "bbox": [
+                        0.062,
+                        0.098,
+                        0.416,
+                        0.118
+                      ],
+                      "angle": 0,
+                      "content": null,
+                      "merge_prev": false
+                    },
+                    {
+                      "type": "text",
+                      "bbox": [
+                        0.062,
+                        0.136,
+                        0.255,
+                        0.155
+                      ],
+                      "angle": 0,
+                      "content": null,
+                      "merge_prev": false
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.068,
+                        0.039,
+                        0.527,
+                        0.068
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.067,
+                        0.1,
+                        0.412,
+                        0.116
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    },
+                    {
+                      "type": "ocr_text",
+                      "bbox": [
+                        0.067,
+                        0.139,
+                        0.25,
+                        0.152
+                      ],
+                      "text": "",
+                      "score": 1.0
+                    }
+                  ]
+                ],
+                "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list_v2.json": [
+                  [
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "Equipment Maintenance"
+                          }
+                        ],
+                        "level": 2
+                      },
+                      "bbox": [
+                        63,
+                        36,
+                        530,
+                        70
+                      ]
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "Disconnect power before maintenance."
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        61,
+                        97,
+                        415,
+                        117
+                      ]
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "Inspect every month."
+                          }
+                        ]
+                      },
+                      "bbox": [
+                        61,
+                        135,
+                        255,
+                        155
+                      ]
+                    }
+                  ]
+                ],
+                "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list.json": [
+                  {
+                    "type": "text",
+                    "text": "Equipment Maintenance",
+                    "text_level": 2,
+                    "bbox": [
+                      63,
+                      36,
+                      530,
+                      70
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "Disconnect power before maintenance.",
+                    "bbox": [
+                      61,
+                      97,
+                      415,
+                      117
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "Inspect every month.",
+                    "bbox": [
+                      61,
+                      135,
+                      255,
+                      155
+                    ],
+                    "page_idx": 0
+                  }
+                ],
+                "layout.json": {
+                  "pdf_info": [
+                    {
+                      "preproc_blocks": [
+                        {
+                          "bbox": [
+                            38,
+                            29,
+                            318,
+                            56
+                          ],
+                          "type": "title",
+                          "angle": 0,
+                          "index": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                40,
+                                31,
+                                316,
+                                54
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    40,
+                                    31,
+                                    316,
+                                    54
+                                  ],
+                                  "type": "text",
+                                  "content": "Equipment Maintenance",
+                                  "score": 1.0
+                                }
+                              ]
+                            }
+                          ],
+                          "level": 2
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            78,
+                            249,
+                            94
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "index": 1,
+                          "lines": [
+                            {
+                              "bbox": [
+                                40,
+                                80,
+                                247,
+                                92
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    40,
+                                    80,
+                                    247,
+                                    92
+                                  ],
+                                  "type": "text",
+                                  "content": "Disconnect power before maintenance.",
+                                  "score": 1.0
+                                }
+                              ]
+                            }
+                          ],
+                          "merge_prev": false
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            108,
+                            153,
+                            124
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "index": 2,
+                          "lines": [
+                            {
+                              "bbox": [
+                                40,
+                                111,
+                                150,
+                                121
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    40,
+                                    111,
+                                    150,
+                                    121
+                                  ],
+                                  "type": "text",
+                                  "content": "Inspect every month.",
+                                  "score": 1.0
+                                }
+                              ]
+                            }
+                          ],
+                          "merge_prev": false
+                        }
+                      ],
+                      "discarded_blocks": [],
+                      "page_size": [
+                        600,
+                        800
+                      ],
+                      "page_idx": 0,
+                      "para_blocks": [
+                        {
+                          "bbox": [
+                            38,
+                            29,
+                            318,
+                            56
+                          ],
+                          "type": "title",
+                          "angle": 0,
+                          "index": 0,
+                          "lines": [
+                            {
+                              "bbox": [
+                                40,
+                                31,
+                                316,
+                                54
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    40,
+                                    31,
+                                    316,
+                                    54
+                                  ],
+                                  "type": "text",
+                                  "content": "Equipment Maintenance",
+                                  "score": 1.0
+                                }
+                              ]
+                            }
+                          ],
+                          "level": 2
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            78,
+                            249,
+                            94
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "index": 1,
+                          "lines": [
+                            {
+                              "bbox": [
+                                40,
+                                80,
+                                247,
+                                92
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    40,
+                                    80,
+                                    247,
+                                    92
+                                  ],
+                                  "type": "text",
+                                  "content": "Disconnect power before maintenance.",
+                                  "score": 1.0
+                                }
+                              ]
+                            }
+                          ],
+                          "merge_prev": false
+                        },
+                        {
+                          "bbox": [
+                            37,
+                            108,
+                            153,
+                            124
+                          ],
+                          "type": "text",
+                          "angle": 0,
+                          "index": 2,
+                          "lines": [
+                            {
+                              "bbox": [
+                                40,
+                                111,
+                                150,
+                                121
+                              ],
+                              "spans": [
+                                {
+                                  "bbox": [
+                                    40,
+                                    111,
+                                    150,
+                                    121
+                                  ],
+                                  "type": "text",
+                                  "content": "Inspect every month.",
+                                  "score": 1.0
+                                }
+                              ]
+                            }
+                          ],
+                          "merge_prev": false
+                        }
+                      ]
+                    }
+                  ],
+                  "_backend": "hybrid",
+                  "_effort": "medium",
+                  "_ocr_enable": false,
+                  "_version_name": "3.4.4"
+                }
+              },
+              "content_list_file": "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list.json",
+              "html": null,
+              "html_file": null,
+              "artifacts": [
+                "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_model.json",
+                "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_origin.pdf",
+                "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list_v2.json",
+                "full.md",
+                "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list.json",
+                "layout.json"
+              ],
+              "sources": [
+                {
+                  "artifact": "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list.json",
+                  "block_index": 0,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list.json",
+                  "block_index": 1,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list.json",
+                  "block_index": 2,
+                  "service_page_index": 0,
+                  "pdf_page_number": 1,
+                  "page_origin": "uploaded_pdf",
+                  "markdown_start": null,
+                  "markdown_end": null
+                }
+              ],
+              "warnings": [],
+              "review_items": [
+                "Markdown character ranges are unavailable; structured block order is separate.",
+                "Reading order and table relationships require verification against the input."
+              ],
+              "main_html": null,
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 1579
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 1579,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "Equipment Maintenance": true,
+          "Disconnect power before maintenance.": true,
+          "Inspect every month.": true
+        },
+        "table_rows": {},
+        "pdf_pages": [
+          1
+        ],
+        "service_page_indices": [
+          0
+        ],
+        "json_shapes": {
+          "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_model.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          },
+          "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list_v2.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          },
+          "76be9956-2487-4cb6-bbb0-2f2cc3371fa0_content_list.json": {
+            "type": "list",
+            "first_fields": [
+              "bbox",
+              "page_idx",
+              "text",
+              "text_level",
+              "type"
+            ],
+            "fields": []
+          },
+          "layout.json": {
+            "type": "dict",
+            "first_fields": [],
+            "fields": [
+              "_backend",
+              "_effort",
+              "_ocr_enable",
+              "_version_name",
+              "pdf_info"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "case": "pdf_scan",
+      "input": "pdf_scanned_maintenance_table.pdf",
+      "source_sha256": "3c4bdd3465f6450a26be3b6074ada31f3c82f2b56ce6506cf03db998d383c0c0",
+      "archive_sha256": "f03c27a228e6303d363e42f6f57c1cd5bf9c4e41baa06a25f1b88bb543a80c22",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": false,
+        "facts": false,
+        "table_rows": false,
+        "review_is_explicit": false,
+        "markdown_ranges_unavailable": true,
+        "pdf_original_pages": false
+      },
+      "entry": "convert_file",
+      "seconds": 11.538,
+      "result": {
+        "source": "zip_document_live_pdf_scan.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_pdf_scan.zip",
+              "member_path": "pdf_scanned_maintenance_table.pdf",
+              "entry_index": 1
+            },
+            "format": "pdf",
+            "status": "failed",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_pdf_scan.zip!/pdf_scanned_maintenance_table.pdf#1",
+              "format": "pdf",
+              "provider": "mineru",
+              "requested_model": "vlm",
+              "markdown": null,
+              "markdown_file": null,
+              "structured_json": {},
+              "content_list_file": null,
+              "html": null,
+              "html_file": null,
+              "artifacts": [],
+              "sources": [],
+              "warnings": [],
+              "review_items": [],
+              "main_html": null,
+              "error": "MinerU document failed: MinerU network request failed or timed out",
+              "success": false,
+              "requires_review": false
+            },
+            "error": "MinerU document failed: MinerU network request failed or timed out",
+            "reason": "parse_error",
+            "bytes_read": 108416
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 108416,
+        "success": false,
+        "requires_review": false,
+        "status": "failed",
+        "counts": {
+          "total": 1,
+          "success": 0,
+          "failed": 1,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "Disconnect power before maintenance.": false,
+          "Restart after inspection.": false,
+          "Temperature must not exceed 60 C.": false
+        },
+        "table_rows": {
+          "Equipment / Interval": false,
+          "Pump / Monthly": false,
+          "Valve / Quarterly": false
+        },
+        "pdf_pages": [],
+        "service_page_indices": [],
+        "json_shapes": {}
+      }
+    },
+    {
+      "case": "pdf_mixed",
+      "input": "pdf_mixed_maintenance.pdf",
+      "source_sha256": "4d87b329c3d618ba54a6a8bacd870e595186104e26eb56ea6f46224b701e1c71",
+      "archive_sha256": "88330d8cb39806e5172b87c0c68bdaa9f44b572d08351b284b85319338421034",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": false,
+        "facts": false,
+        "table_rows": false,
+        "review_is_explicit": false,
+        "markdown_ranges_unavailable": true,
+        "pdf_original_pages": false
+      },
+      "entry": "convert_bytes",
+      "seconds": 9.384,
+      "result": {
+        "source": "zip_document_live_pdf_mixed.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_pdf_mixed.zip",
+              "member_path": "pdf_mixed_maintenance.pdf",
+              "entry_index": 1
+            },
+            "format": "pdf",
+            "status": "failed",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_pdf_mixed.zip!/pdf_mixed_maintenance.pdf#1",
+              "format": "pdf",
+              "provider": "mineru",
+              "requested_model": "vlm",
+              "markdown": null,
+              "markdown_file": null,
+              "structured_json": {},
+              "content_list_file": null,
+              "html": null,
+              "html_file": null,
+              "artifacts": [],
+              "sources": [],
+              "warnings": [],
+              "review_items": [],
+              "main_html": null,
+              "error": "MinerU document failed: MinerU network request failed or timed out",
+              "success": false,
+              "requires_review": false
+            },
+            "error": "MinerU document failed: MinerU network request failed or timed out",
+            "reason": "parse_error",
+            "bytes_read": 109198
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 109198,
+        "success": false,
+        "requires_review": false,
+        "status": "failed",
+        "counts": {
+          "total": 1,
+          "success": 0,
+          "failed": 1,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "Digital Intake": false,
+          "Asset code: PUMP-A17.": false,
+          "Disconnect power before maintenance.": false,
+          "Digital Release": false,
+          "Torque setting: 12 Nm.": false,
+          "Temperature must not exceed 60 C.": false
+        },
+        "table_rows": {
+          "Equipment / Interval": false,
+          "Pump / Monthly": false,
+          "Valve / Quarterly": false
+        },
+        "pdf_pages": [],
+        "service_page_indices": [],
+        "json_shapes": {}
+      }
+    },
+    {
+      "case": "docx",
+      "input": "docx_sections.docx",
+      "source_sha256": "4ea46f33f99dfe92854c0cc0597699aa0270199d987ef69fdb288103888069e8",
+      "archive_sha256": "7979a44ed89a6204f53d2c80b0d6d7c10403d74e164f4a16c76c0804d5ef2c57",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": true,
+        "facts": true,
+        "table_rows": true,
+        "review_is_explicit": true,
+        "markdown_ranges_unavailable": true,
+        "office_native_page_not_invented": true,
+        "body_table_reading_order": true
+      },
+      "entry": "convert_bytes",
+      "seconds": 16.491,
+      "result": {
+        "source": "zip_document_live_docx.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_docx.zip",
+              "member_path": "docx_sections.docx",
+              "entry_index": 1
+            },
+            "format": "docx",
+            "status": "success",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_docx.zip!/docx_sections.docx#1",
+              "format": "docx",
+              "provider": "mineru",
+              "requested_model": "vlm",
+              "markdown": "文档说明。\n\n# **设备维护**\n\n维护前必须断电。\n\n<table><tr><td><p>设备</p></td><td><p>周期</p></td></tr><tr><td><p>泵</p></td><td><p>每月</p></td></tr><tr><td><p>阀门</p></td><td><p>每季度</p></td></tr></table>\n\n检查后重新启动。\n\n## **例行检查**\n\n记录检查结果。\n\n### **注意事项**\n\n不得带电维护。\n\n## **停机检查**\n\n确认阀门关闭。\n\n# **设备维护**\n\n下轮维护沿用周期表。",
+              "markdown_file": "full.md",
+              "structured_json": {
+                "ef265cd3-45db-4a61-a245-948642e4890d_model.json": [
+                  [
+                    {
+                      "type": "text",
+                      "content": "文档说明。"
+                    },
+                    {
+                      "type": "title",
+                      "level": 1,
+                      "is_numbered_style": false,
+                      "content": "<text style=\"bold\">设备维护</text>"
+                    },
+                    {
+                      "type": "text",
+                      "content": "维护前必须断电。"
+                    },
+                    {
+                      "type": "table",
+                      "content": "<table><tr><td><p>设备</p></td><td><p>周期</p></td></tr><tr><td><p>泵</p></td><td><p>每月</p></td></tr><tr><td><p>阀门</p></td><td><p>每季度</p></td></tr></table>"
+                    },
+                    {
+                      "type": "text",
+                      "content": "检查后重新启动。"
+                    },
+                    {
+                      "type": "title",
+                      "level": 2,
+                      "is_numbered_style": false,
+                      "content": "<text style=\"bold\">例行检查</text>"
+                    },
+                    {
+                      "type": "text",
+                      "content": "记录检查结果。"
+                    },
+                    {
+                      "type": "title",
+                      "level": 3,
+                      "is_numbered_style": false,
+                      "content": "<text style=\"bold\">注意事项</text>"
+                    },
+                    {
+                      "type": "text",
+                      "content": "不得带电维护。"
+                    },
+                    {
+                      "type": "title",
+                      "level": 2,
+                      "is_numbered_style": false,
+                      "content": "<text style=\"bold\">停机检查</text>"
+                    },
+                    {
+                      "type": "text",
+                      "content": "确认阀门关闭。"
+                    },
+                    {
+                      "type": "title",
+                      "level": 1,
+                      "is_numbered_style": false,
+                      "content": "<text style=\"bold\">设备维护</text>"
+                    },
+                    {
+                      "type": "text",
+                      "content": "下轮维护沿用周期表。"
+                    }
+                  ]
+                ],
+                "ef265cd3-45db-4a61-a245-948642e4890d_content_list_v2.json": [
+                  [
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "文档说明。"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "设备维护",
+                            "style": [
+                              "bold"
+                            ]
+                          }
+                        ],
+                        "level": 1
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "维护前必须断电。"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "table",
+                      "content": {
+                        "table_caption": [],
+                        "html": "<table><tr><td><p>设备</p></td><td><p>周期</p></td></tr><tr><td><p>泵</p></td><td><p>每月</p></td></tr><tr><td><p>阀门</p></td><td><p>每季度</p></td></tr></table>",
+                        "table_type": "simple_table",
+                        "table_nest_level": 1
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "检查后重新启动。"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "例行检查",
+                            "style": [
+                              "bold"
+                            ]
+                          }
+                        ],
+                        "level": 2
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "记录检查结果。"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "注意事项",
+                            "style": [
+                              "bold"
+                            ]
+                          }
+                        ],
+                        "level": 3
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "不得带电维护。"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "停机检查",
+                            "style": [
+                              "bold"
+                            ]
+                          }
+                        ],
+                        "level": 2
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "确认阀门关闭。"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "设备维护",
+                            "style": [
+                              "bold"
+                            ]
+                          }
+                        ],
+                        "level": 1
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": {
+                        "paragraph_content": [
+                          {
+                            "type": "text",
+                            "content": "下轮维护沿用周期表。"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                ],
+                "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json": [
+                  {
+                    "type": "text",
+                    "text": "文档说明。",
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "**设备维护**",
+                    "text_level": 1,
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "维护前必须断电。",
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "table",
+                    "table_caption": [],
+                    "table_body": "<table><tr><td><p>设备</p></td><td><p>周期</p></td></tr><tr><td><p>泵</p></td><td><p>每月</p></td></tr><tr><td><p>阀门</p></td><td><p>每季度</p></td></tr></table>",
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "检查后重新启动。",
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "**例行检查**",
+                    "text_level": 2,
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "记录检查结果。",
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "**注意事项**",
+                    "text_level": 3,
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "不得带电维护。",
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "**停机检查**",
+                    "text_level": 2,
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "确认阀门关闭。",
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "**设备维护**",
+                    "text_level": 1,
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "下轮维护沿用周期表。",
+                    "page_idx": 0
+                  }
+                ],
+                "layout.json": {
+                  "pdf_info": [
+                    {
+                      "para_blocks": [
+                        {
+                          "type": "text",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "文档说明。"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 0
+                        },
+                        {
+                          "type": "title",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "设备维护",
+                                  "style": [
+                                    "bold"
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 1,
+                          "is_numbered_style": false,
+                          "level": 1
+                        },
+                        {
+                          "type": "text",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "维护前必须断电。"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 2
+                        },
+                        {
+                          "type": "table",
+                          "blocks": [
+                            {
+                              "lines": [
+                                {
+                                  "spans": [
+                                    {
+                                      "type": "table",
+                                      "html": "<table><tr><td><p>设备</p></td><td><p>周期</p></td></tr><tr><td><p>泵</p></td><td><p>每月</p></td></tr><tr><td><p>阀门</p></td><td><p>每季度</p></td></tr></table>"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "index": 3,
+                              "type": "table_body"
+                            }
+                          ],
+                          "index": 3
+                        },
+                        {
+                          "type": "text",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "检查后重新启动。"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 4
+                        },
+                        {
+                          "type": "title",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "例行检查",
+                                  "style": [
+                                    "bold"
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 5,
+                          "is_numbered_style": false,
+                          "level": 2
+                        },
+                        {
+                          "type": "text",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "记录检查结果。"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 6
+                        },
+                        {
+                          "type": "title",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "注意事项",
+                                  "style": [
+                                    "bold"
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 7,
+                          "is_numbered_style": false,
+                          "level": 3
+                        },
+                        {
+                          "type": "text",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "不得带电维护。"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 8
+                        },
+                        {
+                          "type": "title",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "停机检查",
+                                  "style": [
+                                    "bold"
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 9,
+                          "is_numbered_style": false,
+                          "level": 2
+                        },
+                        {
+                          "type": "text",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "确认阀门关闭。"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 10
+                        },
+                        {
+                          "type": "title",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "设备维护",
+                                  "style": [
+                                    "bold"
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 11,
+                          "is_numbered_style": false,
+                          "level": 1
+                        },
+                        {
+                          "type": "text",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "下轮维护沿用周期表。"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 12
+                        }
+                      ],
+                      "discarded_blocks": [],
+                      "page_idx": 0
+                    }
+                  ],
+                  "_backend": "office",
+                  "_version_name": "3.4.4"
+                }
+              },
+              "content_list_file": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+              "html": null,
+              "html_file": null,
+              "artifacts": [
+                "ef265cd3-45db-4a61-a245-948642e4890d_model.json",
+                "ef265cd3-45db-4a61-a245-948642e4890d_origin.docx",
+                "full.md",
+                "ef265cd3-45db-4a61-a245-948642e4890d_content_list_v2.json",
+                "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                "layout.json"
+              ],
+              "sources": [
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 0,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 1,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 2,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 3,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 4,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 5,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 6,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 7,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 8,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 9,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 10,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 11,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json",
+                  "block_index": 12,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                }
+              ],
+              "warnings": [],
+              "review_items": [
+                "Markdown character ranges are unavailable; structured block order is separate.",
+                "Reading order and table relationships require verification against the input.",
+                "Office native locations are unavailable: Word sections/body blocks, slide/object ownership, worksheet/cell addresses and formula caches are not established by service page indices."
+              ],
+              "main_html": null,
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 37024
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 37024,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "设备维护": true,
+          "维护前必须断电。": true,
+          "检查后重新启动。": true
+        },
+        "table_rows": {
+          "设备 / 周期": true,
+          "泵 / 每月": true,
+          "阀门 / 每季度": true
+        },
+        "pdf_pages": [],
+        "service_page_indices": [
+          0
+        ],
+        "json_shapes": {
+          "ef265cd3-45db-4a61-a245-948642e4890d_model.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          },
+          "ef265cd3-45db-4a61-a245-948642e4890d_content_list_v2.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          },
+          "ef265cd3-45db-4a61-a245-948642e4890d_content_list.json": {
+            "type": "list",
+            "first_fields": [
+              "page_idx",
+              "text",
+              "type"
+            ],
+            "fields": []
+          },
+          "layout.json": {
+            "type": "dict",
+            "first_fields": [],
+            "fields": [
+              "_backend",
+              "_version_name",
+              "pdf_info"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "case": "pptx",
+      "input": "zip_document_live_slides.pptx",
+      "source_sha256": "8528ee47eb84e7b52e5fc7c3483ae494026d839e07d5e3ae30dd70a1f29323e8",
+      "archive_sha256": "f0185ff1b19b36c30bd5abe6677d882078ef98b99d3b7e7ed9587c56834faf64",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": true,
+        "facts": true,
+        "table_rows": true,
+        "review_is_explicit": true,
+        "markdown_ranges_unavailable": true,
+        "office_native_page_not_invented": true,
+        "observed_service_page_ownership": true
+      },
+      "entry": "convert_bytes",
+      "seconds": 10.648,
+      "result": {
+        "source": "zip_document_live_pptx.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_pptx.zip",
+              "member_path": "zip_document_live_slides.pptx",
+              "entry_index": 1
+            },
+            "format": "pptx",
+            "status": "success",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_pptx.zip!/zip_document_live_slides.pptx#1",
+              "format": "pptx",
+              "provider": "mineru",
+              "requested_model": "vlm",
+              "markdown": "## Maintenance Start\n\n- Disconnect power before maintenance.\n\n## Maintenance Schedule\n\n<table>\n  <tr>\n    <th>Equipment</th>\n    <th>Interval</th>\n  </tr>\n  <tr>\n    <td>Pump</td>\n    <td>Monthly</td>\n  </tr>\n  <tr>\n    <td>Valve</td>\n    <td>Quarterly</td>\n  </tr>\n</table>",
+              "markdown_file": "full.md",
+              "structured_json": {
+                "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list.json": [
+                  {
+                    "type": "text",
+                    "text": "Maintenance Start",
+                    "text_level": 2,
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "list",
+                    "list_items": [
+                      "- Disconnect power before maintenance."
+                    ],
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "Maintenance Schedule",
+                    "text_level": 2,
+                    "page_idx": 1
+                  },
+                  {
+                    "type": "table",
+                    "table_caption": [],
+                    "table_body": "<table>\n  <tr>\n    <th>Equipment</th>\n    <th>Interval</th>\n  </tr>\n  <tr>\n    <td>Pump</td>\n    <td>Monthly</td>\n  </tr>\n  <tr>\n    <td>Valve</td>\n    <td>Quarterly</td>\n  </tr>\n</table>",
+                    "page_idx": 1
+                  }
+                ],
+                "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_model.json": [
+                  [
+                    {
+                      "type": "title",
+                      "content": "Maintenance Start",
+                      "level": 2
+                    },
+                    {
+                      "type": "list",
+                      "attribute": "unordered",
+                      "ilevel": 0,
+                      "content": [
+                        {
+                          "type": "text",
+                          "content": "Disconnect power before maintenance."
+                        }
+                      ]
+                    }
+                  ],
+                  [
+                    {
+                      "type": "title",
+                      "content": "Maintenance Schedule",
+                      "level": 2
+                    },
+                    {
+                      "type": "table",
+                      "content": "<table border=\"1\">\n  <tr>\n    <th>Equipment</th>\n    <th>Interval</th>\n  </tr>\n  <tr>\n    <td>Pump</td>\n    <td>Monthly</td>\n  </tr>\n  <tr>\n    <td>Valve</td>\n    <td>Quarterly</td>\n  </tr>\n</table>"
+                    }
+                  ]
+                ],
+                "layout.json": {
+                  "pdf_info": [
+                    {
+                      "para_blocks": [
+                        {
+                          "type": "title",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "Maintenance Start"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 0,
+                          "is_numbered_style": false,
+                          "level": 2
+                        },
+                        {
+                          "type": "list",
+                          "attribute": "unordered",
+                          "ilevel": 0,
+                          "blocks": [
+                            {
+                              "type": "text",
+                              "lines": [
+                                {
+                                  "spans": [
+                                    {
+                                      "type": "text",
+                                      "content": "Disconnect power before maintenance."
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 1
+                        }
+                      ],
+                      "discarded_blocks": [],
+                      "page_idx": 0
+                    },
+                    {
+                      "para_blocks": [
+                        {
+                          "type": "title",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "Maintenance Schedule"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 0,
+                          "is_numbered_style": false,
+                          "level": 2
+                        },
+                        {
+                          "type": "table",
+                          "blocks": [
+                            {
+                              "lines": [
+                                {
+                                  "spans": [
+                                    {
+                                      "type": "table",
+                                      "html": "<table>\n  <tr>\n    <th>Equipment</th>\n    <th>Interval</th>\n  </tr>\n  <tr>\n    <td>Pump</td>\n    <td>Monthly</td>\n  </tr>\n  <tr>\n    <td>Valve</td>\n    <td>Quarterly</td>\n  </tr>\n</table>"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "index": 1,
+                              "type": "table_body"
+                            }
+                          ],
+                          "index": 1
+                        }
+                      ],
+                      "discarded_blocks": [],
+                      "page_idx": 1
+                    }
+                  ],
+                  "_backend": "office",
+                  "_version_name": "3.4.4"
+                },
+                "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list_v2.json": [
+                  [
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "Maintenance Start"
+                          }
+                        ],
+                        "level": 2
+                      }
+                    },
+                    {
+                      "type": "list",
+                      "content": {
+                        "list_type": "text_list",
+                        "attribute": "unordered",
+                        "list_items": [
+                          {
+                            "item_type": "text",
+                            "ilevel": 0,
+                            "prefix": "-",
+                            "item_content": [
+                              {
+                                "type": "text",
+                                "content": "Disconnect power before maintenance."
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  [
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "Maintenance Schedule"
+                          }
+                        ],
+                        "level": 2
+                      }
+                    },
+                    {
+                      "type": "table",
+                      "content": {
+                        "table_caption": [],
+                        "html": "<table>\n  <tr>\n    <th>Equipment</th>\n    <th>Interval</th>\n  </tr>\n  <tr>\n    <td>Pump</td>\n    <td>Monthly</td>\n  </tr>\n  <tr>\n    <td>Valve</td>\n    <td>Quarterly</td>\n  </tr>\n</table>",
+                        "table_type": "simple_table",
+                        "table_nest_level": 1
+                      }
+                    }
+                  ]
+                ]
+              },
+              "content_list_file": "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list.json",
+              "html": null,
+              "html_file": null,
+              "artifacts": [
+                "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_origin.pptx",
+                "full.md",
+                "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list.json",
+                "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_model.json",
+                "layout.json",
+                "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list_v2.json"
+              ],
+              "sources": [
+                {
+                  "artifact": "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list.json",
+                  "block_index": 0,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list.json",
+                  "block_index": 1,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list.json",
+                  "block_index": 2,
+                  "service_page_index": 1,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list.json",
+                  "block_index": 3,
+                  "service_page_index": 1,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                }
+              ],
+              "warnings": [],
+              "review_items": [
+                "Markdown character ranges are unavailable; structured block order is separate.",
+                "Reading order and table relationships require verification against the input.",
+                "Office native locations are unavailable: Word sections/body blocks, slide/object ownership, worksheet/cell addresses and formula caches are not established by service page indices."
+              ],
+              "main_html": null,
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 29371
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 29371,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "Maintenance Start": true,
+          "Disconnect power before maintenance.": true,
+          "Maintenance Schedule": true
+        },
+        "table_rows": {
+          "Equipment / Interval": true,
+          "Pump / Monthly": true,
+          "Valve / Quarterly": true
+        },
+        "pdf_pages": [],
+        "service_page_indices": [
+          0,
+          1
+        ],
+        "json_shapes": {
+          "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list.json": {
+            "type": "list",
+            "first_fields": [
+              "page_idx",
+              "text",
+              "text_level",
+              "type"
+            ],
+            "fields": []
+          },
+          "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_model.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          },
+          "layout.json": {
+            "type": "dict",
+            "first_fields": [],
+            "fields": [
+              "_backend",
+              "_version_name",
+              "pdf_info"
+            ]
+          },
+          "4f675fd3-bacc-47a3-9df0-ba27e25d5b46_content_list_v2.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          }
+        }
+      }
+    },
+    {
+      "case": "xlsx",
+      "input": "zip_document_live_workbook.xlsx",
+      "source_sha256": "9e821a8014e04046071d29ab06841dc4f9bc940aeda718e27254a31e556ceddd",
+      "archive_sha256": "2e2a254755ae36dfad37177ba4f37a0d4b8f6723d345de3ffa0c27136da7bde8",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": true,
+        "facts": true,
+        "table_rows": true,
+        "review_is_explicit": true,
+        "markdown_ranges_unavailable": true,
+        "office_native_page_not_invented": true,
+        "merged_header_terms": true
+      },
+      "entry": "convert_file",
+      "seconds": 14.553,
+      "result": {
+        "source": "zip_document_live_xlsx.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_xlsx.zip",
+              "member_path": "zip_document_live_workbook.xlsx",
+              "entry_index": 1
+            },
+            "format": "xlsx",
+            "status": "success",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_xlsx.zip!/zip_document_live_workbook.xlsx#1",
+              "format": "xlsx",
+              "provider": "mineru",
+              "requested_model": "vlm",
+              "markdown": "# Travel\n\n<table>\n  <tr>\n    <th><p>City</p></th>\n    <th colspan=\"2\"><p>Allowance</p></th>\n  </tr>\n  <tr>\n    <td><p></p></td>\n    <td><p>Hotel</p></td>\n    <td><p>Meals</p></td>\n  </tr>\n  <tr>\n    <td><p>Beijing</p></td>\n    <td><p>500</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Shanghai</p></td>\n    <td><p>450</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Total</p></td>\n    <td><p></p></td>\n    <td><p></p></td>\n  </tr>\n</table>\n\n# Equipment\n\n<table>\n  <tr>\n    <th><p>Equipment</p></th>\n    <th><p>Interval</p></th>\n  </tr>\n  <tr>\n    <td><p>Pump</p></td>\n    <td><p>Monthly</p></td>\n  </tr>\n</table>",
+              "markdown_file": "full.md",
+              "structured_json": {
+                "cddace52-28f6-404a-a7bb-9f675e3215b3_model.json": [
+                  [
+                    {
+                      "type": "title",
+                      "content": "Travel"
+                    },
+                    {
+                      "type": "table",
+                      "content": "<table>\n  <tr>\n    <th><p>City</p></th>\n    <th colspan=\"2\"><p>Allowance</p></th>\n  </tr>\n  <tr>\n    <td><p></p></td>\n    <td><p>Hotel</p></td>\n    <td><p>Meals</p></td>\n  </tr>\n  <tr>\n    <td><p>Beijing</p></td>\n    <td><p>500</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Shanghai</p></td>\n    <td><p>450</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Total</p></td>\n    <td><p></p></td>\n    <td><p></p></td>\n  </tr>\n</table>"
+                    }
+                  ],
+                  [
+                    {
+                      "type": "title",
+                      "content": "Equipment"
+                    },
+                    {
+                      "type": "table",
+                      "content": "<table>\n  <tr>\n    <th><p>Equipment</p></th>\n    <th><p>Interval</p></th>\n  </tr>\n  <tr>\n    <td><p>Pump</p></td>\n    <td><p>Monthly</p></td>\n  </tr>\n</table>"
+                    }
+                  ]
+                ],
+                "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list_v2.json": [
+                  [
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "Travel"
+                          }
+                        ],
+                        "level": 1
+                      }
+                    },
+                    {
+                      "type": "table",
+                      "content": {
+                        "table_caption": [],
+                        "html": "<table>\n  <tr>\n    <th><p>City</p></th>\n    <th colspan=\"2\"><p>Allowance</p></th>\n  </tr>\n  <tr>\n    <td><p></p></td>\n    <td><p>Hotel</p></td>\n    <td><p>Meals</p></td>\n  </tr>\n  <tr>\n    <td><p>Beijing</p></td>\n    <td><p>500</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Shanghai</p></td>\n    <td><p>450</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Total</p></td>\n    <td><p></p></td>\n    <td><p></p></td>\n  </tr>\n</table>",
+                        "table_type": "complex_table",
+                        "table_nest_level": 1
+                      }
+                    }
+                  ],
+                  [
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": [
+                          {
+                            "type": "text",
+                            "content": "Equipment"
+                          }
+                        ],
+                        "level": 1
+                      }
+                    },
+                    {
+                      "type": "table",
+                      "content": {
+                        "table_caption": [],
+                        "html": "<table>\n  <tr>\n    <th><p>Equipment</p></th>\n    <th><p>Interval</p></th>\n  </tr>\n  <tr>\n    <td><p>Pump</p></td>\n    <td><p>Monthly</p></td>\n  </tr>\n</table>",
+                        "table_type": "simple_table",
+                        "table_nest_level": 1
+                      }
+                    }
+                  ]
+                ],
+                "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list.json": [
+                  {
+                    "type": "text",
+                    "text": "Travel",
+                    "text_level": 1,
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "table",
+                    "table_caption": [],
+                    "table_body": "<table>\n  <tr>\n    <th><p>City</p></th>\n    <th colspan=\"2\"><p>Allowance</p></th>\n  </tr>\n  <tr>\n    <td><p></p></td>\n    <td><p>Hotel</p></td>\n    <td><p>Meals</p></td>\n  </tr>\n  <tr>\n    <td><p>Beijing</p></td>\n    <td><p>500</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Shanghai</p></td>\n    <td><p>450</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Total</p></td>\n    <td><p></p></td>\n    <td><p></p></td>\n  </tr>\n</table>",
+                    "page_idx": 0
+                  },
+                  {
+                    "type": "text",
+                    "text": "Equipment",
+                    "text_level": 1,
+                    "page_idx": 1
+                  },
+                  {
+                    "type": "table",
+                    "table_caption": [],
+                    "table_body": "<table>\n  <tr>\n    <th><p>Equipment</p></th>\n    <th><p>Interval</p></th>\n  </tr>\n  <tr>\n    <td><p>Pump</p></td>\n    <td><p>Monthly</p></td>\n  </tr>\n</table>",
+                    "page_idx": 1
+                  }
+                ],
+                "layout.json": {
+                  "pdf_info": [
+                    {
+                      "para_blocks": [
+                        {
+                          "type": "title",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "Travel"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 0,
+                          "is_numbered_style": false,
+                          "level": 1
+                        },
+                        {
+                          "type": "table",
+                          "blocks": [
+                            {
+                              "lines": [
+                                {
+                                  "spans": [
+                                    {
+                                      "type": "table",
+                                      "html": "<table>\n  <tr>\n    <th><p>City</p></th>\n    <th colspan=\"2\"><p>Allowance</p></th>\n  </tr>\n  <tr>\n    <td><p></p></td>\n    <td><p>Hotel</p></td>\n    <td><p>Meals</p></td>\n  </tr>\n  <tr>\n    <td><p>Beijing</p></td>\n    <td><p>500</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Shanghai</p></td>\n    <td><p>450</p></td>\n    <td><p>100</p></td>\n  </tr>\n  <tr>\n    <td><p>Total</p></td>\n    <td><p></p></td>\n    <td><p></p></td>\n  </tr>\n</table>"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "index": 1,
+                              "type": "table_body"
+                            }
+                          ],
+                          "index": 1
+                        }
+                      ],
+                      "discarded_blocks": [],
+                      "page_idx": 0
+                    },
+                    {
+                      "para_blocks": [
+                        {
+                          "type": "title",
+                          "lines": [
+                            {
+                              "spans": [
+                                {
+                                  "type": "text",
+                                  "content": "Equipment"
+                                }
+                              ]
+                            }
+                          ],
+                          "index": 0,
+                          "is_numbered_style": false,
+                          "level": 1
+                        },
+                        {
+                          "type": "table",
+                          "blocks": [
+                            {
+                              "lines": [
+                                {
+                                  "spans": [
+                                    {
+                                      "type": "table",
+                                      "html": "<table>\n  <tr>\n    <th><p>Equipment</p></th>\n    <th><p>Interval</p></th>\n  </tr>\n  <tr>\n    <td><p>Pump</p></td>\n    <td><p>Monthly</p></td>\n  </tr>\n</table>"
+                                    }
+                                  ]
+                                }
+                              ],
+                              "index": 1,
+                              "type": "table_body"
+                            }
+                          ],
+                          "index": 1
+                        }
+                      ],
+                      "discarded_blocks": [],
+                      "page_idx": 1
+                    }
+                  ],
+                  "_backend": "office",
+                  "_version_name": "3.4.4"
+                }
+              },
+              "content_list_file": "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list.json",
+              "html": null,
+              "html_file": null,
+              "artifacts": [
+                "cddace52-28f6-404a-a7bb-9f675e3215b3_model.json",
+                "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list_v2.json",
+                "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list.json",
+                "full.md",
+                "cddace52-28f6-404a-a7bb-9f675e3215b3_origin.xlsx",
+                "layout.json"
+              ],
+              "sources": [
+                {
+                  "artifact": "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list.json",
+                  "block_index": 0,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list.json",
+                  "block_index": 1,
+                  "service_page_index": 0,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list.json",
+                  "block_index": 2,
+                  "service_page_index": 1,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                },
+                {
+                  "artifact": "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list.json",
+                  "block_index": 3,
+                  "service_page_index": 1,
+                  "pdf_page_number": null,
+                  "page_origin": "service_page_unverified",
+                  "markdown_start": null,
+                  "markdown_end": null
+                }
+              ],
+              "warnings": [],
+              "review_items": [
+                "Markdown character ranges are unavailable; structured block order is separate.",
+                "Reading order and table relationships require verification against the input.",
+                "Office native locations are unavailable: Word sections/body blocks, slide/object ownership, worksheet/cell addresses and formula caches are not established by service page indices."
+              ],
+              "main_html": null,
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 5490
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 5490,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "Beijing": true,
+          "Shanghai": true,
+          "Equipment": true,
+          "Pump": true
+        },
+        "table_rows": {
+          "Beijing / 500 / 100": true,
+          "Shanghai / 450 / 100": true,
+          "Pump / Monthly": true
+        },
+        "pdf_pages": [],
+        "service_page_indices": [
+          0,
+          1
+        ],
+        "json_shapes": {
+          "cddace52-28f6-404a-a7bb-9f675e3215b3_model.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          },
+          "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list_v2.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          },
+          "cddace52-28f6-404a-a7bb-9f675e3215b3_content_list.json": {
+            "type": "list",
+            "first_fields": [
+              "page_idx",
+              "text",
+              "text_level",
+              "type"
+            ],
+            "fields": []
+          },
+          "layout.json": {
+            "type": "dict",
+            "first_fields": [],
+            "fields": [
+              "_backend",
+              "_version_name",
+              "pdf_info"
+            ]
+          }
+        },
+        "native_location_conclusion": "Worksheet/cell/merged-range/formula-cache provenance remains unavailable; raw JSON is retained for review. The constructed formula SUM(B3:B4) has no saved calculated cache; no result is inferred.",
+        "merged_header_terms": {
+          "Allowance": true,
+          "Hotel": true,
+          "Meals": true
+        }
+      }
+    },
+    {
+      "case": "html",
+      "input": "zip_document_live_page.html",
+      "source_sha256": "a89719d83a9056269c4800f6bce6f76cbccccc9eef05a545e0213c0a5591d574",
+      "archive_sha256": "0df523040b8c40a1a10f40035fa99cad6200f5baea721c74010e3ac6b0c07111",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": true,
+        "facts": true,
+        "table_rows": true,
+        "review_is_explicit": true,
+        "markdown_ranges_unavailable": true,
+        "body_table_reading_order": true
+      },
+      "entry": "convert_file",
+      "seconds": 15.001,
+      "result": {
+        "source": "zip_document_live_html.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_html.zip",
+              "member_path": "zip_document_live_page.html",
+              "entry_index": 1
+            },
+            "format": "html",
+            "status": "success",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_html.zip!/zip_document_live_page.html#1",
+              "format": "html",
+              "provider": "mineru",
+              "requested_model": "MinerU-HTML",
+              "markdown": "# Maintenance Rules\n\nDisconnect power before maintenance.\n\n| Equipment | Interval |\n|---|---|\n| Pump | Monthly |\n| Valve | Quarterly |\n\nRestart after inspection.\n",
+              "markdown_file": "full.md",
+              "structured_json": {
+                "content_list.json": [
+                  [
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": "Maintenance Rules",
+                        "level": "1"
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "c": "Disconnect power before maintenance.",
+                          "t": "text"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "simple_table",
+                      "content": {
+                        "html": "<table><tbody><tr><th>Equipment</th><th>Interval</th></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></tbody></table>",
+                        "caption": [],
+                        "footnote": []
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "c": "Restart after inspection.",
+                          "t": "text"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              },
+              "content_list_file": "content_list.json",
+              "html": "<html><body><article><h1 _item_id=\"1\">Maintenance Rules</h1><p _item_id=\"2\">Disconnect power before maintenance.</p><table _item_id=\"3\"><tbody><tr><th>Equipment</th><th>Interval</th></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></tbody></table><p _item_id=\"4\">Restart after inspection.</p></article></body></html>",
+              "html_file": "main.html",
+              "artifacts": [
+                "main.html",
+                "full.md",
+                "content_list.json"
+              ],
+              "sources": [],
+              "warnings": [],
+              "review_items": [
+                "HTML DOM locations and Markdown character ranges are unavailable; verify body selection and table relationships against the input."
+              ],
+              "main_html": null,
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 366
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 366,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "Maintenance Rules": true,
+          "Disconnect power before maintenance.": true,
+          "Restart after inspection.": true
+        },
+        "table_rows": {
+          "Equipment / Interval": true,
+          "Pump / Monthly": true,
+          "Valve / Quarterly": true
+        },
+        "pdf_pages": [],
+        "service_page_indices": [],
+        "json_shapes": {
+          "content_list.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          }
+        }
+      }
+    },
+    {
+      "case": "mhtml",
+      "input": "zip_document_live_page.mhtml",
+      "source_sha256": "201e74bd03d0bf337d61f8a3d7022b47f76f2ea1edcca5cbb6fb6364c169958d",
+      "archive_sha256": "eeaacdf6a87f7bec4799d0f14d3750117f5dbd084dcfbfc59c0754e48d0e779c",
+      "verification": {
+        "source_sha256": true,
+        "archive_sha256": true,
+        "api_success": true,
+        "facts": true,
+        "table_rows": true,
+        "review_is_explicit": true,
+        "markdown_ranges_unavailable": true,
+        "body_table_reading_order": true
+      },
+      "entry": "convert_bytes",
+      "seconds": 11.759,
+      "result": {
+        "source": "zip_document_live_mhtml.zip",
+        "members": [
+          {
+            "source": {
+              "container": "zip_document_live_mhtml.zip",
+              "member_path": "zip_document_live_page.mhtml",
+              "entry_index": 1
+            },
+            "format": "mhtml",
+            "status": "success",
+            "result_kind": "document",
+            "result": {
+              "source": "zip_document_live_mhtml.zip!/zip_document_live_page.mhtml#1",
+              "format": "mhtml",
+              "provider": "mineru",
+              "requested_model": "MinerU-HTML",
+              "markdown": "# Maintenance Rules\n\nDisconnect power before maintenance.\n\n| Equipment | Interval |\n|---|---|\n| Pump | Monthly |\n| Valve | Quarterly |\n\nRestart after inspection.\n",
+              "markdown_file": "full.md",
+              "structured_json": {
+                "content_list.json": [
+                  [
+                    {
+                      "type": "title",
+                      "content": {
+                        "title_content": "Maintenance Rules",
+                        "level": "1"
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "c": "Disconnect power before maintenance.",
+                          "t": "text"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "simple_table",
+                      "content": {
+                        "html": "<table><tbody><tr><th>Equipment</th><th>Interval</th></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></tbody></table>",
+                        "caption": [],
+                        "footnote": []
+                      }
+                    },
+                    {
+                      "type": "paragraph",
+                      "content": [
+                        {
+                          "c": "Restart after inspection.",
+                          "t": "text"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              },
+              "content_list_file": "content_list.json",
+              "html": "<html><body><article><h1 _item_id=\"1\">Maintenance Rules</h1><p _item_id=\"2\">Disconnect power before maintenance.</p><table _item_id=\"3\"><tbody><tr><th>Equipment</th><th>Interval</th></tr><tr><td>Pump</td><td>Monthly</td></tr><tr><td>Valve</td><td>Quarterly</td></tr></tbody></table><p _item_id=\"4\">Restart after inspection.</p></article></body></html>",
+              "html_file": "main.html",
+              "artifacts": [
+                "main.html",
+                "full.md",
+                "content_list.json"
+              ],
+              "sources": [],
+              "warnings": [],
+              "review_items": [
+                "HTML DOM locations and Markdown character ranges are unavailable; verify body selection and table relationships against the input."
+              ],
+              "main_html": {
+                "content_id": "<main>",
+                "content_location": null,
+                "mime_index": 1,
+                "encoding": "utf-8"
+              },
+              "error": null,
+              "success": true,
+              "requires_review": true
+            },
+            "error": null,
+            "reason": null,
+            "bytes_read": 524
+          }
+        ],
+        "error": null,
+        "stop_reason": null,
+        "total_bytes_read": 524,
+        "success": true,
+        "requires_review": true,
+        "status": "success",
+        "counts": {
+          "total": 1,
+          "success": 1,
+          "failed": 0,
+          "ignored": 0,
+          "unprocessed": 0
+        }
+      },
+      "observations": {
+        "facts": {
+          "Maintenance Rules": true,
+          "Disconnect power before maintenance.": true,
+          "Restart after inspection.": true
+        },
+        "table_rows": {
+          "Equipment / Interval": true,
+          "Pump / Monthly": true,
+          "Valve / Quarterly": true
+        },
+        "pdf_pages": [],
+        "service_page_indices": [],
+        "json_shapes": {
+          "content_list.json": {
+            "type": "list",
+            "first_fields": [],
+            "fields": []
+          }
+        }
+      }
+    }
+  ]
+}
