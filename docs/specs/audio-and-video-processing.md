@@ -115,6 +115,6 @@
 - 官方[同步音频转写](https://platform.stepfun.com/docs/zh/api-reference/audio/transcriptions)仅返回整段文本，支持文件上传。官方[音频文件识别](https://platform.stepfun.com/docs/zh/api-reference/audio/asr)提供分句／字词时间与说话人，但要求服务可访问的音频 URL。本期选择前者，以真实切片范围定位，不假设存在未文档化的本地上传精细时间接口。
 - 官方[视频理解指南](https://platform.stepfun.com/docs/zh/guides/developer/video-chat)说明现有视觉模型支持原生视频，接受内联视频、URL 或文件引用。首版采用内联片段，避免另建媒体托管；模型内部采样与解释仍有遗漏风险。
 - 官方[StepAudio 2.5 ASR](https://platform.stepfun.com/docs/zh/guides/models/stepaudio-2.5-asr)包含同步转写端点；不因新版语音模型存在就假定其兼容同一接口。实际账号权限及模型质量仍以实施时真实调用为准。
-- 已核对本地阶跃凭据已配置，现有视觉模型为 step-5-preview，FFmpeg 与 FFprobe 已安装。此结论只表示具备接入条件，尚未执行音视频模型调用。
+- 规格创建时已核对本地阶跃凭据、step-5-preview 视觉模型配置及 FFmpeg/FFprobe 安装情况，当时尚未执行音视频模型调用。实施后的真实调用及失败观察另见[验证记录](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/VALIDATION.md)。
 - 无相关既有 ADR。以上是模块局部可调整选择，当前无需新增架构决策记录。
 - 本地规格发布后以 GitHub Issue 为事项依据，使用 enhancement 与 ready-for-agent 标签。用户已确认本轮继续实现与验证。
