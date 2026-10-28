@@ -1,10 +1,90 @@
 import json
 import unittest
+from unittest.mock import patch
 
 from tests.zip_document_support import SAMPLES, SERVICE_MARKDOWN, document_server, mineru, zip_containers
 
 
 class ZipDocumentTests(unittest.TestCase):
+    def test_deadline_while_expanding_a_downloaded_result_discards_incomplete_document(self):
+        now = [0.0]
+
+        def monotonic():
+            value = now[0]
+            if value:
+                now[0] += 10.0
+            return value
+
+        with document_server(on_result=lambda: now.__setitem__(0, 250.0)) as service:
+            with patch("time.monotonic", side_effect=monotonic):
+                result = zip_containers.convert_file(
+                    SAMPLES / "zip_document_live_pdf_digital.zip",
+                    parser_options={"document": {"mineru": service.config}},
+                )
+
+        self.assertEqual(result.counts, dict(total=1, success=0, failed=0, ignored=0, unprocessed=1))
+        self.assertEqual(result.stop_reason, "deadline_exceeded")
+        self.assertIsNone(result.members[0].result)
+
+    def test_archive_deadline_during_result_download_takes_precedence_over_unread_result_errors(self):
+        path = SAMPLES / "zip_document_live_pdf_digital.zip"
+        for result_name in ("zip_corrupt.zip", "zip_document_result_download.zip"):
+            now = [0.0]
+            with self.subTest(result_name=result_name), document_server(
+                result_name=result_name, no_length=True,
+                on_result=lambda: now.__setitem__(0, 301.0),
+            ) as service:
+                with patch("time.monotonic", side_effect=lambda: now[0]):
+                    result = zip_containers.convert_bytes(
+                        path.read_bytes(), source="deadline.zip",
+                        limits=zip_containers.ZipLimits(max_archive_bytes=path.stat().st_size + 500),
+                        parser_options={"document": {"mineru": service.config}},
+                    )
+
+                self.assertEqual(result.stop_reason, "deadline_exceeded")
+                self.assertEqual(result.counts, dict(total=1, success=0, failed=0, ignored=0, unprocessed=1))
+                self.assertIsNone(result.members[0].result)
+
+    def test_archive_deadline_keeps_completed_results_and_stops_documents_but_ignores_metadata(self):
+        path = SAMPLES / "zip_document_deadline.zip"
+        for entry in ("file", "bytes"):
+            now = [0.0]
+            result_times = iter((250.0, 301.0))
+            with self.subTest(entry=entry), document_server(
+                on_result=lambda: now.__setitem__(0, next(result_times)),
+            ) as service:
+                with patch("time.monotonic", side_effect=lambda: now[0]):
+                    options = {"document": {"mineru": service.config}}
+                    result = (zip_containers.convert_file(path, parser_options=options) if entry == "file"
+                              else zip_containers.convert_bytes(path.read_bytes(), source=path.name,
+                                                                parser_options=options))
+
+                self.assertEqual(result.counts, dict(total=9, success=2, failed=0, ignored=4, unprocessed=3))
+                self.assertEqual(result.stop_reason, "deadline_exceeded")
+                self.assertEqual(result.status, "partial_success")
+                self.assertEqual(result.members[0].result.markdown, "Completed text")
+                self.assertEqual(result.members[1].result.markdown, SERVICE_MARKDOWN)
+                self.assertEqual([member.status for member in result.members],
+                                 ["success", "success"] + ["unprocessed"] * 3 + ["ignored"] * 4)
+                for member in result.members[2:5]:
+                    self.assertEqual(member.reason, "deadline_exceeded")
+                    self.assertIsNone(member.result)
+
+    def test_deadline_in_single_pdf_result_is_unprocessed_without_a_later_member(self):
+        now = [0.0]
+        with document_server(on_result=lambda: now.__setitem__(0, 301.0)) as service:
+            with patch("time.monotonic", side_effect=lambda: now[0]):
+                result = zip_containers.convert_file(
+                    SAMPLES / "zip_document_live_pdf_digital.zip",
+                    parser_options={"document": {"mineru": service.config}},
+                )
+
+        self.assertEqual(result.counts, dict(total=1, success=0, failed=0, ignored=0, unprocessed=1))
+        self.assertEqual(result.stop_reason, "deadline_exceeded")
+        self.assertEqual(result.status, "failed")
+        self.assertEqual(result.members[0].reason, "deadline_exceeded")
+        self.assertIsNone(result.members[0].result)
+
     def test_digital_scan_and_mixed_pdf_upload_whole_fixed_members(self):
         manifest = json.loads((SAMPLES / "zip_document_live_manifest.json").read_text(encoding="utf-8"))
         for case in ("pdf_digital", "pdf_scan", "pdf_mixed"):
@@ -43,6 +123,9 @@ class ZipDocumentTests(unittest.TestCase):
                     parser_options={"document": {"mineru": service.config}},
                 )
                 self.assertEqual(result.status, "partial_success")
+                self.assertIsNone(result.stop_reason)
+                self.assertEqual(result.members[0].status, "failed")
+                self.assertEqual(result.members[0].reason, "parse_error")
                 self.assertEqual(result.members[0].result_kind, "document")
                 self.assertIsNone(result.members[0].result.markdown)
                 self.assertTrue(result.members[0].error)

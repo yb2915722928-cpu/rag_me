@@ -22,7 +22,8 @@ class Service:
 
 
 @contextmanager
-def document_server(*, failure=None, result_name=None, result_bytes=None, no_length=False):
+def document_server(*, failure=None, result_name=None, result_bytes=None, no_length=False,
+                    on_result=None):
     """真实本地 HTTP 服务只替代网络边界，上传与结果均由实际客户端处理。"""
     service = Service()
 
@@ -68,6 +69,8 @@ def document_server(*, failure=None, result_name=None, result_bytes=None, no_len
                     return self.reply(b"unavailable", 503)
                 name = result_name or ("zip_document_html_result.zip" if
                        service.requests[-1]["model_version"] == "MinerU-HTML" else "zip_document_result.zip")
+                if on_result is not None:
+                    on_result()
                 return self.reply(result_bytes if result_bytes is not None else (SAMPLES / name).read_bytes())
             if self.path != "/api/v4/extract-results/batch/batch" or self.headers.get("Authorization") != "Bearer test-token":
                 return self.reply({}, 401)

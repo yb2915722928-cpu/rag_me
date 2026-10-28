@@ -1,4 +1,16 @@
 from dataclasses import dataclass, field, fields, is_dataclass
+import time
+
+
+class _StopProcessing(Exception):
+    def __init__(self, reason):
+        self.reason = reason
+        super().__init__(f"ZIP processing stopped: {reason}")
+
+
+def _check_deadline(deadline):
+    if time.monotonic() >= deadline:
+        raise _StopProcessing("deadline_exceeded")
 
 
 @dataclass(frozen=True)

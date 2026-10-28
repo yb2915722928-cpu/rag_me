@@ -53,7 +53,18 @@ def main():
     archive("zip_document_result_blank.zip", [("full.md", " \n"), result[1]])
     archive("zip_document_result_missing_page.zip", [("full.md", SERVICE_MARKDOWN),
             ("generated_content_list.json", '[{"type":"text","text":"Body"}]')])
+    build_deadline_sample()
     build_live_samples()
+
+
+def build_deadline_sample():
+    """前一文档可成功，后一文档截止后仍有文档、目录和确定的系统元数据。"""
+    pdf = (SAMPLES / "pdf_digital_teaching.pdf").read_bytes()
+    archive("zip_document_deadline.zip", [
+        ("before.txt", "Completed text"), ("completed.pdf", pdf), ("stopped.pdf", pdf),
+        ("after.txt", "Must remain unprocessed"), ("after.pdf", pdf), ("folder/", b""),
+        ("__MACOSX/file", b"metadata"), (".DS_Store", b""), ("._manual.pdf", b""),
+    ])
 
 
 def build_live_samples():
