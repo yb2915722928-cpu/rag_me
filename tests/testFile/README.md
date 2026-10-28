@@ -1,5 +1,7 @@
 # 文本与网页转换测试样本
 
+音视频固定素材另见[媒体样本清单](/E:/aaa-project/rag-me/tests/testFile/media_constructed.json)及[显式重建脚本](/E:/aaa-project/rag-me/tests/testFile/build_media_samples.py)。语音为 Windows 合成测试音频，非真实讲师录音；审批画面复用本仓库原创图片。默认测试只读取固定文件，不重建或下载。
+
 以下六个文件于 2026-10-26 下载，保持来源提供的原始字节。文件大小和 SHA-256 见[来源记录](/E:/aaa-project/rag-me/tests/testFile/sources.json)。测试读取本地固定副本，通过公开转换、导出入口核验实际正文与导出文件。
 
 | 样本 | 格式 | 来源 | 主要用途 |

@@ -1,0 +1,77 @@
+{
+  "checked_at": "2026-10-28T06:14:15.901880+00:00",
+  "records": [
+    {
+      "case": "both",
+      "sample": "media_rules.mp4",
+      "seconds": 18.854,
+      "result": {
+        "text": "[0.000–15.024 秒 · 语音转写]\n企业订单超过一万元，按右侧分支处理。是不是所有订单都要负责人审批？不是，其他由财务审批。未经批准不得付款。\n\n[0.000–15.000 秒 · 画面信息]\n画面主题为“付款审批流程”。流程从判断菱形“金额超过 1 万元？”开始：标注“是”的分支经箭头指向左侧矩形节点“负责人审批”；标注“否（其他情况）”的分支经箭头从菱形右侧绕行向下，指向右侧矩形节点“财务审批”。对应关系为：金额超过 1 万元时由负责人审批；其他情况（否）由财务审批。",
+        "source": {
+          "location": "E:\\aaa-project\\rag-me\\tests\\testFile\\media_rules.mp4",
+          "format": "mp4",
+          "sha256": "c54cbbc7b370fec4a656184987e45fec784fe4f46190c396681e2657f13d4d78",
+          "media_type": "video",
+          "duration_seconds": 15.023991,
+          "media_id": null,
+          "media_version": null,
+          "audio_stream_index": 1
+        },
+        "task": "both",
+        "status": "content",
+        "question": "请根据视频中的条件与箭头，分别说明两个分支由谁审批；依据不足时明确说明无法确认的关系及原因。",
+        "segments": [
+          {
+            "kind": "audio",
+            "start_seconds": 0.0,
+            "end_seconds": 15.023991,
+            "text": "企业订单超过一万元，按右侧分支处理。是不是所有订单都要负责人审批？不是，其他由财务审批。未经批准不得付款。",
+            "status": "content",
+            "requested_model": "stepaudio-2.5-asr",
+            "response_model": null,
+            "prompt_version": null,
+            "speaker": null,
+            "time_precision": "segment",
+            "review_notes": []
+          },
+          {
+            "kind": "video",
+            "start_seconds": 0.0,
+            "end_seconds": 15.0,
+            "text": "画面主题为“付款审批流程”。流程从判断菱形“金额超过 1 万元？”开始：标注“是”的分支经箭头指向左侧矩形节点“负责人审批”；标注“否（其他情况）”的分支经箭头从菱形右侧绕行向下，指向右侧矩形节点“财务审批”。对应关系为：金额超过 1 万元时由负责人审批；其他情况（否）由财务审批。",
+            "status": "content",
+            "requested_model": "step-5-preview",
+            "response_model": "step-5-preview",
+            "prompt_version": "video-v1",
+            "speaker": null,
+            "time_precision": "segment",
+            "review_notes": []
+          }
+        ],
+        "review_issues": [
+          "媒体派生文字尚待对照同一版本原音视频核验。",
+          "时间仅定位实际处理片段，不是逐句或逐词时间。"
+        ],
+        "warnings": [
+          "同步 ASR 不提供说话人区分；speaker 保持未知。",
+          "视频模型可能遗漏短暂画面或动作；画面解释不能替代原视频证据。"
+        ],
+        "error": null
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "original_identity": true,
+        "amount_condition": true,
+        "question_context": true,
+        "negation_and_other_branch": true,
+        "payment_denial": true,
+        "unknown_speakers": true,
+        "above_10000_to_manager": false,
+        "other_to_finance": true
+      },
+      "quality_passed": false
+    }
+  ],
+  "limitation": "合成中文语音及固定短视频的定向验收，需对照原媒体核验，不代表任意音视频均准确。片段级时间，无自动说话人区分。"
+}
