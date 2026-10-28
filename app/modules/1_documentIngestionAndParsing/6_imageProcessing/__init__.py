@@ -8,16 +8,23 @@ from PIL import Image
 from .client import StepFunClient, StepFunConfig, StepFunError, read_completion, resolve_config
 from .models import ConversionResult, Diagnostic, ReviewIssue, Source
 from .prompts import TASK_PROMPTS
+from .provenance import CropMapping, DocumentPosition, DocumentSource, validate_crop, validate_provenance
 
 
-def convert_file(path, *, task=None, format=None, source=None, question=None, config=None) -> ConversionResult:
+def convert_file(path, *, task=None, format=None, source=None, question=None, config=None,
+                 document: DocumentSource | None = None, crop: CropMapping | None = None,
+                 is_cropped: bool = False) -> ConversionResult:
     """文件后缀可由 format 覆盖；核心不查找或读取 .env。"""
     source_info = Source(source if isinstance(source, str) else None)
     try:
         path = Path(path)
         source_info.location = str(path) if source is None else source_info.location
+        validate_provenance(document)
+        source_info.document = document
+        validate_crop(crop, is_cropped)
+        source_info.crop = crop
         source_info = _validate_options(path.suffix if format is None else format,
-                                        source_info.location, task, question)
+                                        source_info, task, question)
     except (TypeError, ValueError) as exc:
         code = exc.code if isinstance(exc, InputError) else "invalid_options"
         return ConversionResult(None, source_info, task, error=Diagnostic(code, str(exc)))
@@ -29,10 +36,16 @@ def convert_file(path, *, task=None, format=None, source=None, question=None, co
     return _convert_content(data, source_info, task, config)
 
 
-def convert_bytes(data, *, format, source, task=None, question=None, config=None) -> ConversionResult:
+def convert_bytes(data, *, format, source, task=None, question=None, config=None,
+                  document: DocumentSource | None = None, crop: CropMapping | None = None,
+                  is_cropped: bool = False) -> ConversionResult:
     source_info = Source(source if isinstance(source, str) else None)
     try:
-        source_info = _validate_options(format, source, task, question)
+        validate_provenance(document)
+        source_info.document = document
+        validate_crop(crop, is_cropped)
+        source_info.crop = crop
+        source_info = _validate_options(format, source_info, task, question)
         if not isinstance(data, bytes):
             raise ValueError("data must be bytes")
     except ValueError as exc:
@@ -121,6 +134,7 @@ def _validate_options(format, source, task, question):
         normalized = "jpeg"
     if normalized not in ("png", "jpeg", "webp"):
         raise InputError("unsupported_format", "Unsupported image format")
-    if not isinstance(source, str) or not source.strip():
+    if not isinstance(source.location, str) or not source.location.strip():
         raise ValueError("source must be a nonempty string")
-    return Source(source, normalized)
+    source.format = normalized
+    return source
