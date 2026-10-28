@@ -68,7 +68,7 @@ def _convert_content(data, source, task, config):
         result.requested_model = config.model
         payload = StepFunClient(config).complete(data, source.format, prompt, schema)
         content, result.response_model = read_completion(payload)
-        output = _read_ocr(content)
+        output = _read_output(content, task)
     except StepFunError as exc:
         result.error = Diagnostic(exc.code, str(exc), exc.http_status)
         return result
@@ -80,21 +80,22 @@ def _convert_content(data, source, task, config):
     return result
 
 
-def _read_ocr(content):
-    """模型业务输出只在此校验；空 OCR 必须显式声明 no_text 且 text 恰为空。"""
+def _read_output(content, task):
+    """模型业务输出在此按任务校验；只有 OCR 允许 no_text 且 text 恰为空。"""
     try:
         output = json.loads(content)
     except ValueError:
-        raise StepFunError("protocol_error", "OCR content is not JSON") from None
+        raise StepFunError("protocol_error", f"{task} content is not JSON") from None
     if not isinstance(output, dict) or set(output) != {"status", "text", "review_notes"}:
-        raise StepFunError("protocol_error", "OCR content does not match the required fields")
+        raise StepFunError("protocol_error", f"{task} content does not match the required fields")
     status, text, notes = output["status"], output["text"], output["review_notes"]
-    if (not isinstance(status, str) or status not in ("content", "no_text")
+    allowed_statuses = ("content", "no_text") if task == "ocr" else ("content",)
+    if (not isinstance(status, str) or status not in allowed_statuses
             or not isinstance(text, str) or not isinstance(notes, list)
             or any(not isinstance(note, str) or not note.strip() for note in notes)):
-        raise StepFunError("protocol_error", "OCR content has invalid field types or values")
+        raise StepFunError("protocol_error", f"{task} content has invalid field types or values")
     if (status == "content" and not text.strip()) or (status == "no_text" and text != ""):
-        raise StepFunError("protocol_error", "OCR status and text are inconsistent")
+        raise StepFunError("protocol_error", f"{task} status and text are inconsistent")
     return output
 
 
@@ -124,9 +125,9 @@ def _decode_image(data, declared_format):
 
 def _validate_options(format, source, task, question):
     if not isinstance(task, str) or task not in TASK_PROMPTS:
-        raise ValueError("task must explicitly select ocr")
+        raise ValueError("task must explicitly select " + ", ".join(TASK_PROMPTS))
     if question is not None:
-        raise ValueError("OCR does not accept question")
+        raise ValueError(f"{task} does not accept question")
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     normalized = format.strip().lower().lstrip(".")

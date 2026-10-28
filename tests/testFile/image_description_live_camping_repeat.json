@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-10-28T03:05:25.697258+00:00",
+  "environment_file": "E:/aaa-project/rag-me/.env",
+  "entrypoint": "convert_bytes",
+  "reason": "One explicit repeat of only the sample whose first request failed transiently; no automatic retry",
+  "records": [
+    {
+      "sample": "image_description_camping.png",
+      "seconds": 8.853,
+      "result": {
+        "text": "卡通风格露营场景插画：浅蓝色天空中有一个黄色圆形太阳，远处是两座顶部带白色积雪的灰色山峰，山脚下有一片蓝色湖泊，湖边及前景为绿色草地。画面中央偏右有一座橙色三角形帐篷，帐篷正面为深色开口；湖边和草地上分布着几棵深绿色松树。画面无文字。",
+        "source": {
+          "location": "image_description_camping.png",
+          "format": "png",
+          "sha256": "974fb9fba1f3c4d86eb28c1f3b54ad613595c04b067a1892a31a13604264a430",
+          "width": 960,
+          "height": 640
+        },
+        "task": "describe",
+        "status": "content",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "describe-v1",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          }
+        ],
+        "warnings": [],
+        "error": null
+      }
+    }
+  ],
+  "limitation": "Only this fixed scene; human review of topic and visible objects is required."
+}
