@@ -1,0 +1,62 @@
+{
+  "scope": "CLI through public convert_file and local HTTP; no external API call",
+  "checks": {
+    "cli_exit_success": true,
+    "preserves_question": true,
+    "content": true,
+    "question_sent_with_image": true,
+    "missing_question_fails": true,
+    "no_request_for_missing_question": true
+  },
+  "result": {
+    "text": "金额超过1万元时，沿“是”箭头由负责人审批；其他情况沿“否”箭头由财务审批。",
+    "source": {
+      "location": "C:\\Users\\29157\\.codex\\worktrees\\image-understanding\\rag-me\\tests\\testFile\\image_understanding_clear.png",
+      "format": "png",
+      "sha256": "a9e36b411a144ff50a935be51ebdd4294a053380b5e5dcbac18132e6f2787e01",
+      "width": 1200,
+      "height": 850
+    },
+    "task": "understand",
+    "status": "content",
+    "requested_model": "step-5-preview",
+    "response_model": "step-5-preview-actual",
+    "prompt_version": "understand-v2",
+    "review_issues": [
+      {
+        "code": "unverified_model_output",
+        "message": "模型产出尚待对照原图核验。"
+      }
+    ],
+    "warnings": [],
+    "error": null,
+    "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。",
+    "success": true,
+    "requires_review": true
+  },
+  "missing_question": {
+    "text": null,
+    "source": {
+      "location": "C:\\Users\\29157\\.codex\\worktrees\\image-understanding\\rag-me\\tests\\testFile\\image_understanding_clear.png",
+      "format": null,
+      "sha256": null,
+      "width": null,
+      "height": null
+    },
+    "task": "understand",
+    "status": "failed",
+    "requested_model": null,
+    "response_model": null,
+    "prompt_version": null,
+    "review_issues": [],
+    "warnings": [],
+    "error": {
+      "code": "invalid_options",
+      "message": "understand requires a nonempty question",
+      "http_status": null
+    },
+    "question": null,
+    "success": false,
+    "requires_review": false
+  }
+}

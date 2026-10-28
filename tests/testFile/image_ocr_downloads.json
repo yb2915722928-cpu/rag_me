@@ -1,0 +1,27 @@
+{
+  "source_url": "https://github.com/stepfun-ai/Step-Cookbook/tree/main/examples/step-5-vision-structured",
+  "downloaded_on": "2026-10-28",
+  "author": "stepfun-ai",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 stepfun-ai",
+  "license_file": "image_ocr_stepfun_LICENSE.txt",
+  "expected_visible_values": {
+    "A": 12,
+    "B": 7,
+    "C": 5
+  },
+  "samples": [
+    {
+      "filename": "image_ocr_stepfun_clear.png",
+      "download_url": "https://raw.githubusercontent.com/stepfun-ai/Step-Cookbook/main/examples/step-5-vision-structured/assets/vision/clear.png",
+      "bytes": 9686,
+      "sha256": "8d2b557a7f88abdc7bacbacf16b5e6e458eff78f5485ca5a23c7dab15a9e0d15"
+    },
+    {
+      "filename": "image_ocr_stepfun_LICENSE.txt",
+      "download_url": "https://raw.githubusercontent.com/stepfun-ai/Step-Cookbook/main/LICENSE",
+      "bytes": 1067,
+      "sha256": "b3beac33828dccbf1ca80d08308b4bc73d7c0fffd0d9e8163851ba7fc243a296"
+    }
+  ]
+}

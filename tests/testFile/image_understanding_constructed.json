@@ -1,0 +1,53 @@
+{
+  "source": "本仓库原创 Pillow 构图，文字与箭头坐标手工定义，未用模型生成真值。",
+  "license": "本仓库测试素材；无外部下载，字体由本机 Microsoft YaHei 栅格化，未分发字体文件。",
+  "builder": "build_image_understanding_samples.py",
+  "method": "清晰图含两条连续折线及向下箭头；模糊图对 y=[350,640) 连线带高斯模糊；截断图只保留 y=[0,350)。",
+  "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。",
+  "samples": [
+    {
+      "filename": "image_understanding_clear.png",
+      "bytes": 31196,
+      "sha256": "a9e36b411a144ff50a935be51ebdd4294a053380b5e5dcbac18132e6f2787e01",
+      "dimensions": [
+        1200,
+        850
+      ],
+      "expected": {
+        "status": "content",
+        "branches": [
+          "金额超过1万元 → 负责人审批",
+          "其他情况（不超过1万元） → 财务审批"
+        ]
+      }
+    },
+    {
+      "filename": "image_understanding_blurred.png",
+      "bytes": 40038,
+      "sha256": "88ee2f464d4cc3bf4ac8a7a8441b1fe490a4cfba2c81bd736d44af185bf8873c",
+      "dimensions": [
+        1200,
+        850
+      ],
+      "expected": {
+        "status": "uncertain",
+        "known": "可辨金额条件、否（其他情况）标签及两个审批节点；是标签也在模糊区域内",
+        "reason": "关键连线与箭头被模糊，不能确认条件和审批人的完整对应"
+      }
+    },
+    {
+      "filename": "image_understanding_truncated.png",
+      "bytes": 20049,
+      "sha256": "254d3d1bca560c6f2164f70ff8078df2e3394a6900dd5f2669666c348f6b0cd6",
+      "dimensions": [
+        1200,
+        350
+      ],
+      "expected": {
+        "status": "uncertain",
+        "known": "可辨金额条件与是/否分支起点",
+        "reason": "底部审批节点和箭头终点被截去，无法确认分支终点"
+      }
+    }
+  ]
+}

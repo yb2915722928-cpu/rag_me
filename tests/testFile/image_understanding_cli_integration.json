@@ -1,0 +1,63 @@
+{
+  "scope": "After merging integration, CLI uses TASK_PROMPTS and preserves describe rules; local HTTP only",
+  "checks": {
+    "three_tasks_in_cli": true,
+    "question_option_present": true,
+    "describe_exit_success": true,
+    "describe_content_contract": true,
+    "describe_rejects_question": true,
+    "no_request_for_invalid_question": true
+  },
+  "help": "usage: __main__.py [-h] --task {ocr,describe,understand} [--question QUESTION]\n                   --env-file ENV_FILE [--format FORMAT] [--source SOURCE]\n                   [--timeout TIMEOUT]\n                   image\n\n单图处理；显式选择任务与环境文件\n\npositional arguments:\n  image\n\noptions:\n  -h, --help            show this help message and exit\n  --task {ocr,describe,understand}\n  --question QUESTION\n  --env-file ENV_FILE\n  --format FORMAT\n  --source SOURCE\n  --timeout TIMEOUT\n",
+  "result": {
+    "text": "湖畔的露营场景，橙色帐篷周围有山峦、树木和湖水。",
+    "source": {
+      "location": "C:\\Users\\29157\\.codex\\worktrees\\image-understanding\\rag-me\\tests\\testFile\\image_description_camping.png",
+      "format": "png",
+      "sha256": "974fb9fba1f3c4d86eb28c1f3b54ad613595c04b067a1892a31a13604264a430",
+      "width": 960,
+      "height": 640
+    },
+    "task": "describe",
+    "status": "content",
+    "requested_model": "step-5-preview",
+    "response_model": "step-5-description-actual",
+    "prompt_version": "describe-v1",
+    "review_issues": [
+      {
+        "code": "unverified_model_output",
+        "message": "模型产出尚待对照原图核验。"
+      }
+    ],
+    "warnings": [],
+    "error": null,
+    "question": null,
+    "success": true,
+    "requires_review": true
+  },
+  "invalid_question": {
+    "text": null,
+    "source": {
+      "location": "C:\\Users\\29157\\.codex\\worktrees\\image-understanding\\rag-me\\tests\\testFile\\image_description_camping.png",
+      "format": null,
+      "sha256": null,
+      "width": null,
+      "height": null
+    },
+    "task": "describe",
+    "status": "failed",
+    "requested_model": null,
+    "response_model": null,
+    "prompt_version": null,
+    "review_issues": [],
+    "warnings": [],
+    "error": {
+      "code": "invalid_options",
+      "message": "describe does not accept question",
+      "http_status": null
+    },
+    "question": null,
+    "success": false,
+    "requires_review": false
+  }
+}

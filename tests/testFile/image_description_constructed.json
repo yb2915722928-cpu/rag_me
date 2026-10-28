@@ -1,0 +1,32 @@
+{
+  "source": "Original deterministic Pillow drawings in build_image_description_samples.py; no downloads or model-generated references",
+  "license": "Original sample drawings dedicated to CC0-1.0; system font file is not distributed",
+  "method": "Camping: 960x640 RGB, geometric mountains, sun, lake, three trees and orange tent; JPEG quality=95, WebP lossless. Approval: 1200x780 RGB, Chinese labels and explicit arrows to two approvers.",
+  "pillow": "12.2.0",
+  "font": "C:\\Windows\\Fonts\\msyh.ttc",
+  "font_sha256": "d79c55e68b1131eea0cc1c47be4f572d964f28c682e143db2ad09c1e4cb07a3f",
+  "camping_reference": "Lake-side camping scene: orange tent, mountains, lake, trees, sun; no people or text drawn",
+  "approval_reference": "付款审批流程；提交付款申请；金额超过1万元→负责人审批；其他情况→财务审批。No universal single-approver rule is shown.",
+  "samples": [
+    {
+      "filename": "image_description_approval.png",
+      "bytes": 50213,
+      "sha256": "4d9efe49e308375d9a93cfe45cab4caa903e47342c7b4d9ee073bf9dd71a7721"
+    },
+    {
+      "filename": "image_description_camping.jpg",
+      "bytes": 49862,
+      "sha256": "9b0a124fcee44e7b5d00db5a7a2399993b0cf78867332e28cff35f1e18c5dd8f"
+    },
+    {
+      "filename": "image_description_camping.png",
+      "bytes": 10358,
+      "sha256": "974fb9fba1f3c4d86eb28c1f3b54ad613595c04b067a1892a31a13604264a430"
+    },
+    {
+      "filename": "image_description_camping.webp",
+      "bytes": 4310,
+      "sha256": "f93f54b9f7bcbba9f0e7d8f2f013ecc7263bf81d0bbfa22b10d5b3ebd700fbdb"
+    }
+  ]
+}

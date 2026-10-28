@@ -28,7 +28,7 @@
 - 下载文件通过本目录的 [Git 属性](/E:/aaa-project/rag-me/tests/testFile/.gitattributes) 保持原始字节，避免换行转换导致来源摘要变化。
 - 后续需要的编码变体、表格、脚本空页面、无 HTML 归档、明确主页面标识、非法 JSON 等补充输入，也全部保存在本目录。新增时注明是公开下载还是本地构造，并记录来源或构造方式。
 - 断言内容及结构事实，不只检查非空或无异常。JSON 可从输出围栏重新解析以比较原始层级和值；MHTML 按实际选择规则核验，不要求合并所有框架。
-- 图片处理当前为空扩展点，不验收图片引用、附件导出或 OCR。
+- 文本与网页模块的图片钩子仍为空扩展点，不据此验收网页嵌图识别；独立图片的 OCR、描述与视觉理解由图片模块单独验收。
 - 下载样本的版权与许可沿用原来源；保留原文件中的署名、许可及来源信息。
 
 ## 表格文件样本
@@ -43,3 +43,14 @@
 表格模块通过固定真实文件验收。补充样本及构造方法见 [CSV](/E:/aaa-project/rag-me/tests/testFile/constructed-csv.md)、[XLSX 普通表](/E:/aaa-project/rag-me/tests/testFile/constructed-xlsx-tabular.md)、[表头与合并](/E:/aaa-project/rag-me/tests/testFile/xlsx_structure_constructed.md)、[值与公式缓存](/E:/aaa-project/rag-me/tests/testFile/xlsx_values_constructed.md)。这些样本与公开下载文件均保存在本目录，测试不联网下载。
 
 空文本缓存、数组公式、空白合并区、损坏共享字符串及 ISO 日期类型的补充回归见[评审样本说明](/E:/aaa-project/rag-me/tests/testFile/xlsx_review_constructed.md)。
+
+## 独立图片样本
+
+图片固定输入、构造脚本、来源／许可及真实 API 输出均保存在本目录：
+
+- [OCR 样本与验收](/E:/aaa-project/rag-me/tests/testFile/image-ocr.md)：PNG／JPEG／WebP、空图片、损坏及多帧输入，以及官方公开表格图片的下载来源与许可。
+- [图像描述验收](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/DESCRIPTION.md)：固定露营场景和审批图的主题概括。
+- [视觉理解验收](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/UNDERSTANDING.md)：明确箭头的双分支审批图，以及连接模糊和底部截断图片。
+- [原图映射验收](/E:/aaa-project/rag-me/tests/testFile/image_provenance_acceptance.md)：原图与固定裁剪图、文档来源、像素区域及真实文字回查。
+
+默认回归只连接本地 HTTP 服务验证协议与来源行为；真实模型质量使用显式开关分别验收。原始失败记录保留，不把预设响应、来源可回查或高置信度当作内容正确的证明。

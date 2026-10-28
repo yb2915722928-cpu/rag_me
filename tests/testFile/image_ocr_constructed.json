@@ -1,0 +1,66 @@
+{
+  "method": "Pillow ImageDraw, white RGB 1100x340, black text at (30,28), spacing=22; JPEG quality=95, WebP lossless; blank white RGB 320x240; multiframe: second blue frame, TIFF deflate; corrupt: first 120 PNG bytes; override: exact PNG bytes",
+  "pillow": "12.2.0",
+  "font": "C:\\Windows\\Fonts\\msyh.ttc",
+  "font_size": 42,
+  "font_sha256": "d79c55e68b1131eea0cc1c47be4f572d964f28c682e143db2ad09c1e4cb07a3f",
+  "expected_rules_text": "金额超过 1 万元时，须负责人审批。\n其他情况由财务审批。\n未经批准不得付款。\n温度不得超过 60 °C；每 30 天检查一次。",
+  "expected_blank_status": "no_text",
+  "samples": [
+    {
+      "filename": "image_ocr_blank.png",
+      "bytes": 778,
+      "sha256": "4a1483d14bef0ac574d2b29a8bc63d5763e4886e5a08b17192bd6c96c262ef7d"
+    },
+    {
+      "filename": "image_ocr_corrupt.png",
+      "bytes": 120,
+      "sha256": "9038ae062ac8f14bf62dc84b375c3fd80772ecf46537e1f162541814436d3d25"
+    },
+    {
+      "filename": "image_ocr_multiframe.gif",
+      "bytes": 27427,
+      "sha256": "438f818c48f2cb1de12ad96ef01f31c41355844c415b122a5c79dcbb1a842939"
+    },
+    {
+      "filename": "image_ocr_multiframe.png",
+      "bytes": 45981,
+      "sha256": "049d66b79ec1adb2792483d0e1b5f38f3bf831028fcb79870bcb6d93bfa8479b"
+    },
+    {
+      "filename": "image_ocr_multiframe.tiff",
+      "bytes": 44416,
+      "sha256": "d5501062d147973282eed1f696d2a2e1212c14504d67b21123c2612a70ab063a"
+    },
+    {
+      "filename": "image_ocr_multiframe.webp",
+      "bytes": 28004,
+      "sha256": "94eb02c6c2d75ca93f285cbbfa14eecbe59518ef9edc02aa5808b086e3db3a27"
+    },
+    {
+      "filename": "image_ocr_override.bin",
+      "bytes": 44011,
+      "sha256": "08e1cd1de64b6516cd00a1b0d67b4e5fd0f51975fe76f16da534ecaee0598206"
+    },
+    {
+      "filename": "image_ocr_rules.jpg",
+      "bytes": 69334,
+      "sha256": "7c196d0fd8c21bcb745aa04c020c87efe68ed094da97b1857efa8b414895be59"
+    },
+    {
+      "filename": "image_ocr_rules.png",
+      "bytes": 44011,
+      "sha256": "08e1cd1de64b6516cd00a1b0d67b4e5fd0f51975fe76f16da534ecaee0598206"
+    },
+    {
+      "filename": "image_ocr_rules.webp",
+      "bytes": 14168,
+      "sha256": "15b0b88968043707cd5b2824224c4f666dc00c4a99c1d18b50131a9cd9eeec36"
+    },
+    {
+      "filename": "image_ocr_static.gif",
+      "bytes": 26802,
+      "sha256": "1363045e3614823301a6c1be05bc60b2cc300b5c0c284a02ce43fbe746ccc5a7"
+    }
+  ]
+}

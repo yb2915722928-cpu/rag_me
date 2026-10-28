@@ -1,0 +1,54 @@
+{
+  "checked_at": "2026-10-28T03:19:46.537543+00:00",
+  "environment_file": "E:\\aaa-project\\rag-me\\.env",
+  "records": [
+    {
+      "sample": "image_understanding_clear.png",
+      "expected": {
+        "status": "content",
+        "branches": [
+          "金额超过1万元 → 负责人审批",
+          "其他情况（不超过1万元） → 财务审批"
+        ]
+      },
+      "seconds": 11.13,
+      "result": {
+        "text": "图中可见判断节点为“金额超过 1 万元？”。从该节点出发有两条带文字标注的箭头：标注“是”的箭头指向左侧矩形节点“负责人审批”，因此“是”这一条件分支由负责人审批；标注“否（其他情况）”的箭头经折线指向右侧矩形节点“财务审批”，因此“否（其他情况）”这一条件分支由财务审批。",
+        "source": {
+          "location": "image_understanding_clear.png",
+          "format": "png",
+          "sha256": "a9e36b411a144ff50a935be51ebdd4294a053380b5e5dcbac18132e6f2787e01",
+          "width": 1200,
+          "height": 850,
+          "document": null,
+          "crop": null
+        },
+        "task": "understand",
+        "status": "content",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "understand-v2",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          }
+        ],
+        "warnings": [],
+        "error": null,
+        "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。"
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "status": true,
+        "question": true,
+        "image_identity": true,
+        "above_10000_to_manager": true,
+        "other_to_finance": true
+      },
+      "quality_passed": true
+    }
+  ],
+  "limitation": "固定样本的语义检查仍需人工核对实际输出；结构化状态及来源均不证明任意图片关系正确。每图单次请求，无自动重试或回退。"
+}

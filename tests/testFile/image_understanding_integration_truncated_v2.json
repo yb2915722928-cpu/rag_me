@@ -1,0 +1,62 @@
+{
+  "checked_at": "2026-10-28T03:19:50.425245+00:00",
+  "environment_file": "E:\\aaa-project\\rag-me\\.env",
+  "records": [
+    {
+      "sample": "image_understanding_truncated.png",
+      "expected": {
+        "status": "uncertain",
+        "known": "可辨金额条件与是/否分支起点",
+        "reason": "底部审批节点和箭头终点被截去，无法确认分支终点"
+      },
+      "seconds": 15.027,
+      "result": {
+        "text": "图中仅可见标题“付款审批流程”与一个菱形判断节点“金额超过 1万元？”。从该节点右侧引出的连线标注为“否（其他情况）”，但连线向下转折后进入图像下方未显示区域，未出现任何审批节点或审批人角色；从节点底部引出的连线无可见标签，同样向下进入未显示区域，无法确认其终点。因此，两条分支分别由谁审批的关系均无法确认。",
+        "source": {
+          "location": "image_understanding_truncated.png",
+          "format": "png",
+          "sha256": "254d3d1bca560c6f2164f70ff8078df2e3394a6900dd5f2669666c348f6b0cd6",
+          "width": 1200,
+          "height": 350,
+          "document": null,
+          "crop": null
+        },
+        "task": "understand",
+        "status": "uncertain",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "understand-v2",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          },
+          {
+            "code": "model_uncertainty",
+            "message": "图像下方关键区域被截断/遮挡，两条分支连线的终点及对应审批节点均未显示"
+          },
+          {
+            "code": "model_uncertainty",
+            "message": "图中未出现任何可识别的审批人角色节点，无法将条件分支与具体审批人对应"
+          }
+        ],
+        "warnings": [],
+        "error": null,
+        "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。"
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "status": true,
+        "question": true,
+        "image_identity": true,
+        "explicit_unknown": true,
+        "keeps_known_content": true,
+        "reason": true,
+        "no_invented_black_cover": true
+      },
+      "quality_passed": true
+    }
+  ],
+  "limitation": "固定样本的语义检查仍需人工核对实际输出；结构化状态及来源均不证明任意图片关系正确。每图单次请求，无自动重试或回退。"
+}
