@@ -114,7 +114,7 @@ class ZipDocumentLiveTests(unittest.TestCase):
         self.assertTrue(cases and set(cases) <= manifest.keys(), "Unknown or empty ZIP_DOCUMENT_LIVE_CASES")
         evidence = {"kind": "ZIP public-entry live acceptance", "started_at": datetime.now(timezone.utc).isoformat(),
                     "selected_cases": cases, "cases": []}
-        with target.open("x", encoding="utf-8") as output:
+        with target.open("x", encoding="utf-8", newline="\n") as output:
             json.dump(evidence, output, ensure_ascii=False, indent=2)
         options = {"document": {"mineru": mineru.MinerUConfig(language="en")}}
         for case in cases:
@@ -129,7 +129,8 @@ class ZipDocumentLiveTests(unittest.TestCase):
                 record = {"case": case, "input": specification["member"], "source_sha256": source_digest,
                           "archive_sha256": archive_digest, "verification": checks}
                 evidence["cases"].append(record)
-                target.write_text(json.dumps(sanitized(evidence, token), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                target.write_text(json.dumps(sanitized(evidence, token), ensure_ascii=False, indent=2) + "\n",
+                                  encoding="utf-8", newline="\n")
                 self.assertTrue(all(checks.values()), "Source sample digests changed")
                 started = time.perf_counter()
                 if case in ("pdf_digital", "pdf_scan", "html", "xlsx"):
@@ -140,11 +141,13 @@ class ZipDocumentLiveTests(unittest.TestCase):
                     record["entry"] = "convert_bytes"
                 report = result.to_dict()
                 record.update(seconds=round(time.perf_counter() - started, 3), result=report)
-                target.write_text(json.dumps(sanitized(evidence, token), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                target.write_text(json.dumps(sanitized(evidence, token), ensure_ascii=False, indent=2) + "\n",
+                                  encoding="utf-8", newline="\n")
                 quality, observations = verification(case, specification, report)
                 checks.update(quality)
                 record["observations"] = observations
-                target.write_text(json.dumps(sanitized(evidence, token), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                target.write_text(json.dumps(sanitized(evidence, token), ensure_ascii=False, indent=2) + "\n",
+                                  encoding="utf-8", newline="\n")
                 self.assertTrue(all(checks.values()), f"{case}: failed checks: {[key for key, value in checks.items() if not value]}; see saved evidence")
 
 

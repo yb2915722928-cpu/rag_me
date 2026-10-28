@@ -8,13 +8,7 @@ from pathlib import Path, PurePosixPath
 from zipfile import BadZipFile, ZipFile
 
 from .dispatch import UnsupportedFormat, convert_member
-from .models import MemberResult, MemberSource, ZipLimits, ZipResult
-
-
-class _StopProcessing(Exception):
-    def __init__(self, reason):
-        self.reason = reason
-        super().__init__(f"ZIP processing stopped: {reason}")
+from .models import MemberResult, MemberSource, ZipLimits, ZipResult, _StopProcessing, _check_deadline
 
 
 def convert_file(path, *, source=None, limits=None, metadata_encoding=None, parser_options=None):
@@ -115,7 +109,7 @@ def _process_member(container, info, member, result, limits, deadline, parser_op
         kind, native = convert_member(
             content, format=member.format,
             source=f"{result.source}!/{name}#{member.source.entry_index}",
-            parser_options=parser_options, limits=limits,
+            parser_options=parser_options, limits=limits, deadline=deadline,
         )
         member.result_kind, member.result = kind, native
         member.status = "success" if native.success else "failed"
@@ -123,6 +117,9 @@ def _process_member(container, info, member, result, limits, deadline, parser_op
             member.error = native.error if isinstance(native.error, str) else native.error.message
         if not native.success:
             member.reason = "parse_error"
+    except _StopProcessing as exc:
+        member.status, member.reason, member.error = "unprocessed", exc.reason, str(exc)
+        result.stop_reason = exc.reason
     except UnsupportedFormat as exc:
         member.reason, member.error = "unsupported_format", str(exc)
     except Exception as exc:
@@ -155,11 +152,6 @@ def _read_member(container, info, member, result, limits, deadline):
             if not chunk:
                 return bytes(content)
             content.extend(chunk)
-
-
-def _check_deadline(deadline):
-    if time.monotonic() >= deadline:
-        raise _StopProcessing("deadline_exceeded")
 
 
 def _is_ignored(info):
@@ -204,7 +196,7 @@ def _validate_options(source, limits, metadata_encoding, parser_options):
         for key in values:
             if not isinstance(key, str):
                 raise ValueError("parser option names must be strings")
-            if key in ("format", "source", "limits"):
+            if key in ("format", "source", "limits", "deadline"):
                 raise ValueError(f"parser_options must not override {key}")
         options[category] = dict(values)
     return limits, options

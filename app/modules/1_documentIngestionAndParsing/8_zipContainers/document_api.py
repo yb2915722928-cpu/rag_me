@@ -1,15 +1,15 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
+from functools import partial
 from importlib import import_module
 from io import BytesIO
 import json
 import math
 import os
 import re
-import time
 from zipfile import BadZipFile, ZipFile
 
-from .models import ZipLimits
+from .models import ZipLimits, _StopProcessing, _check_deadline
 
 
 _mineru = import_module("..3_pdfAndWordParsing.mineru", __package__)
@@ -57,7 +57,7 @@ class DocumentResult:
         return bool(self.review_items)
 
 
-def convert_bytes(data: bytes, *, format: str, source: str, limits: ZipLimits,
+def convert_bytes(data: bytes, *, format: str, source: str, limits: ZipLimits, deadline: float,
                   mineru: MinerUConfig | Mapping | None = None) -> DocumentResult:
     """ZIP 已验证来源和预算；文档整份上传，缺配置或远端失败不回退本地解析。"""
     html_input = format in ("html", "htm", "mhtml", "mht")
@@ -74,7 +74,6 @@ def convert_bytes(data: bytes, *, format: str, source: str, limits: ZipLimits,
         return result
     config = replace(config, token=token, max_wait=min(config.max_wait, limits.timeout_seconds),
                      request_timeout=min(config.request_timeout, limits.timeout_seconds))
-    deadline = time.monotonic() + limits.timeout_seconds
     try:
         if format in ("mhtml", "mht"):
             selector = import_module("..2_textAndWebContent.mhtml", __package__)
@@ -85,8 +84,11 @@ def convert_bytes(data: bytes, *, format: str, source: str, limits: ZipLimits,
         archive = _mineru.MinerUClient(config).extract_document(
             data, filename="document.html" if html_input else f"document.{format}",
             model_version=model, max_archive_bytes=limits.max_archive_bytes,
+            check_result_deadline=partial(_check_deadline, deadline),
         )
         _read_result(archive, result, limits, deadline)
+    except _StopProcessing:
+        raise
     except Exception as exc:
         message = re.sub(r"https?://\S+", "[redacted URL]", str(exc).replace(token, "[redacted]"))
         return DocumentResult(source, format, requested_model=model,
@@ -193,8 +195,7 @@ def _read_artifact(zipped, info, limits, total, deadline, keep):
     size = 0
     with zipped.open(info) as stream:
         while True:
-            if time.monotonic() >= deadline:
-                raise ValueError("MinerU result ZIP deadline_exceeded")
+            _check_deadline(deadline)
             chunk = stream.read(min(64 * 1024, limits.max_member_bytes - size + 1,
                                     limits.max_total_bytes - total - size + 1))
             size += len(chunk)
