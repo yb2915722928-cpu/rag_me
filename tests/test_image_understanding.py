@@ -107,12 +107,16 @@ class ImageUnderstandingTests(unittest.TestCase):
         ]
         for index, (name, text, reason) in enumerate(cases, start=1):
             path = SAMPLES / f"image_understanding_{name}.png"
+            document = images.DocumentSource("approval-manual", "v1", images.DocumentPosition("pdf_page", 2))
+            crop = images.CropMapping("approval-original", 1200, 850, (0, 0, 1200, 350)) if name == "truncated" else None
             with self.subTest(sample=name), step_server(envelope(
                 status="uncertain", text=text, notes=[reason],
             )) as (config, requests):
-                result = images.convert_file(path, task="understand", question=QUESTION, config=config)
+                result = images.convert_file(path, task="understand", question=QUESTION, config=config,
+                                             document=document, crop=crop, is_cropped=crop is not None)
                 other = images.convert_bytes(path.read_bytes(), format="png", source=str(path),
-                                             task="understand", question=QUESTION, config=config)
+                                             task="understand", question=QUESTION, config=config,
+                                             document=document, crop=crop, is_cropped=crop is not None)
             self.assertEqual(result, other)
             self.assertTrue(result.success, result.error)
             self.assertEqual((result.status, result.text), ("uncertain", text))
@@ -122,6 +126,8 @@ class ImageUnderstandingTests(unittest.TestCase):
             self.assertIsNone(result.error)
             self.assertEqual(result.warnings, [])
             self.assertEqual(result.question, QUESTION)
+            self.assertEqual(result.source.document, document)
+            self.assertEqual(result.source.crop, crop)
             self.assertEqual(result.source.sha256, MANIFEST["samples"][index]["sha256"])
             for request in requests:
                 url = request["body"]["messages"][0]["content"][1]["image_url"]["url"]

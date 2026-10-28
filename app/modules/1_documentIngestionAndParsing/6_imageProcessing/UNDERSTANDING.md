@@ -51,7 +51,7 @@ else:
   --env-file E:\aaa-project\rag-me\.env
 ```
 
-CLI 本地 HTTP 验证记录见 [image_understanding_cli_evidence.json](/E:/aaa-project/rag-me/tests/testFile/image_understanding_cli_evidence.json)：问题确实发送，结果保留原问题，缺问题退出 1 且不发请求。本地服务返回预设关系只验证协议，不证明真实视觉质量。
+CLI 本地 HTTP 验证记录见 [image_understanding_cli_evidence.json](/E:/aaa-project/rag-me/tests/testFile/image_understanding_cli_evidence.json)：问题确实发送，结果保留原问题，缺问题退出 1 且不发请求。合入图像描述后，[CLI 集成记录](/E:/aaa-project/rag-me/tests/testFile/image_understanding_cli_integration.json)确认三类任务均可选择，图像描述可正常运行且仍拒绝问题参数。本地服务返回预设关系只验证协议，不证明真实视觉质量。
 
 ## 固定样本与独立真值
 
@@ -76,6 +76,8 @@ CLI 本地 HTTP 验证记录见 [image_understanding_cli_evidence.json](/E:/aaa-
 
 离线测试另验证 `no_text` 不可冒充视觉理解状态、无效 JSON／字段／类型拒绝、鉴权与服务失败保留图片身份。测试位于 [test_image_understanding.py](/E:/aaa-project/rag-me/tests/test_image_understanding.py)，真实测试位于 [test_image_understanding_live.py](/E:/aaa-project/rag-me/tests/test_image_understanding_live.py)。
 
+最终已合入 integration `4a36ff0`，保留 `describe` 的输入／输出规则和 `Source.document`／`Source.crop`。默认回归共 232 项，226 通过、6 项显式真实测试跳过；其中视觉理解的模糊／截断测试还核对正常 `uncertain` 结果保留文档来源与裁剪映射。最终一次 integration 合并只更新统一模块 README，没有改动已验证代码。
+
 真实验收显式加载 `E:/aaa-project/rag-me/.env`，模型请求／响应披露均为 `step-5-preview`。共 8 次单次请求，3 次取得模型输出、5 次连接失败；核心没有自动重试、回退或隐式环境搜索。原始记录全部保留，没有把失败重写为成功：
 
 | 证据 | 实际结论 |
@@ -99,4 +101,4 @@ $env:STEP_UNDERSTANDING_LIVE_EVIDENCE = 'tests/testFile/image_understanding_live
 & E:\aaa-project\rag-me\.venv\Scripts\python.exe -m unittest tests.test_image_understanding_live -v
 ```
 
-固定样本通过也不推广为任意流程图、截图或扫描质量可靠。本任务不扩展多图、存储、索引或召回；来源文档／裁剪元数据由 #31 单独扩展。
+固定样本通过也不推广为任意流程图、截图或扫描质量可靠。本任务不扩展多图、存储、索引或召回；已合入的来源文档／裁剪元数据规则见 [PROVENANCE.md](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/PROVENANCE.md)。最终 v2 的清晰／截断真实补验由主代理在集成后定向进行，本分支保留现有失败证据并停止外部调用。
