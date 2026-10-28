@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
 
+from .provenance import CropMapping, DocumentSource
+
 
 @dataclass
 class Source:
@@ -8,6 +10,8 @@ class Source:
     sha256: str | None = None
     width: int | None = None
     height: int | None = None
+    document: DocumentSource | None = None
+    crop: CropMapping | None = None
 
 
 @dataclass

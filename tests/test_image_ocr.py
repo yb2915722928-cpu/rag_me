@@ -245,6 +245,7 @@ class ImageOcrTests(unittest.TestCase):
             "location": str(path), "format": "png",
             "sha256": SAMPLE_HASHES[path.name],
             "width": 1100, "height": 340,
+            "document": None, "crop": None,
         })
         self.assertTrue(result.requires_review)
         self.assertEqual(result.review_issues[0].code, "unverified_model_output")
