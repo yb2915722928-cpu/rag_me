@@ -70,21 +70,21 @@ def _convert_content(data, source, task, config, question):
 
 
 def _read_output(content, task):
-    """模型业务输出在此校验；空 OCR 无正文，视觉理解总有可用解释。"""
+    """模型业务输出按任务 Schema 校验；仅 OCR 允许空正文。"""
     try:
         output = json.loads(content)
     except ValueError:
-        raise StepFunError("protocol_error", "Image task content is not JSON") from None
+        raise StepFunError("protocol_error", f"{task} content is not JSON") from None
     if not isinstance(output, dict) or set(output) != {"status", "text", "review_notes"}:
-        raise StepFunError("protocol_error", "Image task content does not match the required fields")
+        raise StepFunError("protocol_error", f"{task} content does not match the required fields")
     status, text, notes = output["status"], output["text"], output["review_notes"]
-    statuses = ("content", "no_text") if task == "ocr" else ("content", "uncertain")
+    statuses = TASK_PROMPTS[task][2]["properties"]["status"]["enum"]
     if (not isinstance(status, str) or status not in statuses
             or not isinstance(text, str) or not isinstance(notes, list)
             or any(not isinstance(note, str) or not note.strip() for note in notes)):
-        raise StepFunError("protocol_error", "Image task content has invalid field types or values")
+        raise StepFunError("protocol_error", f"{task} content has invalid field types or values")
     if (status != "no_text" and not text.strip()) or (status == "no_text" and text != ""):
-        raise StepFunError("protocol_error", "Image task status and text are inconsistent")
+        raise StepFunError("protocol_error", f"{task} status and text are inconsistent")
     if status == "uncertain" and not notes:
         raise StepFunError("protocol_error", "Uncertain understanding requires a reason in review_notes")
     return output
@@ -116,11 +116,11 @@ def _decode_image(data, declared_format):
 
 def _validate_options(format, source, task, question):
     if not isinstance(task, str) or task not in TASK_PROMPTS:
-        raise ValueError("task must explicitly select ocr or understand")
+        raise ValueError("task must explicitly select " + ", ".join(TASK_PROMPTS))
     if task == "understand" and (not isinstance(question, str) or not question.strip()):
         raise ValueError("understand requires a nonempty question")
     if task != "understand" and question is not None:
-        raise ValueError("Only understand accepts question")
+        raise ValueError(f"{task} does not accept question")
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     normalized = format.strip().lower().lstrip(".")

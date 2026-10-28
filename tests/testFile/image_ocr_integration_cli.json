@@ -1,0 +1,25 @@
+{
+  "text": "���� 1 ��Ԫʱ���븺����������\n��������ɲ���������\nδ����׼���ø��\n�¶Ȳ��ó��� 60 ��C��ÿ 30 ����һ�Ρ�",
+  "source": {
+    "location": "tests\\testFile\\image_ocr_rules.png",
+    "format": "png",
+    "sha256": "08e1cd1de64b6516cd00a1b0d67b4e5fd0f51975fe76f16da534ecaee0598206",
+    "width": 1100,
+    "height": 340
+  },
+  "task": "ocr",
+  "status": "content",
+  "requested_model": "step-5-preview",
+  "response_model": "step-5-preview",
+  "prompt_version": "ocr-v1",
+  "review_issues": [
+    {
+      "code": "unverified_model_output",
+      "message": "ģ�Ͳ����д�����ԭͼ���顣"
+    }
+  ],
+  "warnings": [],
+  "error": null,
+  "success": true,
+  "requires_review": true
+}

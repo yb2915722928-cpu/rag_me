@@ -1,0 +1,75 @@
+{
+  "checked_at": "2026-10-28T03:04:33.209810+00:00",
+  "environment_file": "E:\\aaa-project\\rag-me\\.env",
+  "records": [
+    {
+      "sample": "image_description_camping.png",
+      "seconds": 0.28,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "image_description_camping.png",
+          "format": "png",
+          "sha256": "974fb9fba1f3c4d86eb28c1f3b54ad613595c04b067a1892a31a13604264a430",
+          "width": 960,
+          "height": 640
+        },
+        "task": "describe",
+        "status": "failed",
+        "requested_model": "step-5-preview",
+        "response_model": null,
+        "prompt_version": "describe-v1",
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "http_status": null
+        }
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false,
+        "nonempty_description": false
+      },
+      "quality_passed": false
+    },
+    {
+      "sample": "image_description_approval.png",
+      "seconds": 13.275,
+      "result": {
+        "text": "一张标题为“付款审批流程”的流程图。画面顶部有矩形框“提交付款申请”，其下连接一个菱形判断框“金额超过1万元？”。菱形框向左下分支标注“是：超过1万元”，连接至矩形框“负责人审批”；向右下分支标注“否：其他情况”，连接至矩形框“财务审批”。底部有一行文字“按金额条件分支选择审批人”。",
+        "source": {
+          "location": "image_description_approval.png",
+          "format": "png",
+          "sha256": "4d9efe49e308375d9a93cfe45cab4caa903e47342c7b4d9ee073bf9dd71a7721",
+          "width": 1200,
+          "height": 780
+        },
+        "task": "describe",
+        "status": "content",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "describe-v1",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          }
+        ],
+        "warnings": [],
+        "error": null
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "nonempty_description": true,
+        "payment_theme": true,
+        "approval_theme": true,
+        "no_obvious_universal_approver_claim": true
+      },
+      "quality_passed": true
+    }
+  ],
+  "limitation": "语义关键词及通用审批断言只作有限筛查，必须人工对照原图；不能检测所有扩写、遗漏或模型错误，固定样本不代表任意图片质量。"
+}
