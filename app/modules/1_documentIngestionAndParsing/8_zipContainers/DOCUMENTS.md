@@ -4,7 +4,7 @@ PDF（数字、扫描、混合）、DOCX、PPTX、XLSX 默认整份提交 MinerU
 
 ## 调用与配置
 
-公开接缝仍为 [ZIP 文件／字节入口](/C:/Users/29157/.codex/worktrees/zip-documents/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/__init__.py)，`parser_options["document"]["mineru"]` 接受既有 [MinerUConfig](/C:/Users/29157/.codex/worktrees/zip-documents/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/mineru.py) 或普通 mapping。省略时使用默认配置；`token=None` 从进程环境 `MINERU_API_TOKEN` 取值，显式空字符串表示配置不可用。库函数不读取环境文件。
+公开接缝仍为 [ZIP 文件／字节入口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/__init__.py)，`parser_options["document"]["mineru"]` 接受既有 [MinerUConfig](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/mineru.py) 或普通 mapping。省略时使用默认配置；`token=None` 从进程环境 `MINERU_API_TOKEN` 取值，显式空字符串表示配置不可用。库函数不读取环境文件。
 
 ```python
 from importlib import import_module
@@ -26,7 +26,7 @@ CLI 的 `--parser-options` 对应 JSON 可为 `{"document":{"mineru":{"language"
 
 ## 原生产物与来源
 
-[文档适配器](/C:/Users/29157/.codex/worktrees/zip-documents/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/document_api.py) 返回 `DocumentResult`，容器 `result_kind=document`：
+[文档适配器](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/document_api.py) 返回 `DocumentResult`，容器 `result_kind=document`：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -56,9 +56,9 @@ PDF `service_page_index + 1` 表示上传的整份 PDF 页序，不是印刷页�
 
 ## 固定样本与离线验证
 
-[构造源头](/C:/Users/29157/.codex/worktrees/zip-documents/rag-me/tests/testFile/zip_documents_build_samples.py) 生成独立 `zip_document*` 输入、模拟结果包及 live 输入。运行时仅读取已提交字节；协议服务是 [真实本地 HTTP 夹具](/C:/Users/29157/.codex/worktrees/zip-documents/rag-me/tests/zip_document_support.py)，不 mock 客户端和内部解析器。模拟 Markdown 故意与 V1 文本不同，以检验原始正文没有被重建。
+[构造源头](/E:/aaa-project/rag-me/tests/testFile/zip_documents_build_samples.py) 生成独立 `zip_document*` 输入、模拟结果包及 live 输入。运行时仅读取已提交字节；协议服务是 [真实本地 HTTP 夹具](/E:/aaa-project/rag-me/tests/zip_document_support.py)，不 mock 客户端和内部解析器。模拟 Markdown 故意与 V1 文本不同，以检验原始正文没有被重建。
 
-既有 PDF、DOCX、PPTX、XLSX、MHTML 副本均在 [固定样本目录](/C:/Users/29157/.codex/worktrees/zip-documents/rag-me/tests/testFile)。新增两页演示样本检查标题与表格页归属；新增双工作表样本含横向合并表头及无保存计算缓存的公式 `SUM(B3:B4)`。新增 HTML/MHTML 有断电规则、泵／阀周期表与表后重新启动规则。输入摘要及独立预期由 [live 清单](/C:/Users/29157/.codex/worktrees/zip-documents/rag-me/tests/testFile/zip_document_live_manifest.json) 固定。
+既有 PDF、DOCX、PPTX、XLSX、MHTML 副本均在 [固定样本目录](/E:/aaa-project/rag-me/tests/testFile)。新增两页演示样本检查标题与表格页归属；新增双工作表样本含横向合并表头及无保存计算缓存的公式 `SUM(B3:B4)`。新增 HTML/MHTML 有断电规则、泵／阀周期表与表后重新启动规则。输入摘要及独立预期由 [live 清单](/E:/aaa-project/rag-me/tests/testFile/zip_document_live_manifest.json) 固定。
 
 本地 XLSX 差旅样本的来源说明是“本地构造教学输入”；主代理已有真实 XLSX 探针的公开来源未知，该探针也不是本票 ZIP 验收。此前探针可说明曾返回哪些产物，不能作为本实现质量通过证据。
 
@@ -71,7 +71,7 @@ TDD 切片依次得到数字 PDF unsupported 红测、Office unsupported 红测�
 
 ## 显式真实 API 验收（由主代理运行）
 
-[live 测试](/C:/Users/29157/.codex/worktrees/zip-documents/rag-me/tests/test_zip_documents_live.py) 默认跳过。只有 `ZIP_DOCUMENT_LIVE_TEST=1` 才读取 `STEP_ENV_FILE` 指定的环境文件；不会在默认测试时加载凭据。用包含 `MINERU_API_TOKEN` 的现有环境文件，主代理在本工作树执行：
+[live 测试](/E:/aaa-project/rag-me/tests/test_zip_documents_live.py) 默认跳过。只有 `ZIP_DOCUMENT_LIVE_TEST=1` 才读取 `STEP_ENV_FILE` 指定的环境文件；不会在默认测试时加载凭据。用包含 `MINERU_API_TOKEN` 的现有环境文件，主代理在本工作树执行：
 
 ```powershell
 $env:ZIP_DOCUMENT_LIVE_TEST = '1'

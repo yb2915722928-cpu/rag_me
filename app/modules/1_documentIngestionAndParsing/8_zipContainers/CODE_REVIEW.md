@@ -25,3 +25,16 @@ Spec 轴：发现 1 项 P2；未发现有具体证据的范围扩张。
 
 
 首次结果：Standards 0 项；Spec 1 项 P2，最严重问题为文档协作截止的状态传递。修复记录由独立实施分支提供，合并后更新最终状态。
+
+## 修复复核
+
+Spec 复核通过：提交 d2c50e9a10b05c5c0216c6c5e02e551562fb2522 无剩余 Spec 发现，原 P2 已解决。
+
+- 结果 ZIP 下载与展开共用整包绝对截止，专用停止信号不会被包装成解析错误；[容器入口](/C:/Users/29157/.codex/worktrees/zip-review-fix/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/__init__.py:120)立即将当前成员置为 `unprocessed`，设置 `stop_reason=deadline_exceeded`，不依赖后续成员。
+- [新增回归](/C:/Users/29157/.codex/worktrees/zip-review-fix/rag-me/tests/test_zip_documents.py:9)覆盖展开中途截止、单文档、文件/字节入口及兄弟成员：未完成正文不返回，已完成结果保留，后续文档未处理，元数据仍忽略。
+- [MinerU 客户端](/C:/Users/29157/.codex/worktrees/zip-review-fix/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/mineru.py:38)的下载截止回调默认关闭；旧扫描 PDF 入口不传回调，上传/轮询及普通 API 错误语义保留。
+
+已核对 [REVIEW_FIX.md](/C:/Users/29157/.codex/worktrees/zip-review-fix/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/REVIEW_FIX.md:25)及日志：定向 99 项通过，全仓 323 项中 313 通过、10 跳过。本次只读复核，未重跑全仓或调用 API。
+
+
+修复提交 d2c50e9 已通过合并提交 59ef795 纳入集成分支；定向 99 项和全仓 323 项（313 通过、10 跳过）完成，合并后相关 31 项通过。细节见 [REVIEW_FIX.md](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/REVIEW_FIX.md)。最终未解决项：Standards 0；Spec 0。

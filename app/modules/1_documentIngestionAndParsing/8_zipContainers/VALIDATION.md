@@ -4,7 +4,7 @@
 
 ## 默认回归
 
-实现前：270 项，263 通过、7 个真实服务测试跳过，27.116 秒。四票集成后：319 项，309 通过、10 个真实服务测试跳过，44.024 秒。命令为 `python -m unittest discover -s tests -q`。评审修复后的最终结果在完成修复后追加。
+实现前：270 项，263 通过、7 个真实服务测试跳过，27.116 秒。四票集成后：319 项，309 通过、10 个真实服务测试跳过，44.024 秒。命令为 `python -m unittest discover -s tests -q`。评审修复后全仓 323 项，313 通过、10 个真实服务测试跳过，45.154 秒；合入集成分支后再跑受影响的 31 项，全部通过。截止回归及 red → green 见 [REVIEW_FIX.md](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/REVIEW_FIX.md)。
 
 ## 真实 API 结果
 

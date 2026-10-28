@@ -29,7 +29,7 @@
 
 ## 规范与规格自查
 
-当前会话没有子代理工具，直接按 code-review 的规范与规格两条线核对。修正了空包诊断、Windows 原始路径保留、复杂成员处理从主流程分离，以及原生结构化错误的外层 message 投影。无通用插件系统、未扩展其他业务模块；新增样本构造说明与摘要，预算限制不声称覆盖子解析器内部峰值内存。
+此阶段为实施者自查；后续集成分支的两轴独立评审见 [CODE_REVIEW.md](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/CODE_REVIEW.md)。修正了空包诊断、Windows 原始路径保留、复杂成员处理从主流程分离，以及原生结构化错误的外层 message 投影。无通用插件系统、未扩展其他业务模块；新增样本构造说明与摘要，预算限制不声称覆盖子解析器内部峰值内存。
 
 ## 验证命令
 
