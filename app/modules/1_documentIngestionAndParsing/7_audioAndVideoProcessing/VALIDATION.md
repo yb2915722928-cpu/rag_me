@@ -16,7 +16,7 @@
 | --- | --- | --- |
 | 合成中文语音转写 | [音频运行](/E:/aaa-project/rag-me/tests/testFile/media_live_audio_check.json) | 真实调用通过；金额、问句、“不是，其他由财务审批”与“未经批准不得付款”全部保留。约 7.3 秒，定位为整段约 15 秒。 |
 | 缺失审批节点的视频 | [不确定关系运行](/E:/aaa-project/rag-me/tests/testFile/media_live_video_check.json) | 真实调用通过；结果为 uncertain，保留可见金额条件，明确无法确认分支审批人并给出缺失终点的原因。约 8.9 秒。 |
-| 同时转写与理解清晰审批视频 | [联合运行](/E:/aaa-project/rag-me/tests/testFile/media_live_combined_check.json) | 两个 API 调用均完成，约 18.9 秒；实际文字正确保留“超过 1 万元→负责人”“其他→财务”。原自动检查未去掉数字间空格，导致第一条关系误判失败；后续检查已统一去空白，历史证据原样保留。 |
+| 同时转写与理解清晰审批视频 | [联合运行](/E:/aaa-project/rag-me/tests/testFile/media_live_combined_check.json)、[已保存响应复核](/E:/aaa-project/rag-me/tests/testFile/media_live_combined_revalidated.json) | 两个 API 调用均完成，约 18.9 秒；实际文字正确保留“超过 1 万元→负责人”“其他→财务”。原自动检查未去掉数字间空格，导致第一条关系误判失败；统一去空白后对原响应复核全部通过，未再次调用 API，历史证据原样保留。 |
 | 首次真实运行与随后重跑 | [首次运行](/E:/aaa-project/rag-me/tests/testFile/media_live_initial.json)、[联合重跑](/E:/aaa-project/rag-me/tests/testFile/media_live_combined_final.json) | 多次出现 TLS 连接中断，结果明确为 network_error，无伪成功正文。相同配置的其他请求已成功，不能把该网络问题记为鉴权或模型不支持。 |
 
 语音样本为 Windows Microsoft Huihui Desktop 合成，不是真实会议录音。画面复用本仓库原创审批图；样本和构造说明见[清单](/E:/aaa-project/rag-me/tests/testFile/media_constructed.json)。语音中“右侧分支”的说法与所用画面中负责人节点的左右位置不一致，结果分别保留两种来源，不据此自动融合成已核验的业务结论。
