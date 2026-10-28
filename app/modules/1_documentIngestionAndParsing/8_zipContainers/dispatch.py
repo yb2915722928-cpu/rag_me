@@ -24,4 +24,9 @@ def convert_member(data: bytes, *, format: str, source: str, parser_options: dic
         return "csv", parser.convert_bytes(
             data, format=format, source=source, **parser_options.get("csv", {}),
         )
+    if format in ("png", "jpg", "jpeg", "webp"):
+        parser = import_module(".image_api", __package__)
+        return "image", parser.convert_bytes(
+            data, format=format, source=source, limits=limits, **parser_options.get("image", {}),
+        )
     raise UnsupportedFormat(f"Unsupported format: {format or '(no suffix)'}")
