@@ -86,7 +86,14 @@ CLI 本地 HTTP 验证记录见 [image_understanding_cli_evidence.json](/E:/aaa-
 | [模糊图补验 1](/E:/aaa-project/rag-me/tests/testFile/image_understanding_live_blurred.json)／[补验 2](/E:/aaa-project/rag-me/tests/testFile/image_understanding_live_blurred_final.json) | 均连接失败，没有模型质量结论 |
 | [修正提示后 v2](/E:/aaa-project/rag-me/tests/testFile/image_understanding_live_v2.json) | 模糊图正常 `uncertain`，保留条件、两个节点及“未显示连接／终点”的原因，不猜分支。原自动原因词表过窄，误记为未通过；已修正未来测试匹配，原始证据不改。清晰图和截断图本轮连接失败 |
 
-v2 针对实际输出问题增加“不可见区域只写未显示，不猜遮挡颜色／遮挡物／缺失节点”，并要求 `review_notes` 只写不确定原因。人工核对记录见 [image_understanding_live_review.json](/E:/aaa-project/rag-me/tests/testFile/image_understanding_live_review.json)。**最终 v2 的清晰图和截断图尚无成功响应，不能宣称最终提示的三样本真实验收全部通过。** 已停止反复调用；不将网络失败当成视觉理解质量失败，也不把 v1 的成功冒充 v2 的验证。
+v2 针对实际输出问题增加“不可见区域只写未显示，不猜遮挡颜色／遮挡物／缺失节点”，并要求 `review_notes` 只写不确定原因。人工核对记录见 [image_understanding_live_review.json](/E:/aaa-project/rag-me/tests/testFile/image_understanding_live_review.json)。截至子任务提交时，v2 的清晰图和截断图尚无成功响应，因此当时没有宣称最终提示的三样本全部通过，也没有把 v1 成功冒充 v2 验证。
+
+集成后对这两处缺口各进行一次定向真实验收，两项命令均通过，仍使用 `understand-v2` 与 `step-5-preview`：
+
+- [清晰图集成验收](/E:/aaa-project/rag-me/tests/testFile/image_understanding_integration_clear_v2.json)：分别核对“超过 1 万元→负责人审批”和“否／其他情况→财务审批”，正文与两条可见箭头一致。
+- [截断图集成验收](/E:/aaa-project/rag-me/tests/testFile/image_understanding_integration_truncated_v2.json)：返回 `uncertain`，保留金额条件与可见的否分支，明确两条终点均未显示、无法确认审批人，没有臆测黑色遮挡或缺失节点。
+
+结合此前 v2 模糊图的成功输出与人工核验，最终提示词的三个固定场景均已有成功质量证据；它们来自不同请求，历史连接失败与错误输出继续保留。单图请求约 11 秒及 15 秒，不宣称服务稳定或任意流程图均正确。
 
 ```powershell
 # 默认离线回归，不消耗外部 API。
