@@ -31,9 +31,9 @@ def convert_file(path, *, task=None, format=None, source=None, question=None, co
     try:
         data = path.read_bytes()
     except OSError:
-        return ConversionResult(None, source_info, task,
+        return ConversionResult(None, source_info, task, question=question,
                                 error=Diagnostic("file_read_error", "Could not read input file"))
-    return _convert_content(data, source_info, task, config)
+    return _convert_content(data, source_info, task, config, question)
 
 
 def convert_bytes(data, *, format, source, task=None, question=None, config=None,
@@ -51,13 +51,15 @@ def convert_bytes(data, *, format, source, task=None, question=None, config=None
     except ValueError as exc:
         code = exc.code if isinstance(exc, InputError) else "invalid_options"
         return ConversionResult(None, source_info, task, error=Diagnostic(code, str(exc)))
-    return _convert_content(data, source_info, task, config)
+    return _convert_content(data, source_info, task, config, question)
 
 
-def _convert_content(data, source, task, config):
+def _convert_content(data, source, task, config, question):
     source.sha256 = sha256(data).hexdigest()
     version, prompt, schema = TASK_PROMPTS[task]
-    result = ConversionResult(None, source, task, prompt_version=version)
+    result = ConversionResult(None, source, task, prompt_version=version, question=question)
+    if task == "understand":
+        prompt += "\n\n本次问题：\n" + question
     try:
         source.width, source.height = _decode_image(data, source.format)
     except InputError as exc:
@@ -81,7 +83,7 @@ def _convert_content(data, source, task, config):
 
 
 def _read_output(content, task):
-    """模型业务输出在此按任务校验；只有 OCR 允许 no_text 且 text 恰为空。"""
+    """模型业务输出按任务 Schema 校验；仅 OCR 允许空正文。"""
     try:
         output = json.loads(content)
     except ValueError:
@@ -89,13 +91,15 @@ def _read_output(content, task):
     if not isinstance(output, dict) or set(output) != {"status", "text", "review_notes"}:
         raise StepFunError("protocol_error", f"{task} content does not match the required fields")
     status, text, notes = output["status"], output["text"], output["review_notes"]
-    allowed_statuses = ("content", "no_text") if task == "ocr" else ("content",)
-    if (not isinstance(status, str) or status not in allowed_statuses
+    statuses = TASK_PROMPTS[task][2]["properties"]["status"]["enum"]
+    if (not isinstance(status, str) or status not in statuses
             or not isinstance(text, str) or not isinstance(notes, list)
             or any(not isinstance(note, str) or not note.strip() for note in notes)):
         raise StepFunError("protocol_error", f"{task} content has invalid field types or values")
-    if (status == "content" and not text.strip()) or (status == "no_text" and text != ""):
+    if (status != "no_text" and not text.strip()) or (status == "no_text" and text != ""):
         raise StepFunError("protocol_error", f"{task} status and text are inconsistent")
+    if status == "uncertain" and not notes:
+        raise StepFunError("protocol_error", "Uncertain understanding requires a reason in review_notes")
     return output
 
 
@@ -126,7 +130,9 @@ def _decode_image(data, declared_format):
 def _validate_options(format, source, task, question):
     if not isinstance(task, str) or task not in TASK_PROMPTS:
         raise ValueError("task must explicitly select " + ", ".join(TASK_PROMPTS))
-    if question is not None:
+    if task == "understand" and (not isinstance(question, str) or not question.strip()):
+        raise ValueError("understand requires a nonempty question")
+    if task != "understand" and question is not None:
         raise ValueError(f"{task} does not accept question")
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")

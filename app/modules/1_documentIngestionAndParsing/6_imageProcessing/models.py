@@ -29,7 +29,7 @@ class ReviewIssue:
 
 @dataclass
 class ConversionResult:
-    """正常空 OCR 的 text 为 ''；失败为 None；来源与诊断不进入正文。"""
+    """空 OCR 为 ''，uncertain 保留解释，失败为 None；question 保留原始问题。"""
 
     text: str | None
     source: Source
@@ -41,6 +41,7 @@ class ConversionResult:
     review_issues: list[ReviewIssue] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     error: Diagnostic | None = None
+    question: str | None = None
 
     @property
     def success(self) -> bool:

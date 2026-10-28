@@ -1,0 +1,145 @@
+{
+  "checked_at": "2026-10-28T03:08:17.830838+00:00",
+  "environment_file": "E:\\aaa-project\\rag-me\\.env",
+  "records": [
+    {
+      "sample": "image_understanding_clear.png",
+      "expected": {
+        "status": "content",
+        "branches": [
+          "金额超过1万元 → 负责人审批",
+          "其他情况（不超过1万元） → 财务审批"
+        ]
+      },
+      "seconds": 0.334,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "image_understanding_clear.png",
+          "format": "png",
+          "sha256": "a9e36b411a144ff50a935be51ebdd4294a053380b5e5dcbac18132e6f2787e01",
+          "width": 1200,
+          "height": 850
+        },
+        "task": "understand",
+        "status": "failed",
+        "requested_model": "step-5-preview",
+        "response_model": null,
+        "prompt_version": "understand-v2",
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "http_status": null
+        },
+        "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。"
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false,
+        "status": false,
+        "question": true,
+        "image_identity": true
+      },
+      "quality_passed": false
+    },
+    {
+      "sample": "image_understanding_blurred.png",
+      "expected": {
+        "status": "uncertain",
+        "known": "可辨条件、是/否标签及两个审批节点",
+        "reason": "关键连线与箭头被模糊，不能确认条件和审批人的完整对应"
+      },
+      "seconds": 24.409,
+      "result": {
+        "text": "本次图像可见：顶部判定节点为“金额超过 1 万元？”；其右侧有一条箭头线，标注为“否（其他情况）”，该线先向右再向下，但向下后未显示连接到下方任何审批节点。判定节点下方还有一条向下延伸的线段，但图中未显示“是”等标签，也未显示其连接到具体审批节点。下方可见两个矩形节点，分别为“负责人审批”和“财务审批”，但均没有可见箭头或连线明确表示它们分别属于哪条分支。因此，无法确认两条分支分别由谁审批。",
+        "source": {
+          "location": "image_understanding_blurred.png",
+          "format": "png",
+          "sha256": "88ee2f464d4cc3bf4ac8a7a8441b1fe490a4cfba2c81bd736d44af185bf8873c",
+          "width": 1200,
+          "height": 850
+        },
+        "task": "understand",
+        "status": "uncertain",
+        "requested_model": "step-5-preview",
+        "response_model": "step-5-preview",
+        "prompt_version": "understand-v2",
+        "review_issues": [
+          {
+            "code": "unverified_model_output",
+            "message": "模型产出尚待对照原图核验。"
+          },
+          {
+            "code": "model_uncertainty",
+            "message": "标注“否（其他情况）”的箭头向下后未显示终点，无法确认连接至“负责人审批”还是“财务审批”。"
+          },
+          {
+            "code": "model_uncertainty",
+            "message": "判定节点下方虽有向下线段，但未显示标签或与任一审批节点相连，无法确认对应“超过 1 万元”分支的审批人。"
+          },
+          {
+            "code": "model_uncertainty",
+            "message": "两个审批节点之间没有可见箭头或归属关系，不能仅凭位置推断分支对应。"
+          }
+        ],
+        "warnings": [],
+        "error": null,
+        "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。"
+      },
+      "checks": {
+        "success": true,
+        "requires_review": true,
+        "status": true,
+        "question": true,
+        "image_identity": true,
+        "explicit_unknown": true,
+        "keeps_known_content": true,
+        "reason": false
+      },
+      "quality_passed": false
+    },
+    {
+      "sample": "image_understanding_truncated.png",
+      "expected": {
+        "status": "uncertain",
+        "known": "可辨金额条件与是/否分支起点",
+        "reason": "底部审批节点和箭头终点被截去，无法确认分支终点"
+      },
+      "seconds": 0.306,
+      "result": {
+        "text": null,
+        "source": {
+          "location": "image_understanding_truncated.png",
+          "format": "png",
+          "sha256": "254d3d1bca560c6f2164f70ff8078df2e3394a6900dd5f2669666c348f6b0cd6",
+          "width": 1200,
+          "height": 350
+        },
+        "task": "understand",
+        "status": "failed",
+        "requested_model": "step-5-preview",
+        "response_model": null,
+        "prompt_version": "understand-v2",
+        "review_issues": [],
+        "warnings": [],
+        "error": {
+          "code": "network_error",
+          "message": "StepFun connection failed or timed out",
+          "http_status": null
+        },
+        "question": "请根据图中的条件和箭头，分别说明两条分支由谁审批；如果依据不足，请说明哪些关系无法确认以及原因。"
+      },
+      "checks": {
+        "success": false,
+        "requires_review": false,
+        "status": false,
+        "question": true,
+        "image_identity": true
+      },
+      "quality_passed": false
+    }
+  ],
+  "limitation": "固定样本的语义检查仍需人工核对实际输出；结构化状态及来源均不证明任意图片关系正确。每图单次请求，无自动重试或回退。"
+}

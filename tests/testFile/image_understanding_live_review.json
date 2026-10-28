@@ -1,0 +1,54 @@
+{
+  "review_method": "人工逐图核对原图可见的文字、连续连线、箭头与终点，不使用被测模型生成真值。保留自动验收原始结果；此文件是补充解释，不覆盖它们。",
+  "requested_model": "step-5-preview",
+  "attempted_requests": 8,
+  "responses_with_content": 3,
+  "network_failures": 5,
+  "samples": [
+    {
+      "sample": "image_understanding_clear.png",
+      "sha256": "a9e36b411a144ff50a935be51ebdd4294a053380b5e5dcbac18132e6f2787e01",
+      "evidence": "image_understanding_live_initial.json",
+      "prompt_version": "understand-v1",
+      "manual_checks": {
+        "above_10000_to_manager": true,
+        "other_to_finance": true,
+        "requires_review": true
+      },
+      "limitation": "v1 备注包含肯定结论，v2 已要求仅写不确定原因；v2 清晰图本次连接失败，尚无最终提示的成功验收。"
+    },
+    {
+      "sample": "image_understanding_truncated.png",
+      "sha256": "254d3d1bca560c6f2164f70ff8078df2e3394a6900dd5f2669666c348f6b0cd6",
+      "evidence": "image_understanding_live_initial.json",
+      "prompt_version": "understand-v1",
+      "manual_checks": {
+        "uncertain_status": true,
+        "keeps_known_condition_and_missing_endpoints": true,
+        "does_not_invent_approvers": true,
+        "no_invented_occlusion": false
+      },
+      "limitation": "原回答写了黑色遮挡/截断，图片只有截断、无黑色遮挡，不能认为所有内容正确。v2 已约束不可见区域不猜遮挡物；本轮 v2 截断请求连接失败，该修正尚未取得真实验证。"
+    },
+    {
+      "sample": "image_understanding_blurred.png",
+      "sha256": "88ee2f464d4cc3bf4ac8a7a8441b1fe490a4cfba2c81bd736d44af185bf8873c",
+      "evidence": "image_understanding_live_v2.json",
+      "prompt_version": "understand-v2",
+      "manual_checks": {
+        "uncertain_status": true,
+        "keeps_known_condition_and_two_approvers": true,
+        "reason_is_missing_visible_connections_and_endpoints": true,
+        "does_not_guess_branch_assignments": true,
+        "requires_review": true
+      },
+      "limitation": "自动词表原来只接受模糊/不清等，漏掉了未显示连接/终点的等价原因；已修正测试匹配，原始 quality_passed=false 保留，不伪造重跑。样本的是标签确在模糊区，否标签仍可见。"
+    }
+  ],
+  "final_prompt_acceptance": {
+    "prompt_version": "understand-v2",
+    "blurred": "人工语义通过；原自动原因匹配误报",
+    "clear": "连接失败，未完成",
+    "truncated": "连接失败，未完成"
+  }
+}
