@@ -28,6 +28,7 @@ class MediaInfo:
     duration: float
     audio_stream: int | None
     video_stream: int | None
+    audio_start: float
     video_start: float
 
 
@@ -66,6 +67,7 @@ def probe(path: Path, format: str, options: ProcessingOptions) -> MediaInfo:
             raise ValueError
         return MediaInfo(duration, None if audio is None else int(audio["index"]),
                          None if video is None else int(video["index"]),
+                         0.0 if audio is None else float(audio.get("start_time", origin)) - origin,
                          0.0 if video is None else float(video.get("start_time", origin)) - origin)
     except (KeyError, TypeError, ValueError, StopIteration):
         raise MediaError("media_probe_error", "Media has no readable finite duration or streams") from None
@@ -73,7 +75,7 @@ def probe(path: Path, format: str, options: ProcessingOptions) -> MediaInfo:
 
 def prepare(path: Path, directory: Path, kind: str, info: MediaInfo,
             options: ProcessingOptions) -> list[Clip]:
-    """禁用负 DTS 平移；清单首段从零计数，延迟画面的起点需取视频流时间。"""
+    """禁用负 DTS 平移；清单首段从零计数，延迟音轨或画面的起点需取所选流时间。"""
     audio = kind == "audio"
     index = info.audio_stream if audio else info.video_stream
     seconds = options.audio_segment_seconds if audio else options.video_segment_seconds
@@ -94,8 +96,8 @@ def prepare(path: Path, directory: Path, kind: str, info: MediaInfo,
         with listing.open(encoding="utf-8", newline="") as handle:
             for name, start, end in csv.reader(handle):
                 start, end = max(0.0, float(start)), min(info.duration, float(end))
-                if not audio and not clips:
-                    start = max(start, info.video_start)
+                if not clips:
+                    start = max(start, info.audio_start if audio else info.video_start)
                 clip_path = directory / Path(name).name
                 if (not math.isfinite(start) or not math.isfinite(end) or end <= start
                         or not clip_path.is_file() or clip_path.stat().st_size == 0):
