@@ -5,6 +5,7 @@ from .models import (
     BodySpan, ContentUnit, Diagnostic, Document, HandoffReport, IdAllocator, Source,
 )
 from .text_web import TextWebResult, adapt_text_web
+from .documents import HostedDocumentResult, PdfWordResult, adapt_hosted_document, adapt_pdf_word
 
 __all__ = [
     "adapt_result", "export_json", "BodySpan", "ContentUnit", "Diagnostic",
@@ -13,12 +14,17 @@ __all__ = [
 
 
 def adapt_result(
-    result: TextWebResult, *, business_id: str | None = None, version: str | None = None,
+    result: TextWebResult | PdfWordResult | HostedDocumentResult, *,
+    business_id: str | None = None, version: str | None = None,
 ) -> HandoffReport:
     """只适配明确支持的原生结果，不读取文件、不重新解析或调用模型。"""
     _validate_identity(business_id, version)
     if isinstance(result, TextWebResult):
         return adapt_text_web(result, IdAllocator(), business_id=business_id, version=version)
+    if isinstance(result, PdfWordResult):
+        return adapt_pdf_word(result, IdAllocator(), business_id=business_id, version=version)
+    if isinstance(result, HostedDocumentResult):
+        return adapt_hosted_document(result, IdAllocator(), business_id=business_id, version=version)
     raise TypeError(f"Unsupported result type: {type(result).__name__}")
 
 
