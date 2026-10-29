@@ -1,8 +1,8 @@
 # PDF、DOCX 与托管文档交接
 
 任务 [#47](https://github.com/yb2915722928-cpu/rag_me/issues/47) 的适配实现见
-[documents.py](/C:/Users/29157/.codex/worktrees/47-handoff-documents/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/documents.py)。
-通过模块[公开入口](/C:/Users/29157/.codex/worktrees/47-handoff-documents/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/__init__.py)接收：
+[documents.py](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/documents.py)。
+通过模块[公开入口](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/__init__.py)接收：
 
 - 第 3 节的 PDF/DOCX `ConversionResult`，包括上游已经完成的 OCR 结果。
 - 第 8 节的托管 `DocumentResult`；调用方可从 ZIP 成员的 `result` 取得它。本票不适配 ZIP 容器本身。
@@ -47,7 +47,7 @@ handoff.export_json(report, "maintenance-handoff.json")
 
 ## 验证
 
-[test_handoff_documents.py](/C:/Users/29157/.codex/worktrees/47-handoff-documents/rag-me/tests/test_handoff_documents.py) 复用现有真实 PDF/DOCX、ZIP 固定样本，以及已有的本地 OCR / 托管文档 HTTP 服务。测试边界为真实上游结果 → 公开适配 → JSON 回读；核验字符切片、章节/页序、完整结构、来源缺口、诊断、输入不变、ID 引用及交接不增加网络请求。
+[test_handoff_documents.py](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/tests/test_handoff_documents.py) 复用现有真实 PDF/DOCX、ZIP 固定样本，以及已有的本地 OCR / 托管文档 HTTP 服务。测试边界为真实上游结果 → 公开适配 → JSON 回读；核验字符切片、章节/页序、完整结构、来源缺口、诊断、输入不变、ID 引用及交接不增加网络请求。
 
 ```powershell
 python -m unittest tests.test_handoff_documents tests.test_handoff_text_web -v

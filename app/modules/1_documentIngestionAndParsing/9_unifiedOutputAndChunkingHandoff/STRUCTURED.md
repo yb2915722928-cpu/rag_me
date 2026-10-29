@@ -1,6 +1,6 @@
 # PPTX 与 JSON/XML 交接
 
-[公开入口](/C:/Users/29157/.codex/worktrees/49-handoff-structured/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/__init__.py) 接收第 5 节已有的原生解析结果，通过[结构适配器](/C:/Users/29157/.codex/worktrees/49-handoff-structured/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/structured.py) 生成一份独立文档。调用方式：
+[公开入口](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/__init__.py) 接收第 5 节已有的原生解析结果，通过[结构适配器](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/structured.py) 生成一份独立文档。调用方式：
 
 ```python
 from importlib import import_module
@@ -35,7 +35,7 @@ handoff.export_json(report, "handoff.json")
 
 ## 本票验证
 
-复用已有固定样本，经真实解析器、公开交接入口、UTF-8 JSON 导出回读验证；测试见[交接测试](/C:/Users/29157/.codex/worktrees/49-handoff-structured/rag-me/tests/test_handoff_structured.py)。
+复用已有固定样本，经真实解析器、公开交接入口、UTF-8 JSON 导出回读验证；测试见[交接测试](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/tests/test_handoff_structured.py)。
 
 ```shell
 python -m unittest tests.test_handoff_structured tests.test_handoff_text_web -v
