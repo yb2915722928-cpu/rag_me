@@ -6,6 +6,7 @@ from .models import (
 )
 from .text_web import TextWebResult, adapt_text_web
 from .tables import TableResult, adapt_tables
+from .structured import StructuredResult, adapt_structured
 
 __all__ = [
     "adapt_result", "export_json", "BodySpan", "ContentUnit", "Diagnostic",
@@ -14,7 +15,8 @@ __all__ = [
 
 
 def adapt_result(
-    result: TextWebResult | TableResult, *, business_id: str | None = None, version: str | None = None,
+    result: TextWebResult | TableResult | StructuredResult, *,
+    business_id: str | None = None, version: str | None = None,
 ) -> HandoffReport:
     """只适配明确支持的原生结果，不读取文件、不重新解析或调用模型。"""
     _validate_identity(business_id, version)
@@ -22,6 +24,8 @@ def adapt_result(
         return adapt_text_web(result, IdAllocator(), business_id=business_id, version=version)
     if isinstance(result, TableResult):
         return adapt_tables(result, IdAllocator(), business_id=business_id, version=version)
+    if isinstance(result, StructuredResult):
+        return adapt_structured(result, IdAllocator(), business_id=business_id, version=version)
     raise TypeError(f"Unsupported result type: {type(result).__name__}")
 
 
