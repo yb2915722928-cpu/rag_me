@@ -1,7 +1,8 @@
 from dataclasses import asdict
 from importlib import import_module
 
-from .models import ContentUnit, Diagnostic, Document, HandoffReport, IdAllocator, Source
+from .diagnostics import _upstream_diagnostics
+from .models import ContentUnit, Document, HandoffReport, IdAllocator, Source
 
 
 TextWebResult = import_module("..2_textAndWebContent", __package__).ConversionResult
@@ -25,14 +26,5 @@ def adapt_text_web(
             ids.new_id("unit"), "document", result.markdown,
             source_ids=[source.id], alignment="document",
         ))
-    document.diagnostics = [
-        Diagnostic("warning", "upstream_warning", message,
-                   document_id=document_id, source_id=source.id)
-        for message in result.warnings
-    ]
-    if result.error is not None:
-        document.diagnostics.append(Diagnostic(
-            "error", "upstream_error", result.error,
-            document_id=document_id, source_id=source.id,
-        ))
+    document.diagnostics = _upstream_diagnostics(result, document_id, source.id)
     return HandoffReport(status, documents=[document])

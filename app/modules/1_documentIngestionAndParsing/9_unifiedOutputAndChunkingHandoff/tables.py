@@ -1,7 +1,8 @@
 from dataclasses import asdict
 from importlib import import_module
 
-from .models import ContentUnit, Diagnostic, Document, HandoffReport, IdAllocator, Source
+from .diagnostics import _upstream_diagnostics
+from .models import ContentUnit, Document, HandoffReport, IdAllocator, Source
 
 
 TableResult = import_module("..4_tabularFileProcessing", __package__).ConversionResult
@@ -31,14 +32,5 @@ def adapt_tables(
                     source_ids=[row_source.id],
                     metadata={"table_index": table_index, "row_index": row_index},
                 ))
-    document.diagnostics = [
-        Diagnostic("warning", "upstream_warning", message,
-                   document_id=document_id, source_id=source.id)
-        for message in result.warnings
-    ]
-    if result.error is not None:
-        document.diagnostics.append(Diagnostic(
-            "error", "upstream_error", result.error,
-            document_id=document_id, source_id=source.id,
-        ))
+    document.diagnostics = _upstream_diagnostics(result, document_id, source.id)
     return HandoffReport(status, documents=[document])
