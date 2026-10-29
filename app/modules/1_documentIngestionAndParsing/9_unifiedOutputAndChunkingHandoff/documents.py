@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from importlib import import_module
 
+from .diagnostics import _upstream_diagnostics
 from .models import (
     BodySpan, ContentUnit, Diagnostic, Document, HandoffReport, IdAllocator, Source,
 )
@@ -75,17 +76,3 @@ def adapt_hosted_document(
         for message in result.review_items
     ]
     return HandoffReport(status, documents=[document])
-
-
-def _upstream_diagnostics(result, document_id, source_id):
-    diagnostics = [
-        Diagnostic("warning", "upstream_warning", message,
-                   document_id=document_id, source_id=source_id)
-        for message in result.warnings
-    ]
-    if result.error is not None:
-        diagnostics.append(Diagnostic(
-            "error", "upstream_error", result.error,
-            document_id=document_id, source_id=source_id,
-        ))
-    return diagnostics

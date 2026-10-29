@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from importlib import import_module
 
+from .diagnostics import _upstream_diagnostics
 from .models import (
     BodySpan, ContentUnit, Diagnostic, Document, HandoffReport, IdAllocator, Source,
 )
@@ -58,16 +59,7 @@ def _content_units(result, sources, ids):
 
 
 def _diagnostics(result, document):
-    diagnostics = [
-        Diagnostic("warning", "upstream_warning", message,
-                   document_id=document.id, source_id=document.sources[0].id)
-        for message in result.warnings
-    ]
-    if result.error is not None:
-        diagnostics.append(Diagnostic(
-            "error", "upstream_error", result.error,
-            document_id=document.id, source_id=document.sources[0].id,
-        ))
+    diagnostics = _upstream_diagnostics(result, document.id, document.sources[0].id)
     for issue in result.review_issues:
         index = result.sources.index(issue.source)
         diagnostics.append(Diagnostic(
