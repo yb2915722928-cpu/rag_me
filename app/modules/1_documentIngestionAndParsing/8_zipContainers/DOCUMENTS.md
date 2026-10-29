@@ -26,7 +26,7 @@ CLI 的 `--parser-options` 对应 JSON 可为 `{"document":{"mineru":{"language"
 
 ## 原生产物与来源
 
-[文档适配器](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/document_api.py) 返回 `DocumentResult`，容器 `result_kind=document`：
+[托管文档模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/hosted_documents.py) 返回 `DocumentResult`，容器 `result_kind=document`。结果类型与解析实现独立于容器，统一交接也直接引用该模块：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -48,7 +48,7 @@ PDF `service_page_index + 1` 表示上传的整份 PDF 页序，不是印刷页�
 
 ## 结果 ZIP 预算
 
-调用方同一 `ZipLimits` 透传文档入口，每个远端结果包分别应用压缩下载量 `max_archive_bytes`、中央目录条目数 `max_members`、单产物展开量 `max_member_bytes`、累计产物展开量 `max_total_bytes`。不是硬编码另一套默认值，也不从解析器选项覆盖预算。
+调用方同一 `ZipLimits` 透传文档入口；该名称沿用[共享归档预算](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/archive_budget.py)中的 `ArchiveLimits` 定义。每个远端结果包分别应用压缩下载量 `max_archive_bytes`、中央目录条目数 `max_members`、单产物展开量 `max_member_bytes`、累计产物展开量 `max_total_bytes`。不是硬编码另一套默认值，也不从解析器选项覆盖预算。
 
 下载逐块读取，不依赖 Content-Length；超过上限时只多探测一个字节。展开先检查声明大小，再逐块计量并检查 CRC；二进制附件也占预算。没有解压目录，不按产物路径写文件。远端预算失败是当前文档失败，其他成员仍能继续；容器 `total_bytes_read` 继续只表示输入成员读取量，远端结果量不冒充输入读取量。
 

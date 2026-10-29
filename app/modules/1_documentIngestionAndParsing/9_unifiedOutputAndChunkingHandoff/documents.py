@@ -1,6 +1,7 @@
 from dataclasses import asdict
 from importlib import import_module
 
+from ..hosted_documents import DocumentResult as HostedDocumentResult
 from .diagnostics import _upstream_diagnostics
 from .models import (
     BodySpan, ContentUnit, Diagnostic, Document, HandoffReport, IdAllocator, Source,
@@ -8,7 +9,6 @@ from .models import (
 
 
 PdfWordResult = import_module("..3_pdfAndWordParsing", __package__).ConversionResult
-HostedDocumentResult = import_module("..8_zipContainers.document_api", __package__).DocumentResult
 
 
 def adapt_pdf_word(

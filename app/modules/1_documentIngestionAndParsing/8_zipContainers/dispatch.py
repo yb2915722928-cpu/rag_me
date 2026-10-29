@@ -26,7 +26,7 @@ def convert_member(data: bytes, *, format: str, source: str, parser_options: dic
             data, format=format, source=source, **parser_options.get("csv", {}),
         )
     if format in ("pdf", "docx", "pptx", "xlsx", "html", "htm", "mhtml", "mht"):
-        parser = import_module(".document_api", __package__)
+        parser = import_module("..hosted_documents", __package__)
         return "document", parser.convert_bytes(
             data, format=format, source=source, limits=limits, deadline=deadline,
             **parser_options.get("document", {}),

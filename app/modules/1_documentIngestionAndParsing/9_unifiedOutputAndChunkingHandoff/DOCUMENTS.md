@@ -5,7 +5,7 @@
 通过模块[公开入口](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/__init__.py)接收：
 
 - 第 3 节的 PDF/DOCX `ConversionResult`，包括上游已经完成的 OCR 结果。
-- 第 8 节的托管 `DocumentResult`；调用方可从 ZIP 成员的 `result` 取得它。本票不适配 ZIP 容器本身。
+- [托管文档模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/hosted_documents.py)的 `DocumentResult`；调用方可直接解析文档字节，也可从 ZIP 成员的 `result` 取得它。文档交接直接引用独立结果类型，ZIP 容器本身由容器交接处理。
 
 ```python
 from importlib import import_module
@@ -31,7 +31,7 @@ handoff.export_json(report, "maintenance-handoff.json")
 
 `structure.sources` 另存完整上游来源投影。上游警告与错误分别成为 `upstream_warning`、`upstream_error` 诊断，关联文档和文档级来源，均不写入正文。上游没有独立的质量通过标记；`requires_review=False` 不代表内容已经核验，原警告仍须读取。
 
-## ZIP 托管文档
+## 托管文档
 
 完整 Markdown 生成一个 `alignment="document"` 的整篇单元，不填写字符区间。每个真实服务来源另生成一个 `service_block` 单元与来源：
 

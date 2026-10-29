@@ -165,6 +165,26 @@ print(result.to_dict())
 
 成员数量、压缩大小、单成员和累计展开量及协作式截止均有限制；首版不递归内嵌 ZIP、不解密密码包、不按成员原路径解压。API 返回的来源粒度与本地解析器可能不同，缺少的原生单元格或对象位置如实说明。语义关系和生成内容仍需核验，API 成功不等于内容质量通过。
 
+## 托管文档解析
+
+[托管文档模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/hosted_documents.py)集中处理 MinerU 文档请求、结果包读取和来源表示，支持直接提交文档字节。ZIP 分派与统一交接共同依赖此模块；[归档预算](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/archive_budget.py)供输入资料包和服务结果包复用，ZIP 原有的 ZipLimits 名称继续可用。
+
+```python
+from importlib import import_module
+from pathlib import Path
+import time
+
+hosted = import_module("app.modules.1_documentIngestionAndParsing.hosted_documents")
+budget = import_module("app.modules.1_documentIngestionAndParsing.archive_budget")
+limits = budget.ArchiveLimits()
+parsed = hosted.convert_bytes(
+    Path("manual.pdf").read_bytes(), format="pdf", source="manual.pdf",
+    limits=limits, deadline=time.monotonic() + limits.timeout_seconds,
+)
+```
+
+该入口沿用 PDF、DOCX、PPTX、XLSX、HTML/HTM 和 MHTML/MHT 的既有托管处理；来源由调用方传入，归档预算和绝对截止沿用本次处理上下文。PDF/Word 等独立格式入口的默认路线遵循各自原有约定。
+
 ## 统一输出与切分交接
 
 现有解析结果可通过统一入口交给后续切分：保留完整正文、表示方式、交接内容单元、结构、真实来源及独立诊断，支持 UTF-8 JSON 导出。

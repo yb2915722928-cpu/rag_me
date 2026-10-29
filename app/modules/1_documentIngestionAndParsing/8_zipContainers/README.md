@@ -78,7 +78,7 @@ stdout 是 UTF-8 JSON，包含计算得到的整包/原生成功与待核验属�
 
 ## 格式分派
 
-[dispatch.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/dispatch.py) 的 `convert_member(data, *, format, source, parser_options, limits, deadline)` 通过明确分支返回 `(result_kind, 原生结果)`。各独立适配文件接收本类别选项，文档适配器额外接收同一个 `limits` 和整包绝对截止，供结果下载与展开协作检查。不使用注册系统、通用插件接口或跨业务模块重构。
+[dispatch.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/dispatch.py) 的 `convert_member(data, *, format, source, parser_options, limits, deadline)` 通过明确分支返回 `(result_kind, 原生结果)`。文档分支直接调用[独立托管文档模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/hosted_documents.py)，透传同一个 `limits` 和整包绝对截止，供结果下载与展开协作检查；图片与媒体分支沿用各自适配文件。限额与截止信号由[共享归档预算](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/archive_budget.py)提供，容器负责解释停止原因及汇总成员状态。
 
 原生结果以自己的 `success` 判断，包括正常空文字；待核验不会改成失败，异常只隔离到对应成员。API 缺配置或调用失败必须明确失败，不能回退到本地重解析。
 

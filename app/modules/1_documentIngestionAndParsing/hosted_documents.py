@@ -9,10 +9,10 @@ import os
 import re
 from zipfile import BadZipFile, ZipFile
 
-from .models import ZipLimits, _StopProcessing, _check_deadline
+from .archive_budget import ArchiveLimits, ArchiveProcessingStopped, check_deadline
 
 
-_mineru = import_module("..3_pdfAndWordParsing.mineru", __package__)
+_mineru = import_module(".3_pdfAndWordParsing.mineru", __package__)
 MinerUConfig = _mineru.MinerUConfig
 
 
@@ -57,9 +57,9 @@ class DocumentResult:
         return bool(self.review_items)
 
 
-def convert_bytes(data: bytes, *, format: str, source: str, limits: ZipLimits, deadline: float,
+def convert_bytes(data: bytes, *, format: str, source: str, limits: ArchiveLimits, deadline: float,
                   mineru: MinerUConfig | Mapping | None = None) -> DocumentResult:
-    """ZIP 已验证来源和预算；文档整份上传，缺配置或远端失败不回退本地解析。"""
+    """沿用调用方给定的归档预算与绝对截止；远端失败不回退本地解析。"""
     html_input = format in ("html", "htm", "mhtml", "mht")
     model = "MinerU-HTML" if html_input else "vlm"
     result = DocumentResult(source, format, requested_model=model)
@@ -76,7 +76,7 @@ def convert_bytes(data: bytes, *, format: str, source: str, limits: ZipLimits, d
                      request_timeout=min(config.request_timeout, limits.timeout_seconds))
     try:
         if format in ("mhtml", "mht"):
-            selector = import_module("..2_textAndWebContent.mhtml", __package__)
+            selector = import_module(".2_textAndWebContent.mhtml", __package__)
             text, encoding, warnings, selected = selector.select_mhtml_html(data)
             data = text.encode(encoding)
             result.main_html = selected | {"encoding": encoding}
@@ -84,10 +84,10 @@ def convert_bytes(data: bytes, *, format: str, source: str, limits: ZipLimits, d
         archive = _mineru.MinerUClient(config).extract_document(
             data, filename="document.html" if html_input else f"document.{format}",
             model_version=model, max_archive_bytes=limits.max_archive_bytes,
-            check_result_deadline=partial(_check_deadline, deadline),
+            check_result_deadline=partial(check_deadline, deadline),
         )
         _read_result(archive, result, limits, deadline)
-    except _StopProcessing:
+    except ArchiveProcessingStopped:
         raise
     except Exception as exc:
         message = re.sub(r"https?://\S+", "[redacted URL]", str(exc).replace(token, "[redacted]"))
@@ -195,7 +195,7 @@ def _read_artifact(zipped, info, limits, total, deadline, keep):
     size = 0
     with zipped.open(info) as stream:
         while True:
-            _check_deadline(deadline)
+            check_deadline(deadline)
             chunk = stream.read(min(64 * 1024, limits.max_member_bytes - size + 1,
                                     limits.max_total_bytes - total - size + 1))
             size += len(chunk)
