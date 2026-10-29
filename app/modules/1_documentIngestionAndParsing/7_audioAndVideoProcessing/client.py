@@ -1,15 +1,13 @@
 import base64
 from dataclasses import dataclass, field
-from http.client import HTTPException
 import json
 import math
 import os
 from pathlib import Path
-from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
-from urllib.request import Request, urlopen
 from uuid import uuid4
 
+from ..stepfun_http import StepFunError, request_json
 from .prompts import VIDEO_PROMPT, VIDEO_SCHEMA
 
 
@@ -20,13 +18,6 @@ class StepFunConfig:
     asr_model: str | None = None
     video_model: str | None = None
     timeout: float = 180
-
-
-class StepFunError(Exception):
-    def __init__(self, code, message, http_status=None):
-        super().__init__(message)
-        self.code = code
-        self.http_status = http_status
 
 
 def resolve_config(config, task):
@@ -77,8 +68,8 @@ class StepFunClient:
         parts.extend([(f'--{boundary}\r\nContent-Disposition: form-data; name="file"; '
                        'filename="audio.wav"\r\nContent-Type: audio/wav\r\n\r\n').encode("ascii"),
                       audio, f"\r\n--{boundary}--\r\n".encode("ascii")])
-        payload = self._request("/audio/transcriptions", b"".join(parts),
-                                f"multipart/form-data; boundary={boundary}")
+        payload = request_json(self.config, "/audio/transcriptions", b"".join(parts),
+                               f"multipart/form-data; boundary={boundary}")
         if not isinstance(payload, dict) or not isinstance(payload.get("text"), str):
             raise StepFunError("protocol_error", "ASR response requires a text string")
         return payload["text"]
@@ -96,33 +87,9 @@ class StepFunClient:
                 "name": "video_task", "strict": True, "schema": VIDEO_SCHEMA}},
             "reasoning_effort": "low", "max_tokens": 4096, "stream": False,
         }
-        payload = self._request("/chat/completions", json.dumps(body, ensure_ascii=False).encode("utf-8"),
-                                "application/json")
+        payload = request_json(self.config, "/chat/completions",
+                               json.dumps(body, ensure_ascii=False).encode("utf-8"))
         return _read_video(payload)
-
-    def _request(self, endpoint, body, content_type):
-        request = Request(self.config.base_url.rstrip("/") + endpoint, data=body,
-                          headers={"Authorization": "Bearer " + self.config.api_key,
-                                   "Content-Type": content_type}, method="POST")
-        try:
-            with urlopen(request, timeout=self.config.timeout) as response:
-                return json.loads(response.read())
-        except HTTPError as exc:
-            status = exc.code
-            exc.close()
-            code = ("authentication_error" if status in (401, 403) else
-                    "rate_limited" if status == 429 else
-                    "service_error" if status >= 500 else "http_error")
-            raise StepFunError(code, f"StepFun request HTTP {status}", status) from None
-        except TimeoutError:
-            raise StepFunError("timeout", "StepFun request timed out") from None
-        except URLError as exc:
-            code = "timeout" if isinstance(exc.reason, TimeoutError) else "network_error"
-            raise StepFunError(code, "StepFun connection failed or timed out") from None
-        except (OSError, HTTPException):
-            raise StepFunError("network_error", "StepFun network request failed") from None
-        except (ValueError, UnicodeError):
-            raise StepFunError("protocol_error", "StepFun returned invalid JSON") from None
 
 
 def _read_media(path, limit):
