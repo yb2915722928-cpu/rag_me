@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass, field
+from datetime import date, datetime, time, timedelta
 from itertools import count
 
 
@@ -69,7 +70,29 @@ class HandoffReport:
     metadata: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        """返回独立 JSON 投影；日期保留原精度，不补时区或改变普通标量类型。"""
+        return _json_values(asdict(self))
+
+
+def _json_values(value):
+    if isinstance(value, (date, datetime, time)):
+        return value.isoformat()
+    if isinstance(value, timedelta):
+        return _iso_duration(value)
+    if isinstance(value, dict):
+        return {key: _json_values(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_values(item) for item in value]
+    return value
+
+
+def _iso_duration(value: timedelta) -> str:
+    """用带符号的 ISO 总秒数区分持续时间与时刻，并保留微秒精度。"""
+    microseconds = value // timedelta(microseconds=1)
+    sign = "-" if microseconds < 0 else ""
+    seconds, remainder = divmod(abs(microseconds), 1_000_000)
+    fraction = f".{remainder:06d}".rstrip("0") if remainder else ""
+    return f"{sign}PT{seconds}{fraction}S"
 
 
 class IdAllocator:
