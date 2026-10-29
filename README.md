@@ -164,3 +164,29 @@ print(result.to_dict())
 面向低配置服务器，PDF（含数字 PDF）、DOCX、PPTX、XLSX 和 HTML 默认走 MinerU API，MHTML 轻量选择主 HTML 部分后提交。图片和音视频沿用阶跃 API；ZIP、TXT/Markdown、JSON/XML/CSV 及现有媒体准备在本地完成。按[配置示例](/E:/aaa-project/rag-me/.env.example)提供 MINERU_API_TOKEN 和 STEP 配置，核心入口只使用运行时环境或显式配置，不自行加载环境文件。API 缺配置或失败明确报告，不自动回退本地重解析。
 
 成员数量、压缩大小、单成员和累计展开量及协作式截止均有限制；首版不递归内嵌 ZIP、不解密密码包、不按成员原路径解压。API 返回的来源粒度与本地解析器可能不同，缺少的原生单元格或对象位置如实说明。语义关系和生成内容仍需核验，API 成功不等于内容质量通过。
+
+## 统一输出与切分交接
+
+现有解析结果可通过统一入口交给后续切分：保留完整正文、表示方式、交接内容单元、结构、真实来源及独立诊断，支持 UTF-8 JSON 导出。
+
+```python
+from importlib import import_module
+
+text_web = import_module(
+    "app.modules.1_documentIngestionAndParsing.2_textAndWebContent"
+)
+handoff = import_module(
+    "app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff"
+)
+
+parsed = text_web.convert_bytes(
+    "普通商品签收后7天内，未拆封可退。".encode("utf-8"),
+    format="txt", source="售后政策.txt",
+)
+report = handoff.adapt_result(parsed, business_id="policy-001", version="2026-09")
+handoff.export_json(report, "handoff.json")
+```
+
+同一入口接收文档、表格、演示文稿、JSON/XML、图片、音视频及 ZIP 的既有原生解析结果。ZIP 成功成员各自形成独立文档，失败、忽略、未处理和部分成功继续保留；文档业务标识与版本未知时为空，不从文件名或内容摘要推断。
+
+原生正文区间仍指向完整原正文；节点、行列、服务结构或媒体片段没有字符映射时保留实际粒度，不伪造精确对齐。无文字、无法确认、技术失败与待核验分别表达，技术完成不代表内容已核验。交接不会重新解析文件或调用模型，也不执行实际切块；扩大块无法恢复上游已经遗漏的信息。完整范围和任务见[规格 #45](https://github.com/yb2915722928-cpu/rag_me/issues/45)。
