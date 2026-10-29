@@ -101,6 +101,3 @@
 - 参考 [Unstructured 官方切分说明](https://docs.unstructured.io/api-reference/legacy-api/partition/chunking)中“使用已有文档元素及元数据组织内容”的职责边界；本项目只做最小适配，不引入其库或切分策略。
 - 现有 ZIP API 优先架构约束继续有效，尤其是服务位置与原生来源粒度不能互相冒充。
 - 测试入口与任务拆分已获用户确认。规格与六个子任务已发布，后续由用户调用 implement-spec 授权实施。
-
-
-
