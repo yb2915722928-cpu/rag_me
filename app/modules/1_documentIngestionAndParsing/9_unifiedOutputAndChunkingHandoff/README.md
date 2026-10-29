@@ -55,3 +55,5 @@ python -m unittest discover -s tests -v
 ```
 
 测试边界为真实上游解析结果 → 公开交接入口 → JSON 导出回读，使用既有固定样本和本地 HTTP 服务。核验关键条件与来源关系、未知信息没有被补造、处理状态没有被升级，以及调用前后原生输入不变；纯交接不重复执行云端模型质量验收。
+
+实际运行、回归与评审结果见[验证记录](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/VALIDATION.md)。
