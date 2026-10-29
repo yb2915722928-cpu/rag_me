@@ -1,6 +1,6 @@
 # 统一输出与切分交接
 
-第46项提供文本与网页的单向交接及 UTF-8 JSON 导出。输入是第2节既有解析结果，不是文件或字节；本模块不解析文件、不调用模型、不运行切块算法。
+接收第2–8节已经生成的原生解析结果，返回保留完整正文、交接内容单元、结构、真实来源和诊断的统一报告，支持 UTF-8 JSON 导出。本模块不读取或重新解析原文件，不调用模型，也不执行切块算法。[规格 #45](https://github.com/yb2915722928-cpu/rag_me/issues/45)定义了范围与验收边界。
 
 ```python
 from importlib import import_module
@@ -8,24 +8,50 @@ from importlib import import_module
 text_web = import_module("app.modules.1_documentIngestionAndParsing.2_textAndWebContent")
 handoff = import_module("app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff")
 
-native = text_web.convert_file("notice.txt")
-report = handoff.adapt_result(native, business_id=None, version=None)
-handoff.export_json(report, "notice.json")
+native = text_web.convert_bytes(
+    "普通商品签收后7天内，未拆封可退。".encode("utf-8"),
+    format="txt", source="售后政策.txt",
+)
+report = handoff.adapt_result(native, business_id="policy-001", version="2026-09")
+handoff.export_json(report, "handoff.json")
+document = report.documents[0]
+print(document.body, document.units, document.sources, document.diagnostics)
 ```
 
-支持 TXT、Markdown、HTML、MHTML 和旧文本入口 JSON。每份文档保留完整 Markdown 正文、独立的来源与诊断，成功时只有一个整篇内容单元。来源不提供章节、页码或字符映射，因此单元的 alignment 为 document，body_span 为 None；MHTML 保留实际选中的部分与编码。
+## 结果约定
 
-business_id 和 version 由调用方明确传入，未知为 None；仅接受非空白字符串或 None。错误类型抛 TypeError，空串或全空白抛 ValueError，未知结果类型抛 TypeError。内部文档、来源和单元 ID 只在本次报告内有意义，不可用作稳定业务标识。
+一份报告包含零到多份独立文档。每份文档的 body 保存完整原正文，body_format 区分 Markdown 与普通派生文字；units 是交给后续处理的内容单位，不能直接当作已经完成的最终检索块。sources 给出实际来源，diagnostics 与正文分开，structure 和 metadata 保留原生结构与上下文。
 
-失败保留 Document、来源与诊断，body 为 None、units 为空，仍能导出 JSON。导出返回 Path，保留中文及 null，不附 BOM；写入错误按普通 I/O 错误传播，不自动创建父目录。适配和导出均不修改原生输入。status 仅表示技术处理状态，requires_review=False 不表示质量已通过。
+business_id 和 version 由调用方在已知时传入，未知为 None；非空值原样保留，文件名、摘要或条目序号不会自动成为业务身份。参数只接受非空白字符串或 None：类型错误抛 TypeError，空白值抛 ValueError，未知结果类型抛 TypeError。报告内部的文档、来源和单元 ID 只保证本次结果唯一，不用于跨次解析或版本匹配。
 
-公共 dataclass 在 [models.py](/C:/Users/29157/.codex/worktrees/46-handoff-text-web/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/models.py)，文本适配在 [text_web.py](/C:/Users/29157/.codex/worktrees/46-handoff-text-web/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/text_web.py)，公开入口在 [__init__.py](/C:/Users/29157/.codex/worktrees/46-handoff-text-web/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/__init__.py)。后续格式在独立适配模块中接入具体类型的静态分派；IdAllocator 应在同一报告中共享。structure 与 metadata 用于保留原生结构和上下文，不能替代统一单元及其来源关系。当前仅接入第2节结果。
+有真实正文字符映射时，body_span 使用完整 body 上的 Python 字符半开区间，alignment 为 exact。文档级内容使用 document；无字符对齐的结构使用 unmapped，body_span 保持 None。原正文单独完整保留，不能通过直接串接所有单元还原，因为单元还可能表示表格行或不带正文的结构。
 
-验证命令：
+| 原生结果 | 交接时保留的实际粒度 |
+| --- | --- |
+| TXT、Markdown、HTML、MHTML、旧文本入口 JSON | 整篇正文、编码和文档来源；MHTML 实际选中部分，不猜章节或页码 |
+| PDF、DOCX | 已有正文区间、PDF 页序、提取方式或 DOCX 章节、正文块类型与顺序 |
+| 托管文档 | 原 Markdown、服务结构及来源；结构与 Markdown 未建立字符映射时明确保留该限制 |
+| CSV、XLSX | 已有按行文字、完整表头、共同上下文、表／行／单元格与原位置、公式及缓存，不重算 |
+| PPTX、JSON、XML | 演示页、对象、备注、待核验关系，或节点类型及父子路径；非文本对象也保留来源 |
+| 图片 | 识字／描述／视觉理解任务、问题、派生文字状态、模型及提示词、版本与原图映射 |
+| 音视频 | 语音／画面片段、实际时间范围及精度、未知说话人、原媒体版本及待核验状态 |
+| ZIP | 各成员独立文档、容器／路径／条目序号，失败／忽略／未处理及整包部分成功 |
+
+PDF 页序不是印刷页码，DOCX 正文块号不是页码，Office 服务页不是原生演示页或单元格。节点路径、行列位置与服务块不能通过搜索正文猜成字符偏移。媒体片段范围也不代表逐句或逐词的精确时间。
+
+## 状态与导出
+
+status 保留真实处理状态；requires_review 与技术处理完成独立，False 也不表示内容已核验。正常空文字、无法确认、失败与 ZIP 部分成功保持可区分。失败文档 body 为 None、units 为空，来源和诊断仍可检查。ZIP 成功成员保留独立边界，同名条目由原 entry_index 区分，容器业务身份不自动复制给成员。
+
+export_json 返回 Path，保留中文及 null，不附 BOM；失败或不完整报告也可以导出。日期与时间类原生值使用明确 ISO 表示，普通 JSON 标量不改变类型。写入错误按普通 I/O 错误传播，不自动创建父目录。适配和导出均不修改原生输入，也不为上游已经遗漏的条件补造证据。
+
+公开入口和模型分别见 [__init__.py](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/__init__.py)与 [models.py](/C:/Users/29157/.codex/worktrees/unified-output-handoff/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/models.py)。
+
+## 验证
 
 ```text
-python -m unittest discover -s tests -p test_handoff_text_web.py -v
+python -m unittest discover -s tests -p "test_handoff_*.py" -v
 python -m unittest discover -s tests -v
 ```
 
-[公开边界测试](/C:/Users/29157/.codex/worktrees/46-handoff-text-web/rag-me/tests/test_handoff_text_web.py)使用既有真实解析器与固定样本，覆盖文件/字节结果、正文保真、MHTML 来源、未知/显式业务标识、诊断、失败导出、非法参数、I/O 错误和输入不变。
+测试边界为真实上游解析结果 → 公开交接入口 → JSON 导出回读，使用既有固定样本和本地 HTTP 服务。核验关键条件与来源关系、未知信息没有被补造、处理状态没有被升级，以及调用前后原生输入不变；纯交接不重复执行云端模型质量验收。
