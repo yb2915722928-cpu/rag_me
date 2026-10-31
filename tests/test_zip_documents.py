@@ -1,11 +1,68 @@
+from io import BytesIO
 import json
 import unittest
 from unittest.mock import patch
+from zipfile import ZipFile
 
 from tests.zip_document_support import SAMPLES, SERVICE_MARKDOWN, document_server, mineru, zip_containers
 
 
 class ZipDocumentTests(unittest.TestCase):
+    def test_input_and_each_service_archive_have_independent_totals_including_discarded_artifacts(self):
+        html = b"<html><body>Original input</body></html>"
+        inputs = [("first.html", html), ("second.html", html), ("after.txt", b"Sibling survives")]
+        artifacts = [("full.md", SERVICE_MARKDOWN.encode()),
+                     ("main.html", b"<p>Independent service HTML</p>"),
+                     ("images/discarded.png", b"x" * 600)]
+        result_total = sum(len(data) for _, data in artifacts)
+        input_total = sum(len(data) for _, data in inputs)
+        self.assertLess(input_total, result_total)
+
+        with document_server(result_bytes=_archive_bytes(artifacts)) as service:
+            result = zip_containers.convert_bytes(
+                _archive_bytes(inputs), source="independent.zip",
+                limits=zip_containers.ZipLimits(max_total_bytes=result_total),
+                parser_options={"document": {"mineru": service.config}},
+            )
+
+        self.assertTrue(result.success, result.to_dict())
+        self.assertIsNone(result.stop_reason)
+        self.assertEqual(result.total_bytes_read, input_total)
+        self.assertEqual(service.uploads, [html, html])
+        for member in result.members[:2]:
+            self.assertEqual(member.result.markdown, SERVICE_MARKDOWN)
+            self.assertEqual(member.result.html, "<p>Independent service HTML</p>")
+            self.assertEqual(member.result.artifacts, [name for name, _ in artifacts])
+        self.assertEqual(result.members[2].result.markdown, "Sibling survives")
+
+    def test_crc_failure_in_discarded_service_artifact_discards_body_and_preserves_siblings(self):
+        original = b"BINARY_CRC_FIXTURE_PAYLOAD"
+        archive = _archive_bytes([
+            ("full.md", SERVICE_MARKDOWN.encode()),
+            ("generated_content_list.json", b'[{"type":"text","page_idx":0}]'),
+            ("images/discarded.png", original),
+        ])
+        self.assertEqual(archive.count(original), 1)
+        corrupt = archive.replace(original, b"binary_CRC_FIXTURE_PAYLOAD", 1)
+        self.assertEqual(len(corrupt), len(archive))
+
+        with document_server(result_bytes=corrupt) as service:
+            result = zip_containers.convert_file(
+                SAMPLES / "zip_document_pdf.zip",
+                parser_options={"document": {"mineru": service.config}},
+            )
+
+        self.assertEqual(result.status, "partial_success")
+        self.assertIsNone(result.stop_reason)
+        failed = result.members[0]
+        self.assertEqual(failed.reason, "parse_error")
+        self.assertIn("CRC", failed.error)
+        self.assertIsNone(failed.result.markdown)
+        self.assertEqual(failed.result.artifacts, [])
+        self.assertEqual(failed.result.structured_json, {})
+        self.assertEqual(failed.result.sources, [])
+        self.assertEqual(result.members[1].result.markdown, "Sibling survives")
+
     def test_deadline_while_expanding_a_downloaded_result_discards_incomplete_document(self):
         now = [0.0]
 
@@ -264,6 +321,14 @@ class ZipDocumentTests(unittest.TestCase):
         self.assertEqual(service.requests[0]["files"][0]["name"], "document.pdf")
         self.assertEqual(service.uploads, [(SAMPLES / "pdf_digital_teaching.pdf").read_bytes()] * 2)
         self.assertEqual(file_result.members[1].result.markdown, "Sibling survives")
+
+
+def _archive_bytes(entries):
+    stream = BytesIO()
+    with ZipFile(stream, "w") as archive:
+        for name, data in entries:
+            archive.writestr(name, data)
+    return stream.getvalue()
 
 
 if __name__ == "__main__":

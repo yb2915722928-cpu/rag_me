@@ -21,7 +21,7 @@ class IngestionRoutingTests(unittest.TestCase):
         # test_document_ingestion and the native format suites.
         cases = (
             ("2_textAndWebContent", ("txt", "md", "markdown", "html", "htm", "mhtml", "mht"), {}),
-            ("3_pdfAndWordParsing", ("pdf", "docx"), {}),
+            ("pdfAndDocxExtraction", ("pdf", "docx"), {}),
             ("4_tabularFileProcessing", ("csv", "xlsx"), {}),
             ("5_presentationsAndStructuredDocuments", ("pptx", "json", "xml"), {}),
             ("6_imageProcessing", ("png", "jpg", "jpeg", "webp"), {"task": "ocr"}),

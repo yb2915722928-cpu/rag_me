@@ -16,6 +16,26 @@ SAMPLES = Path(__file__).parent / "testFile"
 
 
 class PdfWordModelContractTests(unittest.TestCase):
+    def test_new_package_preserves_native_pdf_docx_and_complete_reports(self):
+        renamed = import_module("app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction")
+        ingestion = import_module("app.modules.1_documentIngestionAndParsing")
+        for filename in ("pdf_digital_page_order.pdf", "docx_sections.docx"):
+            with self.subTest(filename=filename):
+                path = SAMPLES / filename
+                options = {"source": "原生资料"}
+                expected = content.convert_file(path, **options)
+                self.assertTrue(expected.success, expected.error)
+                native = renamed.convert_bytes(path.read_bytes(), format=path.suffix, **options)
+                self.assertEqual(asdict(native), asdict(expected))
+                self.assertIs(type(native), content.ConversionResult)
+                report = handoff.adapt_result(native, business_id="文档", version="v2")
+                self.assertEqual(report.to_dict(), handoff.adapt_result(
+                    expected, business_id="文档", version="v2",
+                ).to_dict())
+                self.assertEqual(report.to_dict(), ingestion.convert_file(
+                    path, business_id="文档", version="v2", **options,
+                ).to_dict())
+
     def test_public_constructors_keep_field_order_defaults_and_success_semantics(self):
         source = content.Source("来源.pdf", "pdf")
         block = content.ContentSource(0, 3, 1, "text_layer")
@@ -58,43 +78,64 @@ class PdfWordModelContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(TypeError, "Unsupported result type: SimpleNamespace"):
                     handoff.adapt_result(SimpleNamespace(**vars(native), success=True))
 
-    def test_fresh_process_import_orders_share_one_model_class(self):
+    def test_fresh_process_old_and_new_import_orders_share_modules_types_and_handoff(self):
         script = '''
+from dataclasses import asdict
 from importlib import import_module
 from pathlib import Path
 import json
 import sys
+from types import SimpleNamespace
 
-base, handoff_name, order = json.loads(sys.argv[1])
+legacy, canonical, handoff_name, order = json.loads(sys.argv[1])
 for name in order:
     import_module(name)
-package = import_module(base)
-models = import_module(base + ".models")
-for name in (base, base + ".pdf", base + ".docx", base + ".mineru"):
-    module = import_module(name)
-    for model in ("Source", "ContentSource", "ConversionResult"):
-        assert getattr(module, model) is getattr(models, model), (name, model)
-assert package.MinerUConfig is import_module(base + ".mineru").MinerUConfig
+old = import_module(legacy)
+new = import_module(canonical)
+assert old is new
+assert import_module(legacy + ".__init__") is new
+models = import_module(canonical + ".models")
+for suffix in ("", ".pdf", ".docx", ".mineru", ".models"):
+    module = import_module(canonical + suffix)
+    assert import_module(legacy + suffix) is module, suffix
+    for name in ("Source", "ContentSource", "ConversionResult"):
+        assert getattr(module, name) is getattr(models, name), (suffix, name)
+        assert getattr(module, name).__module__ == canonical + ".models"
+mineru = import_module(canonical + ".mineru")
+shared = import_module(canonical.rsplit(".", 1)[0] + ".mineru_client")
+assert old.MinerUConfig is new.MinerUConfig is mineru.MinerUConfig is shared.MinerUConfig
+assert import_module(legacy + ".mineru").MinerUError is mineru.MinerUError is shared.MinerUError
+assert import_module(legacy + ".mineru").MinerUClient is mineru.MinerUClient
 handoff = import_module(handoff_name)
 for filename in ("pdf_digital_page_order.pdf", "docx_sections.docx"):
-    native = package.convert_file(Path("tests/testFile") / filename)
+    path = Path("tests/testFile") / filename
+    native = new.convert_file(path, mineru=old.MinerUConfig(token=""))
     assert native.success, native.error
     assert type(native) is models.ConversionResult
+    assert asdict(old.convert_file(path)) == asdict(native)
     report = handoff.adapt_result(native)
     assert report.status == "success"
     assert report.documents[0].body == native.markdown
+    class CustomResult(old.ConversionResult):
+        pass
+    assert handoff.adapt_result(CustomResult(**vars(native))).to_dict() == report.to_dict()
+    try:
+        handoff.adapt_result(SimpleNamespace(**vars(native), success=True))
+    except TypeError as exc:
+        assert str(exc) == "Unsupported result type: SimpleNamespace"
+    else:
+        raise AssertionError("shape-only result was accepted")
 print("OK")
 '''
-        orders = (
-            (BASE, BASE + ".pdf", BASE + ".docx", BASE + ".mineru", HANDOFF),
-            (BASE + ".pdf", BASE + ".docx", BASE + ".mineru", BASE, HANDOFF),
-            (BASE + ".mineru", BASE + ".models", BASE + ".pdf", BASE + ".docx", HANDOFF),
-            (HANDOFF, BASE + ".models", BASE + ".docx", BASE + ".pdf", BASE + ".mineru", BASE),
-        )
+        canonical = "app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction"
+        orders = []
+        for suffix in ("", ".models", ".pdf", ".docx", ".mineru"):
+            orders.extend(((BASE + suffix, canonical + suffix), (canonical + suffix, BASE + suffix)))
+        orders.extend(((BASE + ".__init__", canonical), (HANDOFF, canonical, BASE + ".__init__")))
         for order in orders:
-            with self.subTest(first_import=order[0]):
+            with self.subTest(order=order):
                 process = subprocess.run(
-                    [sys.executable, "-c", script, json.dumps((BASE, HANDOFF, order))],
+                    [sys.executable, "-c", script, json.dumps((BASE, canonical, HANDOFF, order))],
                     cwd=Path(__file__).resolve().parents[1],
                     capture_output=True, text=True, timeout=30,
                 )
