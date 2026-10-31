@@ -4,7 +4,7 @@ PNG、JPG/JPEG、单帧 WebP 默认复用现有阶跃客户端。ZIP 只负责�
 
 ## 公共选项
 
-从 [ZIP 公开入口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/__init__.py) 传入 `parser_options={"image": {...}}`：
+从 [ZIP 公开入口](__init__.py) 传入 `parser_options={"image": {...}}`：
 
 | 选项 | 既有契约 |
 | --- | --- |
@@ -15,7 +15,7 @@ PNG、JPG/JPEG、单帧 WebP 默认复用现有阶跃客户端。ZIP 只负责�
 | crop | `CropMapping`，原图 ID、尺寸及像素 bbox，右下不含 |
 | is_cropped | 沿用图片入口；声明裁剪时必须提供完整原图映射 |
 
-这些类型均从 [图片模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/__init__.py) 导出。来源对象和配置对象不从 JSON 自动构造。配置空缺字段由 `STEP_API_KEY`、`STEP_BASE_URL`、`STEP_MODEL` 进程环境补齐；核心不加载环境文件，默认请求超时仍为 90 秒，显式对象可指定 timeout。未知选项为成员级 `invalid_options`，固定错误信息不回显参数名和值。`format/source/limits` 由 ZIP 层提供，不能由成员选项覆盖。
+这些类型均从 [图片模块](../6_imageProcessing/__init__.py) 导出。来源对象和配置对象不从 JSON 自动构造。配置空缺字段由 `STEP_API_KEY`、`STEP_BASE_URL`、`STEP_MODEL` 进程环境补齐；核心不加载环境文件，默认请求超时仍为 90 秒，显式对象可指定 timeout。未知选项为成员级 `invalid_options`，固定错误信息不回显参数名和值。`format/source/limits` 由 ZIP 层提供，不能由成员选项覆盖。
 
 ```python
 import importlib
@@ -35,7 +35,7 @@ report = result.to_dict()
 
 ## 来源与 JSON
 
-[适配器](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/image_api.py) 原样返回既有 `ConversionResult`。外层 `MemberSource` 保留容器、原始路径、中央目录 1 起始序号；原生图片 source.location 为 `容器!/路径#序号`。SHA-256 对应实际成员图片字节，尺寸来自解码；document/crop 保持原义，不从模型输出猜造来源。
+[适配器](image_api.py) 原样返回既有 `ConversionResult`。外层 `MemberSource` 保留容器、原始路径、中央目录 1 起始序号；原生图片 source.location 为 `容器!/路径#序号`。SHA-256 对应实际成员图片字节，尺寸来自解码；document/crop 保持原义，不从模型输出猜造来源。
 
 JSON 中 `result_kind="image"`，result 保留 task、question、status、text、source、requested_model、response_model、prompt_version、warnings、review_issues、error，并显式投影 success/requires_review。当前提示词版本为 `ocr-v1`、`describe-v1`、`understand-v2`。响应未披露模型版本时保持空值。
 
@@ -43,7 +43,7 @@ JSON 中 `result_kind="image"`，result 保留 task、question、status、text�
 
 ## 固定样本
 
-全部新增样本都在既有测试目录；[独立构造脚本](/E:/aaa-project/rag-me/tests/testFile/zip_image_build_samples.py) 只打包已有图片，固定 ZIP 元数据，不重新绘图或下载。归档与成员摘要保存在 [清单](/E:/aaa-project/rag-me/tests/testFile/zip_image_samples.json)，原始绘图方法与真值沿用各图片 manifest。
+全部新增样本都在既有测试目录；[独立构造脚本](../../../../tests/testFile/zip_image_build_samples.py) 只打包已有图片，固定 ZIP 元数据，不重新绘图或下载。归档与成员摘要保存在 [清单](../../../../tests/testFile/zip_image_samples.json)，原始绘图方法与真值沿用各图片 manifest。
 
 | ZIP | 可核验内容 |
 | --- | --- |
@@ -68,11 +68,11 @@ workdir 使用当前检出的工作树。以下 CLI 在运行环境已配置时�
 
 CLI 输出同一原生 JSON 投影，success/partial_success/failed 分别退出 0/2/1，不输出配置。任务/问题可通过 CLI JSON 传入；配置使用进程环境。文件 API 还能接受显式配置和来源对象。
 
-[默认验收](/E:/aaa-project/rag-me/tests/test_zip_images.py) 经 ZIP 公开 file/bytes 入口使用真实图片模块及真实 HTTP 客户端，复用现有本地服务夹具。先验证无图片分派时失败，再增加最小分支；未知参数泄露风险亦先写失败测试再加固定诊断。其他已由原生入口支持的行为只补公开边界验收，不复制实现或更改原生逻辑。
+[默认验收](../../../../tests/test_zip_images.py) 经 ZIP 公开 file/bytes 入口使用真实图片模块及真实 HTTP 客户端，复用现有本地服务夹具。先验证无图片分派时失败，再增加最小分支；未知参数泄露风险亦先写失败测试再加固定诊断。其他已由原生入口支持的行为只补公开边界验收，不复制实现或更改原生逻辑。
 
 ## 显式真实 API 验收
 
-[live 入口](/E:/aaa-project/rag-me/tests/test_zip_images_live.py) 仅在 `STEP_ZIP_IMAGE_LIVE_TEST=1` 时运行，必须给 `STEP_ENV_FILE` 和新的 `STEP_ZIP_IMAGE_LIVE_EVIDENCE` 输出路径。使用 `load_dotenv(override=False)`，运行环境优先。可选 `STEP_ZIP_IMAGE_LIVE_CASE` 单独选择 `ocr/describe/understand/no_text/uncertain/crop`；不设置则六例。
+[live 入口](../../../../tests/test_zip_images_live.py) 仅在 `STEP_ZIP_IMAGE_LIVE_TEST=1` 时运行，必须给 `STEP_ENV_FILE` 和新的 `STEP_ZIP_IMAGE_LIVE_EVIDENCE` 输出路径。使用 `load_dotenv(override=False)`，运行环境优先。可选 `STEP_ZIP_IMAGE_LIVE_CASE` 单独选择 `ocr/describe/understand/no_text/uncertain/crop`；不设置则六例。
 
 ```powershell
 $env:STEP_ZIP_IMAGE_LIVE_TEST = '1'

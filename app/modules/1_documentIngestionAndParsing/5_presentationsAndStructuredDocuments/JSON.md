@@ -24,13 +24,13 @@ uploaded = documents.convert_bytes(
 
 ## 公开契约
 
-[公开入口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/__init__.py) 提供：
+[公开入口](__init__.py) 提供：
 
 - `convert_file(path, *, format=None, source=None, encoding=None)`：默认按扩展名识别格式，显式 `format` 可覆盖扩展名；未指定 `source` 时记录传入路径。
 - `convert_bytes(data, *, format, source, encoding=None)`：要求 `bytes`、明确格式和非空字符串来源。格式忽略大小写、两端空白及开头的点。
 - `export_markdown(result, path)`：只导出成功正文为 UTF-8，无 BOM；复用既有导出行为。失败结果抛出 `ValueError`，不创建或覆盖目标；文件写入异常正常抛出。
 
-[共享结果模型](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/models.py) 分开承载以下内容：
+[共享结果模型](models.py) 分开承载以下内容：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -44,7 +44,7 @@ uploaded = documents.convert_bytes(
 | `success` | 约定提取已完成，不表示语义已经核验。 |
 | `requires_review` | 是否存在待核验关系；与 `success` 独立。纯结构 JSON 不增加待核验关系。 |
 
-不支持或尚未接入的格式返回明确的 `Unsupported format` 失败结果。JSON/XML 的公共入口直接分派到 [结构化转换边界](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/structured.py)。编码选项仅适用于 JSON/XML。
+不支持或尚未接入的格式返回明确的 `Unsupported format` 失败结果。JSON/XML 的公共入口直接分派到 [结构化转换边界](structured.py)。编码选项仅适用于 JSON/XML。
 
 ## 结构与节点路径
 
@@ -56,7 +56,7 @@ JSON 使用 [RFC 6901 JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901.html)
 
 ## 兼容性、编码与失败
 
-[既有 JSON 解析与渲染](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/2_textAndWebContent/json_content.py) 拆出共享解析和渲染，旧入口继续使用相同行为。新入口复用同一份解析结果建立节点来源；支持合法根标量、空对象、空数组、中文及嵌套结构，不做预分组或切块。
+[共享文本支持](../text_support.py)提供严格 JSON 解析与渲染，既有文本入口继续重导出同一实现。新入口复用同一份解析结果建立节点来源；支持合法根标量、空对象、空数组、中文及嵌套结构，不做预分组或切块。
 
 沿用已有解码优先级：显式编码 → BOM → UTF-8 → 编码探测。显式编码未知或解码失败时不回退；自动探测产生独立警告。非法 JSON、NaN、Infinity、-Infinity 和渲染时产生的非有限数均失败。解析或渲染失败时不返回部分正文或节点，保留已成功取得的编码与警告。
 
@@ -64,7 +64,7 @@ JSON 使用 [RFC 6901 JSON Pointer](https://www.rfc-editor.org/rfc/rfc6901.html)
 
 ## 固定样本与验证
 
-样本构造与来源见 [结构化样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-structured.md)。新增 JSON 样本和 [JSON 公开测试](/E:/aaa-project/rag-me/tests/test_presentations_json.py) 从 seed 迁入；[通用契约测试](/E:/aaa-project/rag-me/tests/test_presentations_contract.py) 只观察公开入口及导出行为，不依赖私有实现。
+样本构造与来源见 [结构化样本说明](../../../../tests/testFile/constructed-structured.md)。新增 JSON 样本和 [JSON 公开测试](../../../../tests/test_presentations_json.py) 从 seed 迁入；[通用契约测试](../../../../tests/test_presentations_contract.py) 只观察公开入口及导出行为，不依赖私有实现。
 
 ```shell
 python -m unittest tests.test_presentations_json tests.test_presentations_contract tests.test_text_web_json -v

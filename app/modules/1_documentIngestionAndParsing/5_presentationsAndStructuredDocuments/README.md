@@ -2,8 +2,8 @@
 
 通过本地文件或字节入口取得 Markdown 正文，并分别返回输入来源、内容来源、编码、普通警告、待核验关系和错误。
 
-- [PPTX](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/PPTX.md)：保留演示页归属、独立对象、段落层级、表格与演讲者备注；复杂视觉关系明确待核验。
-- [JSON](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/JSON.md)：复用既有完整结构表示，补充 JSON Pointer 及父节点来源。
+- [PPTX](PPTX.md)：保留演示页归属、独立对象、段落层级、表格与演讲者备注；复杂视觉关系明确待核验。
+- [JSON](JSON.md)：复用既有完整结构表示，补充 JSON Pointer 及父节点来源。
 - XML 使用同一结构化分派入口，具体实现由 [#23](https://github.com/yb2915722928-cpu/rag_me/issues/23) 交付。
 
 ```python
@@ -24,7 +24,7 @@ else:
 
 ## 公开契约
 
-[公开入口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/__init__.py) 与 [结果模型](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/models.py) 供调用方直接使用：
+[公开入口](__init__.py) 与 [结果模型](models.py) 供调用方直接使用：
 
 - `convert_file(path, *, format=None, source=None, encoding=None)` 按扩展名识别格式，允许显式格式覆盖。默认来源为传入路径。
 - `convert_bytes(data, *, format, source, encoding=None)` 要求 `bytes`、明确格式及非空字符串来源。格式忽略两端空白、大小写及开头的点。
@@ -43,4 +43,4 @@ python -m unittest discover -s tests -p "test_presentations_*.py" -v
 python -m unittest discover -s tests -q
 ```
 
-测试使用保存后的真实固定文件，来源与重建方法见 [PPTX 样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-pptx.md) 及 [结构化样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-structured.md)。默认回归离线进行，真实 MinerU 云端验收沿用既有显式开关。
+测试使用保存后的真实固定文件，来源与重建方法见 [PPTX 样本说明](../../../../tests/testFile/constructed-pptx.md) 及 [结构化样本说明](../../../../tests/testFile/constructed-structured.md)。默认回归离线进行，真实 MinerU 云端验收沿用既有显式开关。

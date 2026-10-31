@@ -24,17 +24,17 @@ uploaded = documents.convert_bytes(
 
 ## 公开契约
 
-[公开入口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/__init__.py) 提供：
+[公开入口](__init__.py) 提供：
 
 - `convert_file(path, *, format=None, source=None, encoding=None)`：默认按后缀识别格式，显式 `format="xml"` 可覆盖后缀；未指定来源时，记录传入路径。
 - `convert_bytes(data, *, format, source, encoding=None)`：要求 `bytes`、明确格式和非空字符串来源。格式忽略大小写、两端空白及开头的点，例如 `" .XML "`。
 - `export_markdown(result, path)`：只导出成功正文，统一写为 UTF-8 字节，无额外 BOM，不转换原文换行。失败结果抛出 `ValueError`，不创建或覆盖目标；写入错误正常抛出 I/O 异常。
 
-[共享结果](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/models.py) 的 `source` 保留输入位置与规范化后的 `xml` 格式；`encoding` 为实际使用的编码；`warnings`、`review_issues` 和 `error` 均独立于正文。`success` 表示完成约定提取，不证明业务语义已经核验。纯结构 XML 不新增待核验诊断，`requires_review` 为 `False`。
+[共享结果](models.py) 的 `source` 保留输入位置与规范化后的 `xml` 格式；`encoding` 为实际使用的编码；`warnings`、`review_issues` 和 `error` 均独立于正文。`success` 表示完成约定提取，不证明业务语义已经核验。纯结构 XML 不新增待核验诊断，`requires_review` 为 `False`。
 
 ## 原文与元素路径
 
-[结构化转换](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/structured.py) 先用标准库 ElementTree 校验整篇 XML，再将完整解码原文放入带 `xml` 标识的代码围栏。解析树只用于元素归属；不重新序列化，不裁剪空白，不重排属性、子元素或命名空间声明。
+[结构化转换](structured.py) 先用标准库 ElementTree 校验整篇 XML，再将完整解码原文放入带 `xml` 标识的代码围栏。解析树只用于元素归属；不重新序列化，不裁剪空白，不重排属性、子元素或命名空间声明。
 
 属性、text、tail、混合正文、注释、处理指令、CDATA、实体写法、声明及 CRLF 均保留在原文中。围栏使用至少三个反引号，并长于原文中的所有连续反引号串；围栏前后各添加一个换行，原文自身保持不变。
 
@@ -58,7 +58,7 @@ uploaded = documents.convert_bytes(
 
 ## 固定样本与验证
 
-[XML 公开测试](/E:/aaa-project/rag-me/tests/test_presentations_xml.py) 独立迁入 seed 的 `StructuredXmlTests`，补充格式覆盖、声明解码回退和导出契约；只使用已确认的公开文件、字节转换与导出入口。构造方法、固定编码及路径约定见 [结构化样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-structured.md)。
+[XML 公开测试](../../../../tests/test_presentations_xml.py) 独立迁入 seed 的 `StructuredXmlTests`，补充格式覆盖、声明解码回退和导出契约；只使用已确认的公开文件、字节转换与导出入口。构造方法、固定编码及路径约定见 [结构化样本说明](../../../../tests/testFile/constructed-structured.md)。
 
 ```shell
 python -m unittest tests.test_presentations_xml tests.test_presentations_json tests.test_presentations_contract tests.test_text_web_json -v

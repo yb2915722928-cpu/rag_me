@@ -1,6 +1,6 @@
 # XLSX 表头与真实合并关系（#17）
 
-本说明补充既有公开入口 [convert_file](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/__init__.py:19) / [convert_bytes](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/__init__.py:43) 的结构行为。仍使用 `XlsxOptions` / `XlsxSheetOptions`，不自动猜多层表头，不改变值适配器。
+本说明补充既有公开入口 [convert_file](__init__.py) / [convert_bytes](__init__.py) 的结构行为。仍使用 `XlsxOptions` / `XlsxSheetOptions`，不自动猜多层表头，不改变值适配器。
 
 - `header_rows` 使用原工作表从 1 开始的连续行号，例如 `(2, 3)`。没有配置时仍以选区第一条非空行为单层表头。
 - 完整列名用 ` / ` 连接同一列的非空层名，保留原文字和单位。只有真实合并区域内才借用锚点标签；纵向同一合并标签只加入名称一次，普通空白不向旁边或向下填充。
@@ -10,6 +10,6 @@
 - 默认区域包含非空锚点的真实合并覆盖范围；仅因共同标签／合并值覆盖而存在的行也保留原始行号。只有实际无内容、无可表示合并归属的行才跳过。
 - 完整列名为空或重复、显式表头层为空、区域切断必要合并关系、合并跨越表头与数据边界时明确失败。失败诊断包含工作表和相关坐标；任一选中表失败，整次不返回正文或部分表。
 
-固定样本及构造说明见仓库 [xlsx_structure_constructed.md](/E:/aaa-project/rag-me/tests/testFile/xlsx_structure_constructed.md)。测试仅通过公开入口读取保存的 XLSX，不在测试期间重建样本，不用生产实现生成期望。
+固定样本及构造说明见仓库 [xlsx_structure_constructed.md](../../../../tests/testFile/xlsx_structure_constructed.md)。测试仅通过公开入口读取保存的 XLSX，不在测试期间重建样本，不用生产实现生成期望。
 
 验证：`python -m unittest tests.test_tabular_xlsx_structure tests.test_tabular_xlsx tests.test_tabular_csv -q`；默认回归：`python -m unittest discover -s tests -q`。
