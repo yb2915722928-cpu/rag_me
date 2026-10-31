@@ -160,6 +160,55 @@ class PostgresVectorStore:
         finally:
             connection.close()
 
+    def mark_failure(self, identity, error_code: str, reason: str) -> None:
+        connection = self._connection()
+        try:
+            with connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "UPDATE indexed_chunks SET status='failed', error_code=%s, error_reason=%s, "
+                        "retry_count=retry_count + 1, updated_at=now() WHERE document_id=%s AND document_version=%s "
+                        "AND chunk_id=%s AND scheme_identity=%s",
+                        (error_code, reason, identity.document_id, identity.document_version,
+                         identity.chunk_id, identity.scheme_identity),
+                    )
+                    if cursor.rowcount != 1:
+                        raise KeyError("index item identity was not found")
+        finally:
+            connection.close()
+
+    def retry(self, identity) -> None:
+        connection = self._connection()
+        try:
+            with connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "UPDATE indexed_chunks SET status='pending', error_code=NULL, error_reason=NULL, "
+                        "updated_at=now() WHERE document_id=%s AND document_version=%s AND chunk_id=%s "
+                        "AND scheme_identity=%s AND status='failed'",
+                        (identity.document_id, identity.document_version, identity.chunk_id, identity.scheme_identity),
+                    )
+                    if cursor.rowcount != 1:
+                        raise ValueError("only an existing failed index item can be retried")
+        finally:
+            connection.close()
+
+    def delete(self, identity) -> None:
+        connection = self._connection()
+        try:
+            with connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "UPDATE indexed_chunks SET status='deleted', updated_at=now() "
+                        "WHERE document_id=%s AND document_version=%s AND chunk_id=%s "
+                        "AND scheme_identity=%s AND status <> 'deleted'",
+                        (identity.document_id, identity.document_version, identity.chunk_id, identity.scheme_identity),
+                    )
+                    if cursor.rowcount != 1:
+                        raise KeyError("index item identity was not found or already deleted")
+        finally:
+            connection.close()
+
     def search(self, scheme: IndexSchemeVersion, vector: Sequence[float], *, limit: int = 10) -> list[SearchHit]:
         values = tuple(float(value) for value in vector)
         if len(values) != scheme.metadata.dimensions:
