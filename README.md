@@ -13,6 +13,20 @@ python -m unittest discover -s tests -v
 
 验收使用仓库内的固定样本，无需联网下载。六个公开样本的来源、大小及 SHA-256 见[来源记录](/E:/aaa-project/rag-me/tests/testFile/sources.json)。补充样本的构造方式记录在同目录。
 
+## 从文件直接取得统一输出
+
+[文档接入与解析模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/README.md)提供顶层入口，集中完成格式选择、解析和统一交接：
+
+```python
+from importlib import import_module
+
+ingestion = import_module("app.modules.1_documentIngestionAndParsing")
+report = ingestion.convert_file("manual.docx", business_id="manual", version="v2")
+ingestion.export_json(report, "handoff.json")
+```
+
+字节输入使用 `convert_bytes(data, format="json", source="upload.json")`。两种入口均返回既有统一报告，保留正文、结构、来源与诊断；格式专属选项原样传入。图片与音视频仍须明确指定任务，ZIP 保留整包状态及成员清单。原生解析与独立交接入口继续可用。
+
 ## 转换与导出
 
 目录名包含数字前缀，使用 `importlib.import_module` 取得[公开接口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/2_textAndWebContent/__init__.py)：
