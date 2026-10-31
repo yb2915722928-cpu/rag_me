@@ -68,7 +68,8 @@ class EmbeddingAdapter:
 class DeterministicEmbeddingAdapter(EmbeddingAdapter):
     """Stable hash-based adapter for tests and local contract verification."""
 
-    def __init__(self, dimensions: int, normalization: str = "unit") -> None:
+    def __init__(self, dimensions: int, normalization: str = "unit", token_counter=None) -> None:
+        self.token_counter = token_counter
         self.metadata = EmbeddingMetadata(
             provider="test", model="deterministic-hash", model_revision="v1",
             dimensions=dimensions, normalization=normalization,
