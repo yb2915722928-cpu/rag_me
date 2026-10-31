@@ -4,24 +4,11 @@ from importlib import import_module
 from pathlib import Path
 
 from .exports import export_json
+from .format_routes import FORMAT_ROUTES
 from .identity import validate_identity
 
 
 __all__ = ["convert_file", "convert_bytes", "export_json"]
-
-_PARSERS = {
-    format: module
-    for module, formats in (
-        ("2_textAndWebContent", ("txt", "md", "markdown", "html", "htm", "mhtml", "mht")),
-        ("3_pdfAndWordParsing", ("pdf", "docx")),
-        ("4_tabularFileProcessing", ("csv", "xlsx")),
-        ("5_presentationsAndStructuredDocuments", ("pptx", "json", "xml")),
-        ("6_imageProcessing", ("png", "jpg", "jpeg", "webp")),
-        ("7_audioAndVideoProcessing", ("wav", "mp3", "m4a", "ogg", "flac", "mp4", "mov", "mkv")),
-        ("8_zipContainers", ("zip",)),
-    )
-    for format in formats
-}
 
 
 def convert_file(path, *, format=None, source=None, business_id=None, version=None, **options):
@@ -67,7 +54,7 @@ def _parser(format):
     if not isinstance(format, str) or not format.strip():
         raise ValueError("format must be a nonempty string")
     format = format.strip().lower().lstrip(".")
-    module = _PARSERS.get(format)
-    if module is None:
+    route = FORMAT_ROUTES.get(format)
+    if route is None:
         raise ValueError(f"Unsupported format: {format}")
-    return import_module("." + module, __name__), format
+    return import_module("." + route.standalone_module, __name__), format
