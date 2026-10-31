@@ -1,13 +1,13 @@
 import base64
 from dataclasses import dataclass, field
 import json
-import math
-import os
 from pathlib import Path
-from urllib.parse import urlsplit
 from uuid import uuid4
 
 from ..stepfun_http import StepFunError, request_json
+from ..stepfun_support import (
+    is_api_base_url, is_positive_timeout, read_completion, resolve_config_values,
+)
 from .prompts import VIDEO_PROMPT, VIDEO_SCHEMA
 
 
@@ -25,31 +25,15 @@ def resolve_config(config, task):
     config = StepFunConfig() if config is None else config
     if not isinstance(config, StepFunConfig):
         raise StepFunError("invalid_config", "config must be StepFunConfig")
-    values = {}
     fields = [("api_key", "STEP_API_KEY", None), ("base_url", "STEP_BASE_URL", None)]
     if task in ("transcribe", "both"):
         fields.append(("asr_model", "STEP_ASR_MODEL", "stepaudio-2.5-asr"))
     if task in ("video", "both"):
         fields.append(("video_model", "STEP_MODEL", None))
-    for name, env, default in fields:
-        value = getattr(config, name)
-        value = os.environ.get(env, default) if value is None else value
-        if value is None or value == "":
-            raise StepFunError("missing_config", f"Set {env} or StepFunConfig.{name}")
-        if not isinstance(value, str) or not value.strip() or "\n" in value or "\r" in value:
-            raise StepFunError("invalid_config", f"Invalid {env}")
-        values[name] = value
-    try:
-        url = urlsplit(values["base_url"])
-        valid = url.scheme in ("http", "https") and url.hostname and not (
-            url.username or url.password or url.query or url.fragment)
-        url.port
-    except ValueError:
-        valid = False
-    if not valid or not values["api_key"].isascii():
+    values = resolve_config_values(config, fields)
+    if not is_api_base_url(values["base_url"]) or not values["api_key"].isascii():
         raise StepFunError("invalid_config", "Invalid STEP_BASE_URL or STEP_API_KEY")
-    if (type(config.timeout) not in (int, float) or not math.isfinite(config.timeout)
-            or config.timeout <= 0):
+    if not is_positive_timeout(config.timeout):
         raise StepFunError("invalid_config", "timeout must be finite and positive")
     return StepFunConfig(**values, timeout=config.timeout)
 
@@ -104,13 +88,8 @@ def _read_media(path, limit):
 def _read_video(payload):
     """在 API 响应边界验证完成原因及视频任务结构，不接受截断的正文。"""
     try:
-        choices = payload["choices"]
-        if len(choices) != 1 or choices[0]["finish_reason"] != "stop":
-            raise ValueError
-        message = choices[0]["message"]
-        if message.get("refusal"):
-            raise ValueError
-        result = json.loads(message["content"])
+        content, model = read_completion(payload)
+        result = json.loads(content)
         if set(result) != {"status", "text", "review_notes"}:
             raise ValueError
         status, text, notes = result["status"], result["text"], result["review_notes"]
@@ -119,9 +98,6 @@ def _read_video(payload):
                 or any(not isinstance(n, str) or not n.strip() for n in notes)
                 or (status == "uncertain" and not notes)):
             raise ValueError
-        model = payload.get("model")
-        if model is not None and (not isinstance(model, str) or not model.strip()):
-            raise ValueError
         return text, status, notes, model
-    except (KeyError, TypeError, ValueError, IndexError, AttributeError):
+    except (StepFunError, KeyError, TypeError, ValueError, IndexError, AttributeError):
         raise StepFunError("protocol_error", "Video response is incomplete or has invalid fields") from None

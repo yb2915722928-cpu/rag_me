@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
-from tests.test_audio_video import TRANSCRIPT, media_server
+from tests.test_audio_video import TRANSCRIPT, media, media_server, video_reply
 from tests.test_image_ocr import RULES, step_server
 from tests.zip_document_support import SERVICE_MARKDOWN, document_server
 
@@ -179,6 +179,68 @@ class DocumentIngestionTests(unittest.TestCase):
         self.assertEqual(source.locator["time_precision"], "segment")
         self.assertEqual(source.locator["start_seconds"], 0)
         self.assertGreater(source.locator["end_seconds"], 0)
+
+    def test_combined_media_keeps_empty_audio_and_uncertain_video_in_complete_reports(self):
+        path = SAMPLES / "video_extra_delayed.mp4"
+        text, note = "终点被截断，无法确认审批人。", "缺少终点"
+        kwargs = {
+            "source": "培训录制", "task": "both", "media_id": "审批培训", "media_version": "录制二",
+            "options": media.ProcessingOptions(audio_segment_seconds=2.5, video_segment_seconds=2),
+        }
+        identity = {"business_id": "审批课程", "version": "业务三"}
+        with media_server(asr={"text": ""}, video=video_reply(text, "uncertain", [note])) as (config, requests):
+            reports = (
+                ingestion.convert_file(path, config=config, **kwargs, **identity),
+                ingestion.convert_bytes(path.read_bytes(), format="mp4", config=config, **kwargs, **identity),
+            )
+            native = media.convert_file(path, config=config, **kwargs)
+            native_bytes = media.convert_bytes(path.read_bytes(), format="mp4", config=config, **kwargs)
+            self.assertEqual(native, native_bytes)
+            self.assertEqual(native.status, "uncertain", native.error)
+            self.assertEqual([item.status for item in native.segments],
+                             ["no_text", "uncertain", "no_text", "uncertain", "no_text"])
+            self.assertEqual(native.review_issues, [
+                "媒体派生文字尚待对照同一版本原音视频核验。",
+                "时间仅定位实际处理片段，不是逐句或逐词时间。",
+            ])
+            self.assertEqual(native.warnings, [
+                "同步 ASR 不提供说话人区分；speaker 保持未知。",
+                "部分或全部片段未取得可用转写，不证明原媒体没有语音。",
+                "视频模型可能遗漏短暂画面或动作；画面解释不能替代原视频证据。",
+            ])
+            before, request_count = copy.deepcopy(native), len(requests)
+            with patch("pathlib.Path.open", side_effect=AssertionError("handoff read input")), \
+                    patch("http.client.HTTPConnection.request", side_effect=AssertionError("handoff requested HTTP")):
+                reports += (handoff.adapt_result(native, **identity),)
+            self.assertEqual(native, before)
+            self.assertEqual(len(requests), request_count)
+        report = self.assert_complete_reports_equal(reports)
+        self.assertEqual(report.status, "uncertain")
+        document = report.documents[0]
+        self.assertEqual(document.body, f"[1.250–3.250 秒 · 画面信息]\n{text}\n\n[3.250–5.250 秒 · 画面信息]\n{text}")
+        self.assertEqual((document.business_id, document.version), ("审批课程", "业务三"))
+        self.assertEqual(document.metadata, {"task": "both", "question": None})
+        self.assertTrue(document.requires_review)
+        root = document.sources[0]
+        self.assertEqual((root.locator["media_id"], root.locator["media_version"],
+                          root.locator["audio_stream_index"], root.locator["sha256"]),
+                         ("审批培训", "录制二", 1,
+                          "1690dcf6a6910eb3e7f6501a6ac06f97adf2340a309ceaa86084949071821d7c"))
+        sources = {source.id: source for source in document.sources}
+        for unit in document.units:
+            self.assertEqual(unit.alignment, "unmapped")
+            self.assertIsNone(unit.body_span)
+            source, = [sources[source_id] for source_id in unit.source_ids]
+            self.assertEqual(source.locator["sha256"], root.locator["sha256"])
+            if unit.kind == "audio":
+                self.assertEqual((unit.text, unit.status), ("", "no_text"))
+            else:
+                self.assertEqual((unit.status, unit.metadata["requested_model"],
+                                  unit.metadata["response_model"], unit.metadata["prompt_version"]),
+                                 ("uncertain", "step-5-preview", "step-5-preview-actual", "video-v1"))
+                review, = [item for item in document.diagnostics if item.unit_id == unit.id]
+                self.assertEqual((review.code, review.message, review.source_id),
+                                 ("model_uncertainty", note, source.id))
 
     def test_zip_preserves_partial_success_inventory_and_container_identity(self):
         path = SAMPLES / "zip_members.zip"
