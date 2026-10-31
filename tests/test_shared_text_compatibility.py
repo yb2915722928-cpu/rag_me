@@ -20,6 +20,12 @@ class SharedTextCompatibilityTests(unittest.TestCase):
             with self.subTest(function=name):
                 self.assertIs(getattr(existing, name), getattr(shared, name))
 
+    def test_existing_markdown_module_reexports_shared_function(self):
+        existing = import_module(ROOT + ".2_textAndWebContent.markdown")
+        shared = import_module(ROOT + ".text_support")
+
+        self.assertIs(existing.normalize_markdown, shared.normalize_markdown)
+
 
 if __name__ == "__main__":
     unittest.main()
