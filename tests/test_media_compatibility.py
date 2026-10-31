@@ -255,9 +255,16 @@ class MediaCliCompatibilityTests(unittest.TestCase):
                             "--env-file", str(env_file), "--source", "cli:compat", "--format", "mp4",
                             "--audio-seconds", "2.5", "--video-seconds", "2", "--timeout", "2",
                         ], cwd=ROOT, env=env, capture_output=True, text=True, encoding="utf-8", timeout=60)
-                        self.assertEqual(completed.returncode, 1 if failed else 0, completed.stderr)
-                        self.assertEqual(completed.stderr, "")
-                        payload = json.loads(completed.stdout)
+                        diagnostics = (
+                            f"module={command} task={task!r} failed={failed!r}\n"
+                            f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+                        )
+                        self.assertEqual(completed.returncode, 1 if failed else 0, diagnostics)
+                        self.assertEqual(completed.stderr, "", diagnostics)
+                        try:
+                            payload = json.loads(completed.stdout)
+                        except json.JSONDecodeError as exc:
+                            self.fail(f"CLI did not emit valid JSON: {exc}\n{diagnostics}")
                         self.assertEqual(payload, expected)
                         self.assertEqual(list(temporary_media.iterdir()), [])
                         outputs.append(payload)
