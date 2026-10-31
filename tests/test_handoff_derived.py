@@ -14,7 +14,7 @@ from tests.test_image_understanding import CLEAR_ANSWER, QUESTION, envelope, ste
 images = importlib.import_module("app.modules.1_documentIngestionAndParsing.6_imageProcessing")
 media = importlib.import_module("app.modules.1_documentIngestionAndParsing.audioTranscriptionAndVideoUnderstanding")
 handoff = importlib.import_module(
-    "app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff"
+    "app.modules.1_documentIngestionAndParsing.unifiedDocumentHandoff"
 )
 SAMPLES = Path(__file__).parent / "testFile"
 

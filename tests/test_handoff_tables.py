@@ -14,7 +14,7 @@ tabular = importlib.import_module(
     "app.modules.1_documentIngestionAndParsing.4_tabularFileProcessing"
 )
 handoff = importlib.import_module(
-    "app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff"
+    "app.modules.1_documentIngestionAndParsing.unifiedDocumentHandoff"
 )
 SAMPLES = Path(__file__).parent / "testFile"
 CONTEXT = tabular.TableContext(

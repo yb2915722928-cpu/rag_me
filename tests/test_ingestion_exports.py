@@ -5,7 +5,7 @@ import unittest
 
 
 ingestion = import_module("app.modules.1_documentIngestionAndParsing")
-handoff = import_module(ingestion.__name__ + ".9_unifiedOutputAndChunkingHandoff")
+handoff = import_module(ingestion.__name__ + ".unifiedDocumentHandoff")
 text_web = import_module(ingestion.__name__ + ".2_textAndWebContent")
 structured = import_module(ingestion.__name__ + ".5_presentationsAndStructuredDocuments")
 

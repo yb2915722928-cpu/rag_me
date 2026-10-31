@@ -12,7 +12,7 @@ from tests.zip_document_support import SERVICE_MARKDOWN, document_server
 
 
 ingestion = import_module("app.modules.1_documentIngestionAndParsing")
-handoff = import_module(ingestion.__name__ + ".9_unifiedOutputAndChunkingHandoff")
+handoff = import_module(ingestion.__name__ + ".unifiedDocumentHandoff")
 SAMPLES = Path(__file__).parent / "testFile"
 
 

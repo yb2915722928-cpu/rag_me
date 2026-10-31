@@ -11,7 +11,7 @@ from tests.test_audio_video import TRANSCRIPT, media_server
 
 INGESTION_PACKAGE = "app.modules.1_documentIngestionAndParsing"
 ingestion = import_module(INGESTION_PACKAGE)
-handoff = import_module(INGESTION_PACKAGE + ".9_unifiedOutputAndChunkingHandoff")
+handoff = import_module(INGESTION_PACKAGE + ".unifiedDocumentHandoff")
 
 
 class IngestionRoutingTests(unittest.TestCase):

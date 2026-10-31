@@ -15,7 +15,7 @@ content = importlib.import_module(
     "app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction"
 )
 handoff = importlib.import_module(
-    "app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff"
+    "app.modules.1_documentIngestionAndParsing.unifiedDocumentHandoff"
 )
 SAMPLES = Path(__file__).parent / "testFile"
 
