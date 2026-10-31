@@ -3,10 +3,10 @@ from importlib import import_module
 from urllib.parse import quote
 from xml.etree import ElementTree
 
+from ..text_support import decode_bytes
 from .models import ContentSource, ConversionResult, Source
 
 
-decode_bytes = import_module("..2_textAndWebContent.decoding", __package__).decode_bytes
 json_content = import_module("..2_textAndWebContent.json_content", __package__)
 
 _JSON_NODE_TYPES = {
