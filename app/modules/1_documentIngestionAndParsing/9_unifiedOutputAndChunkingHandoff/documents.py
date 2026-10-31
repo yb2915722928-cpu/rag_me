@@ -8,7 +8,7 @@ from .models import (
 )
 
 
-PdfWordResult = import_module("..3_pdfAndWordParsing.models", __package__).ConversionResult
+PdfWordResult = import_module("..pdfAndDocxExtraction.models", __package__).ConversionResult
 
 
 def adapt_pdf_word(

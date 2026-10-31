@@ -4,14 +4,14 @@ DOCX 与数字 PDF 复用本模块的公开文件、字节入口和结果类型�
 
 ## 公开调用
 
-在仓库根目录、安装根依赖后执行以下代码。入口见 [__init__.py](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/__init__.py)，原生处理见 [docx.py](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/docx.py)。
+在仓库根目录、安装根依赖后执行以下代码。入口见 [__init__.py](__init__.py)，原生处理见 [docx.py](docx.py)。
 
 ```python
 import importlib
 from pathlib import Path
 
 parsing = importlib.import_module(
-    "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
+    "app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction"
 )
 path = Path("tests/testFile/docx_sections.docx")
 result = parsing.convert_file(path)
@@ -61,11 +61,11 @@ print(result.warnings)
 
 ## 验证
 
-使用共享项目环境的 Python 3.12.8、python-docx 1.2.0（lxml 6.1.3），根 [requirements.txt](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/requirements.txt) 声明 python-docx 版本。自动化测试只调用公开入口，使用真实包读取与转换，无 mock。
+首次实现 #10 时使用共享项目环境的 Python 3.12.8、python-docx 1.2.0（lxml 6.1.3）；根 [requirements.txt](../../../../requirements.txt) 声明依赖版本。自动化测试只调用公开入口，使用真实包读取与转换，无 mock。
 
 ```powershell
 python -m unittest tests.test_pdf_word_docx tests.test_pdf_word_digital -v
 python -m unittest discover -s tests -v
 ```
 
-[DOCX 行为测试](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/test_pdf_word_docx.py)验证完整正文、两组设备周期关系、原生标题、章节来源、空块与表格计数、失败及诊断隔离；[样本说明](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/constructed-docx.md)记录原始来源、构造方法、摘要与 red→green 观察。
+[DOCX 行为测试](../../../../tests/test_pdf_word_docx.py)验证完整正文、两组设备周期关系、原生标题、章节来源、空块与表格计数、失败及诊断隔离；[样本说明](../../../../tests/testFile/constructed-docx.md)记录原始来源、构造方法、摘要与 red→green 观察。

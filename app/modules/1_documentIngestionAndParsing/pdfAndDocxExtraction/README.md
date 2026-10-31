@@ -1,15 +1,17 @@
-# PDF 与 Word 解析
+# PDF 与 DOCX 提取
 
 数字 PDF 使用本地文本层提取（#9），DOCX 使用原生结构（#10），扫描 PDF 使用 MinerU 官方 API（#11）；混合 PDF 逐页选择路径，只上传扫描页并按原页序合并（#12）。文件和字节入口返回相同的本模块结果类型，不依赖摄取上传服务、格式总路由或最终切块。
 
-Issue #10 的 DOCX 原生解析复用相同入口，调用示例、来源字段和计数规则见 [DOCX 说明](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/DOCX.md)。
+`pdfAndDocxExtraction` 是唯一业务实现。旧包 `3_pdfAndWordParsing` 通过[兼容入口](../3_pdfAndWordParsing/__init__.py)转发，原先可导入的 `.__init__`、`.models`、`.pdf`、`.docx`、`.mineru` 均引用本包对象。新旧路径共享 `Source`、`ContentSource`、`ConversionResult`、`MinerUConfig` 及 MinerU 异常类型；调用签名、结果字段、来源范围和序列化保持一致。
+
+Issue #10 的 DOCX 原生解析复用相同入口，调用示例、来源字段和计数规则见 [DOCX 说明](DOCX.md)。
 
 ```python
 import importlib
 from pathlib import Path
 
 parsing = importlib.import_module(
-    "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
+    "app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction"
 )
 path = Path("tests/testFile/pdf_digital_teaching.pdf")
 result = parsing.convert_file(path)
@@ -56,13 +58,14 @@ same = parsing.convert_bytes(pdf_bytes, format="pdf", source="mixed.pdf",
 在仓库根目录，用已安装项目依赖的 Python 执行：
 
 ```powershell
-python -m unittest tests.test_pdf_word_digital -v
+python -m unittest tests.test_pdf_word_model_contract tests.test_mineru_client -v
+python -m unittest tests.test_pdf_word_digital tests.test_pdf_word_docx -v
 python -m unittest tests.test_pdf_word_mixed -v
 python -m unittest discover -s tests -v
 ```
 
-固定输入及摘要见[数字样本说明](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/constructed-digital-pdf.md)和[混合样本说明](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/constructed-mixed-pdf.md)。测试读取真实文件，通过公开入口断言正文与来源，不替换 pypdf、不调用内部辅助函数。默认混合测试只连接真实本地 HTTP 服务，不调用云 API。
+固定输入及摘要见[数字样本说明](../../../../tests/testFile/constructed-digital-pdf.md)和[混合样本说明](../../../../tests/testFile/constructed-mixed-pdf.md)。测试读取真实文件，通过公开入口断言正文与来源，不替换 pypdf、不调用内部辅助函数。默认混合测试只连接真实本地 HTTP 服务，不调用云 API。
 
 ## 扫描 PDF
 
-Issue #11 已接通 MinerU 官方精准解析 API，公开入口提供可选 `mineru=MinerUConfig(...)`，默认从 `MINERU_API_TOKEN` 读取凭据。纯扫描和混合 PDF 的上传、轮询、正文、页序及失败约定见 [MINERU.md](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/MINERU.md)。#12 的四页真实混合样本验收已通过，原第 2、4 页识字后准确插回第 1、3 数字页之间及之后。
+Issue #11 已接通 MinerU 官方精准解析 API，公开入口提供可选 `mineru=MinerUConfig(...)`，默认从 `MINERU_API_TOKEN` 读取凭据。纯扫描和混合 PDF 的上传、轮询、正文、页序及失败约定见 [MINERU.md](MINERU.md)。#12 的四页真实混合样本验收已通过，原第 2、4 页识字后准确插回第 1、3 数字页之间及之后。

@@ -18,7 +18,7 @@ FORMAT_ROUTES = {
     for standalone, member, kind, formats in (
         ("2_textAndWebContent", "2_textAndWebContent", "text", ("txt", "md", "markdown")),
         ("2_textAndWebContent", "hosted_documents", "document", ("html", "htm", "mhtml", "mht")),
-        ("3_pdfAndWordParsing", "hosted_documents", "document", ("pdf", "docx")),
+        ("pdfAndDocxExtraction", "hosted_documents", "document", ("pdf", "docx")),
         ("4_tabularFileProcessing", "4_tabularFileProcessing", "csv", ("csv",)),
         ("4_tabularFileProcessing", "hosted_documents", "document", ("xlsx",)),
         ("5_presentationsAndStructuredDocuments", "hosted_documents", "document", ("pptx",)),
