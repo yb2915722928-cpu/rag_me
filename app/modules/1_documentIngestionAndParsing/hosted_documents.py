@@ -9,10 +9,10 @@ import os
 import re
 from zipfile import BadZipFile, ZipFile
 
+from . import mineru_client as _mineru
 from .archive_budget import ArchiveLimits, ArchiveProcessingStopped, check_deadline
 
 
-_mineru = import_module(".3_pdfAndWordParsing.mineru", __package__)
 MinerUConfig = _mineru.MinerUConfig
 
 
