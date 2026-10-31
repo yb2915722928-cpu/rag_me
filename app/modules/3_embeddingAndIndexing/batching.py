@@ -103,7 +103,7 @@ def retry_failed(
     max_tokens: int | None = None,
     token_counter: Callable[[str], int] | None = None,
 ) -> EmbeddingBatchResult:
-    selected = [item for item in result.items if item.status == "failed" and (keys is None or item.key in keys)]
+    selected = [item for item in result.items if item.status == "failed" and item.error_code != "ITEM_EXCEEDS_TOKEN_BUDGET" and (keys is None or item.key in keys)]
     if not selected:
         return result
     retried = embed_texts(

@@ -39,6 +39,13 @@ class IndexMigrationTests(unittest.TestCase):
         self.registry.delete(self.old)
         self.assertNotIn(self.old.identity, self.registry.schemes)
 
+    def test_validation_checks_expected_identity_set_and_representative_key(self):
+        self.registry.register(self.new)
+        self.registry.seed(self.new, ["wrong-a", "wrong-b"], [[1, 0, 0], [0, 1, 0]])
+        with self.assertRaises(indexing.IndexValidationError):
+            self.registry.activate(self.new, lambda report: report.valid)
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_invalid_vectors_are_rejected_during_build(self):
+        self.registry.register(self.new)
+        with self.assertRaises(indexing.EmbeddingContractError):
+            self.registry.seed(self.new, ["a"], [[0, 0, 0]])

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import sqrt
+from math import isfinite, sqrt
 from typing import Callable, Sequence
 
 from .contracts import EmbeddingContractError, IndexSchemeVersion
@@ -24,6 +24,7 @@ class ValidationReport:
     dimensions_valid: bool
     states_valid: bool
     representative_retrieval_valid: bool
+    identities_valid: bool = True
 
     @property
     def valid(self) -> bool:
@@ -32,6 +33,7 @@ class ValidationReport:
             and self.dimensions_valid
             and self.states_valid
             and self.representative_retrieval_valid
+            and self.identities_valid
         )
 
 
@@ -62,24 +64,46 @@ class InMemoryIndexRegistry:
             values = tuple(float(value) for value in vector)
             if len(values) != scheme.metadata.dimensions:
                 raise EmbeddingContractError("vector dimension does not match scheme")
-            self._items[scheme.identity] = [item for item in self._items[scheme.identity] if item[0] != key]
+            if not all(isfinite(value) for value in values):
+                raise EmbeddingContractError("vector values must be finite")
+            magnitude = sqrt(sum(value * value for value in values))
+            if magnitude == 0:
+                raise EmbeddingContractError("zero vectors are not valid for cosine indexing")
+            if scheme.metadata.normalization == "unit" and abs(magnitude - 1.0) > 1e-6:
+                raise EmbeddingContractError("vector does not satisfy unit normalization policy")
+            existing = self._items[scheme.identity]
+            self._items[scheme.identity] = [item for item in existing if item[0] != key]
             self._items[scheme.identity].append((key, values))
 
-    def validate(self, scheme: IndexSchemeVersion, expected_count: int | None = None) -> ValidationReport:
+    def validate(self, scheme: IndexSchemeVersion, expected_count: int | None = None,
+                 expected_keys: set[str] | None = None, representative_key: str | None = None,
+                 representative_vector: Sequence[float] | None = None, threshold: float = 0.99) -> ValidationReport:
         items = self._items.get(scheme.identity, [])
         dimensions_valid = all(len(vector) == scheme.metadata.dimensions for _, vector in items)
         states_valid = True
-        representative_valid = bool(items) and _cosine(items[0][1], items[0][1]) >= 0.999999
-        report = ValidationReport(scheme, expected_count if expected_count is not None else len(items), len(items), dimensions_valid, states_valid, representative_valid)
+        keys = {key for key, _ in items}
+        identities_valid = expected_keys is None or keys == expected_keys
+        if representative_key is None:
+            representative_key = sorted(expected_keys or keys)[0] if (expected_keys or keys) else None
+        actual_vector = next((vector for key, vector in items if key == representative_key), None)
+        expected_vector = tuple(representative_vector) if representative_vector is not None else actual_vector
+        representative_valid = (
+            actual_vector is not None and expected_vector is not None
+            and _cosine(actual_vector, expected_vector) >= threshold
+        )
+        report = ValidationReport(
+            scheme, expected_count if expected_count is not None else len(items), len(items),
+            dimensions_valid, states_valid, representative_valid, identities_valid,
+        )
         if not report.valid:
-            raise IndexValidationError(f"index validation failed for {scheme.identity}")
+            raise IndexValidationError(f"index validation failed for {scheme.identity}: {report}")
         return report
 
     def activate(self, scheme: IndexSchemeVersion, validator: Callable[[ValidationReport], bool] | None = None) -> None:
-        expected_count = None
+        expected_keys = None
         if self._active is not None and self._active != scheme.identity:
-            expected_count = len(self._items.get(self._active, []))
-        report = self.validate(scheme, expected_count=expected_count)
+            expected_keys = {key for key, _ in self._items.get(self._active, [])}
+        report = self.validate(scheme, expected_keys=expected_keys)
         if validator is not None and not validator(report):
             raise IndexValidationError(f"index validation rejected {scheme.identity}")
         self._active = scheme.identity
@@ -100,4 +124,6 @@ class InMemoryIndexRegistry:
 def _cosine(left: Sequence[float], right: Sequence[float]) -> float:
     left_norm = sqrt(sum(value * value for value in left))
     right_norm = sqrt(sum(value * value for value in right))
+    if left_norm == 0 or right_norm == 0:
+        return -1.0
     return sum(a * b for a, b in zip(left, right)) / (left_norm * right_norm)

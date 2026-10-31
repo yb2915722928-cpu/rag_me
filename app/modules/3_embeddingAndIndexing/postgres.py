@@ -16,6 +16,10 @@ class ChunkRecord:
     text: str
     metadata: dict[str, Any]
 
+    @property
+    def version(self) -> str:
+        return self.document_version
+
 
 @dataclass(frozen=True)
 class SearchHit:
@@ -134,10 +138,9 @@ class PostgresVectorStore:
                         BEFORE UPDATE OF dimensions ON embedding_schemes
                         FOR EACH ROW EXECUTE FUNCTION check_embedding_scheme_dimensions()
                     """)
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT extname FROM pg_extension WHERE extname = 'vector'")
-                if cursor.fetchone() is None:
-                    raise RuntimeError("pgvector extension is unavailable")
+                    cursor.execute("SELECT extname FROM pg_extension WHERE extname = 'vector'")
+                    if cursor.fetchone() is None:
+                        raise RuntimeError("pgvector extension is unavailable")
         finally:
             connection.close()
 
@@ -170,10 +173,13 @@ class PostgresVectorStore:
                         "VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s::vector) "
                         "ON CONFLICT (document_id, document_version, chunk_id, scheme_identity) DO UPDATE SET "
                         "body=EXCLUDED.body, metadata=EXCLUDED.metadata, vector=EXCLUDED.vector, "
-                        "status='stored', error_code=NULL, error_reason=NULL, updated_at=now()",
+                        "status='stored', error_code=NULL, error_reason=NULL, updated_at=now() "
+                        "WHERE indexed_chunks.status <> 'deleted'", 
                         (chunk.document_id, chunk.document_version, chunk.chunk_id, scheme.identity,
                          chunk.text, json.dumps(chunk.metadata), _vector_literal(values)),
                     )
+                    if cursor.rowcount != 1:
+                        raise ValueError("deleted index identity cannot be upserted")
         finally:
             connection.close()
 
@@ -261,7 +267,7 @@ class PostgresVectorStore:
                     cursor.execute(
                         "UPDATE indexed_chunks SET status='failed', error_code=%s, error_reason=%s, "
                         "retry_count=retry_count + 1, updated_at=now() WHERE document_id=%s AND document_version=%s "
-                        "AND chunk_id=%s AND scheme_identity=%s",
+                        "AND chunk_id=%s AND scheme_identity=%s AND status <> 'deleted'",
                         (error_code, reason, identity.document_id, identity.document_version,
                          identity.chunk_id, identity.scheme_identity),
                     )
@@ -277,7 +283,8 @@ class PostgresVectorStore:
                 with connection.cursor() as cursor:
                     cursor.execute(
                         "UPDATE indexed_chunks SET status='pending', error_code=NULL, error_reason=NULL, "
-                        "updated_at=now() WHERE document_id=%s AND document_version=%s AND chunk_id=%s "
+                        "retry_count=retry_count + 1, updated_at=now() "
+                        "WHERE document_id=%s AND document_version=%s AND chunk_id=%s "
                         "AND scheme_identity=%s AND status='failed'",
                         (identity.document_id, identity.document_version, identity.chunk_id, identity.scheme_identity),
                     )

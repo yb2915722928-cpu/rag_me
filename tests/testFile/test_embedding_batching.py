@@ -38,6 +38,9 @@ class EmbeddingBatchingTests(unittest.TestCase):
         result = embedding.embed_texts(["one two"], adapter, max_tokens=1)
         self.assertEqual(result.items[0].status, "failed")
         self.assertEqual(result.items[0].error_code, "ITEM_EXCEEDS_TOKEN_BUDGET")
+        retried = embedding.retry_failed(result, adapter, keys={"0"}, max_tokens=1)
+        self.assertEqual(retried.items[0].retry_count, 0)
+        self.assertEqual(retried.items[0].error_code, "ITEM_EXCEEDS_TOKEN_BUDGET")
 
 
 if __name__ == "__main__":
