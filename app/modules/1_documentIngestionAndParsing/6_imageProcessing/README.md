@@ -8,7 +8,7 @@
 | `describe` | 提供画面与主题的概括，供下游寻找图片 | 不接受 `question` |
 | `understand` | 结合原图解释具体问题中的条件、箭头与节点关系 | 必须提供非空 `question` |
 
-详细约定与各任务证据见[图像描述](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/DESCRIPTION.md)、[视觉理解](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/UNDERSTANDING.md)及[文档来源与原图映射](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/PROVENANCE.md)。三种任务统一使用同一个阶跃星辰 API；视觉理解直接发送本次图片和问题，不从已有 OCR 或描述推断原图关系。
+详细约定与各任务证据见[图像描述](DESCRIPTION.md)、[视觉理解](UNDERSTANDING.md)及[文档来源与原图映射](PROVENANCE.md)。三种任务统一使用同一个阶跃星辰 API；视觉理解直接发送本次图片和问题，不从已有 OCR 或描述推断原图关系。
 
 ```python
 from importlib import import_module
@@ -30,7 +30,7 @@ else:
 
 文件入口按后缀识别格式，`format` 可覆盖后缀，`source` 可指定调用方的来源标识，默认保留传入路径。字节入口必须给出格式和非空来源。`.JPG` 等大小写与扩展名前导点会归一为 `jpeg`。相同字节、来源和配置经过两个入口遵循同一结果契约；真实模型的独立请求不保证逐字确定性。
 
-任务提示及独立版本集中于 [prompts.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/prompts.py)。`TASK_PROMPTS` 分派所选任务，没有隐式执行三个任务的调用链、多提供方框架、自动重试或回退。
+任务提示及独立版本集中于 [prompts.py](prompts.py)。`TASK_PROMPTS` 分派所选任务，没有隐式执行三个任务的调用链、多提供方框架、自动重试或回退。
 
 ```python
 description = images.convert_file("scene.png", task="describe")
@@ -58,7 +58,7 @@ CLI 同样支持 `--task describe` 和 `--task understand`，后者通过 `--que
 
 ## 结果契约
 
-[models.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/models.py) 定义模块局部数据类：
+[models.py](models.py) 定义模块局部数据类：
 
 | 字段 | 语义 |
 | --- | --- |
@@ -95,4 +95,4 @@ $env:STEP_OCR_LIVE_EVIDENCE = 'tests/testFile/image_ocr_live_evidence.json'
 & E:\aaa-project\rag-me\.venv\Scripts\python.exe -m unittest tests.test_image_ocr_live -v
 ```
 
-固定图片、下载许可、构造方法、红绿记录与 OCR 实际质量结论见[样本与验收记录](/E:/aaa-project/rag-me/tests/testFile/image-ocr.md)。图像描述、视觉理解与裁剪来源的独立证据见各自说明。真实验收需要区分任务内容核验与连接失败，不将离线预设响应或早期提示词的成功冒充最终版本的完整视觉验收。
+固定图片、下载许可、构造方法、红绿记录与 OCR 实际质量结论见[样本与验收记录](../../../../tests/testFile/image-ocr.md)。图像描述、视觉理解与裁剪来源的独立证据见各自说明。真实验收需要区分任务内容核验与连接失败，不将离线预设响应或早期提示词的成功冒充最终版本的完整视觉验收。

@@ -83,7 +83,7 @@ else:
 ## 验证
 
 ```powershell
-.\.venv\Scripts\python.exe -m unittest tests.test_audio_video tests.test_media_compatibility -v
+.\.venv\Scripts\python.exe -m unittest tests.test_audio_video tests.testFile.test_media_compatibility -v
 
 $env:STEP_MEDIA_LIVE_TEST = '1'
 $env:STEP_ENV_FILE = 'E:\aaa-project\rag-me\.env'

@@ -58,7 +58,7 @@ same = parsing.convert_bytes(pdf_bytes, format="pdf", source="mixed.pdf",
 在仓库根目录，用已安装项目依赖的 Python 执行：
 
 ```powershell
-python -m unittest tests.test_pdf_word_model_contract tests.test_mineru_client -v
+python -m unittest tests.testFile.test_pdf_word_model_contract tests.testFile.test_mineru_client -v
 python -m unittest tests.test_pdf_word_digital tests.test_pdf_word_docx -v
 python -m unittest tests.test_pdf_word_mixed -v
 python -m unittest discover -s tests -v

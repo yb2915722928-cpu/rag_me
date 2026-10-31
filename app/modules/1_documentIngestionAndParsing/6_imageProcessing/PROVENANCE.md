@@ -71,7 +71,7 @@ result = images.convert_bytes(
 
 ## 固定样本与验收
 
-样本、构造脚本、来源清单和真实证据均在 [tests/testFile](/E:/aaa-project/rag-me/tests/testFile/)，名称以 `image_provenance_` 开头；构造图无网络下载，运行测试不重建。详细记录见 [image_provenance_acceptance.md](/E:/aaa-project/rag-me/tests/testFile/image_provenance_acceptance.md)。
+样本、构造脚本、来源清单和真实证据均在 [tests/testFile](../../../../tests/testFile)，名称以 `image_provenance_` 开头；构造图无网络下载，运行测试不重建。详细记录见 [image_provenance_acceptance.md](../../../../tests/testFile/image_provenance_acceptance.md)。
 
 ```powershell
 & E:\aaa-project\rag-me\.venv\Scripts\python.exe -m unittest tests.test_image_provenance tests.test_image_ocr -v

@@ -6,8 +6,12 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
-from tests.test_audio_video import TRANSCRIPT, media, media_server, video_reply
+from tests.test_audio_video import QUESTION as MEDIA_QUESTION, TRANSCRIPT, media, media_server, video_reply
 from tests.test_image_ocr import RULES, step_server
+from tests.test_image_understanding import (
+    CLEAR_ANSWER, QUESTION as IMAGE_QUESTION, envelope as image_envelope,
+    step_server as image_task_server,
+)
 from tests.zip_document_support import SERVICE_MARKDOWN, document_server
 
 
@@ -19,7 +23,7 @@ SAMPLES = Path(__file__).parent / "testFile"
 class DocumentIngestionTests(unittest.TestCase):
     def assert_complete_reports_equal(self, reports):
         expected = reports[0].to_dict()
-        with TemporaryDirectory() as directory:
+        with TemporaryDirectory(dir=SAMPLES) as directory:
             for index, report in enumerate(reports):
                 with self.subTest(entry=index):
                     self.assertEqual(report.to_dict(), expected)
@@ -139,22 +143,40 @@ class DocumentIngestionTests(unittest.TestCase):
         self.assertEqual(service.requests, [])
         self.assertEqual(service.uploads, [])
 
-    def test_images_keep_derived_text_and_review_state(self):
-        with step_server() as config:
-            path = SAMPLES / "image_ocr_rules.png"
-            reports = (
-                ingestion.convert_file(path, source="规则图", task="ocr", config=config),
-                ingestion.convert_bytes(
-                    path.read_bytes(), format="png", source="规则图", task="ocr", config=config,
-                ),
-                handoff.adapt_result(import_module(
-                    ingestion.__name__ + ".6_imageProcessing",
-                ).convert_file(path, source="规则图", task="ocr", config=config)),
-            )
-        document = self.assert_complete_reports_equal(reports).documents[0]
-        self.assertEqual(document.body, RULES)
-        self.assertEqual(document.units[0].kind, "ocr")
-        self.assertTrue(document.requires_review)
+    def test_images_keep_all_three_tasks_in_complete_reports(self):
+        images = import_module(ingestion.__name__ + ".6_imageProcessing")
+        identity = {"business_id": "审批图", "version": "业务三"}
+        cases = (
+            ("ocr", "image_ocr_rules.png", RULES, None),
+            ("describe", "image_understanding_clear.png", CLEAR_ANSWER, None),
+            ("understand", "image_understanding_clear.png", CLEAR_ANSWER, IMAGE_QUESTION),
+        )
+        for task, filename, text, question in cases:
+            path = SAMPLES / filename
+            kwargs = {"source": "规则图", "task": task, "question": question}
+            with self.subTest(task=task), image_task_server(image_envelope(text=text)) as (config, requests):
+                reports = (
+                    ingestion.convert_file(path, config=config, **kwargs, **identity),
+                    ingestion.convert_bytes(
+                        path.read_bytes(), format="png", config=config, **kwargs, **identity,
+                    ),
+                    handoff.adapt_result(images.convert_file(path, config=config, **kwargs), **identity),
+                    handoff.adapt_result(images.convert_bytes(
+                        path.read_bytes(), format="png", config=config, **kwargs,
+                    ), **identity),
+                )
+                self.assertEqual(len(requests), 4)
+            report = self.assert_complete_reports_equal(reports)
+            self.assertEqual(report.status, "content", report.to_dict())
+            document = report.documents[0]
+            self.assertEqual(document.body, text)
+            self.assertEqual(document.units[0].kind, task)
+            self.assertEqual((document.business_id, document.version), ("审批图", "业务三"))
+            self.assertEqual(document.metadata["question"], question)
+            self.assertEqual((document.metadata["requested_model"], document.metadata["response_model"]),
+                             ("step-5-preview", "step-5-preview-actual"))
+            self.assertEqual(document.sources[0].locator["location"], "规则图")
+            self.assertTrue(document.requires_review)
 
     def test_media_keeps_segment_sources_through_file_and_byte_entries(self):
         path = SAMPLES / "media_rules.wav"
@@ -179,6 +201,50 @@ class DocumentIngestionTests(unittest.TestCase):
         self.assertEqual(source.locator["time_precision"], "segment")
         self.assertEqual(source.locator["start_seconds"], 0)
         self.assertGreater(source.locator["end_seconds"], 0)
+
+    def test_video_uncertainty_keeps_complete_reports_and_segment_review(self):
+        path = SAMPLES / "media_uncertain.mp4"
+        text, note = "终点被截断，无法确认审批人。", "缺少终点"
+        kwargs = {
+            "source": "培训画面", "task": "video", "question": MEDIA_QUESTION,
+            "media_id": "审批培训", "media_version": "录制二",
+        }
+        identity = {"business_id": "审批课程", "version": "业务三"}
+        with media_server(video=video_reply(text, "uncertain", [note])) as (config, requests):
+            reports = (
+                ingestion.convert_file(path, config=config, **kwargs, **identity),
+                ingestion.convert_bytes(path.read_bytes(), format="mp4", config=config, **kwargs, **identity),
+            )
+            native = media.convert_file(path, config=config, **kwargs)
+            native_bytes = media.convert_bytes(path.read_bytes(), format="mp4", config=config, **kwargs)
+            self.assertEqual(native, native_bytes)
+            self.assertEqual(native.status, "uncertain", native.error)
+            reports += (handoff.adapt_result(native, **identity), handoff.adapt_result(native_bytes, **identity))
+            self.assertEqual(len(requests), 4)
+        report = self.assert_complete_reports_equal(reports)
+        self.assertEqual(report.status, "uncertain")
+        document = report.documents[0]
+        self.assertEqual(document.body, native.text)
+        self.assertEqual((document.business_id, document.version), ("审批课程", "业务三"))
+        self.assertEqual(document.metadata, {"task": "video", "question": MEDIA_QUESTION})
+        self.assertTrue(document.requires_review)
+        unit, = document.units
+        self.assertEqual((unit.kind, unit.text, unit.status), ("video", text, "uncertain"))
+        self.assertEqual(unit.alignment, "unmapped")
+        self.assertIsNone(unit.body_span)
+        self.assertEqual((unit.metadata["requested_model"], unit.metadata["response_model"],
+                          unit.metadata["prompt_version"], unit.metadata["review_notes"]),
+                         ("step-5-preview", "step-5-preview-actual", "video-v1", [note]))
+        source, = [item for item in document.sources if item.id in unit.source_ids]
+        segment, = native.segments
+        self.assertEqual((source.locator["start_seconds"], source.locator["end_seconds"]),
+                         (segment.start_seconds, segment.end_seconds))
+        self.assertEqual((source.locator["media_id"], source.locator["media_version"],
+                          source.locator["sha256"], source.locator["time_precision"]),
+                         ("审批培训", "录制二", native.source.sha256, "segment"))
+        review, = [item for item in document.diagnostics if item.unit_id == unit.id]
+        self.assertEqual((review.code, review.message, review.source_id, review.document_id),
+                         ("model_uncertainty", note, source.id, document.id))
 
     def test_combined_media_keeps_empty_audio_and_uncertain_video_in_complete_reports(self):
         path = SAMPLES / "video_extra_delayed.mp4"
