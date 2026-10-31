@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 
-from .decoding import decode_bytes
+from ..exports import export_markdown
+from ..text_support import convert_json, decode_bytes, normalize_markdown
 from .html_conversion import html_encoding_declarations, html_to_markdown
-from .json_content import convert_json
-from .markdown import normalize_markdown
 from .mhtml import select_mhtml_html
 
 
@@ -69,14 +68,6 @@ def convert_bytes(
     except ValueError as exc:
         return ConversionResult(markdown=None, source=source_info, error=str(exc))
     return _convert_content(data, source_info, encoding, mode)
-
-
-def export_markdown(result: ConversionResult, path) -> Path:
-    if not result.success:
-        raise ValueError(f"Cannot export failed conversion: {result.error}")
-    path = Path(path)
-    path.write_bytes(result.markdown.encode("utf-8"))
-    return path
 
 
 def _convert_content(data: bytes, source_info: Source, encoding: str | None, mode: str):

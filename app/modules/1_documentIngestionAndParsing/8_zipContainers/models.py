@@ -1,25 +1,10 @@
 from dataclasses import dataclass, field, fields, is_dataclass
-import time
 
-
-class _StopProcessing(Exception):
-    def __init__(self, reason):
-        self.reason = reason
-        super().__init__(f"ZIP processing stopped: {reason}")
-
-
-def _check_deadline(deadline):
-    if time.monotonic() >= deadline:
-        raise _StopProcessing("deadline_exceeded")
-
-
-@dataclass(frozen=True)
-class ZipLimits:
-    max_archive_bytes: int = 100 * 1024**2
-    max_members: int = 1000
-    max_member_bytes: int = 64 * 1024**2
-    max_total_bytes: int = 256 * 1024**2
-    timeout_seconds: float = 300
+from ..archive_budget import (
+    ArchiveLimits as ZipLimits,
+    ArchiveProcessingStopped as _StopProcessing,
+    check_deadline as _check_deadline,
+)
 
 
 @dataclass(frozen=True)

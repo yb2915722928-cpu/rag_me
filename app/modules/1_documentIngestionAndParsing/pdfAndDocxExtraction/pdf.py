@@ -3,7 +3,7 @@ from io import BytesIO
 from pypdf import PdfReader, PdfWriter
 from pypdf.errors import PyPdfError
 
-from . import ContentSource, ConversionResult, Source
+from .models import ContentSource, ConversionResult, Source
 
 
 def extract_pdf(data: bytes, source: Source, mineru=None, ocr_pages: tuple[int, ...] = ()) -> ConversionResult:

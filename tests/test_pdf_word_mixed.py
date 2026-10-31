@@ -9,7 +9,7 @@ from tests.test_pdf_word_mineru import mineru_server
 
 
 content = importlib.import_module(
-    "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
+    "app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction"
 )
 SAMPLES = Path(__file__).parent / "testFile"
 SCAN_BLOCKS = [

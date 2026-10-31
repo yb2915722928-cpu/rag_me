@@ -2,9 +2,9 @@
 
 逐成员受限读取 ZIP，返回整包摘要和逐成员原生结果，不拼接全包正文。TXT/Markdown、JSON/XML、CSV 复用轻量本地解析；PDF（含数字 PDF）、DOCX、PPTX、XLSX、HTML/MHTML 默认使用 MinerU，图片和音视频默认使用阶跃 API。没有云端启用开关，API 缺配置或失败不自动回退本地重解析。
 
-各类参数、来源语义及真实验收入口分别见[文档 API](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/DOCUMENTS.md)、[图片 API](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/IMAGES.md)和[音视频 API](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/MEDIA.md)。使用运行时 MINERU_API_TOKEN、STEP_API_KEY、STEP_BASE_URL、STEP_MODEL；可选 STEP_ASR_MODEL 沿用既有默认值。核心和 CLI 不自动载入环境文件。
+各类参数、来源语义及真实验收入口分别见[文档 API](DOCUMENTS.md)、[图片 API](IMAGES.md)和[音视频 API](MEDIA.md)。使用运行时 MINERU_API_TOKEN、STEP_API_KEY、STEP_BASE_URL、STEP_MODEL；可选 STEP_ASR_MODEL 沿用既有默认值。核心和 CLI 不自动载入环境文件。
 
-公开入口见 [convert_file / convert_bytes](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/__init__.py)，预算和结果见 [models.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/models.py)。Python 需要 3.11 或以上，依赖沿用仓库现有安装流程。
+公开入口见 [convert_file / convert_bytes](__init__.py)，预算和结果见 [models.py](models.py)。Python 需要 3.11 或以上，依赖沿用仓库现有安装流程。
 
 ```python
 from importlib import import_module
@@ -64,7 +64,7 @@ CRC 失败的读取调用不会返回当前块，预算按本次请求与剩余�
 
 ## CLI
 
-入口见 [__main__.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/__main__.py)。在仓库根目录运行：
+入口见 [__main__.py](__main__.py)。在仓库根目录运行：
 
 ```powershell
 python -m app.modules.1_documentIngestionAndParsing.8_zipContainers tests/testFile/zip_text.zip
@@ -78,10 +78,10 @@ stdout 是 UTF-8 JSON，包含计算得到的整包/原生成功与待核验属�
 
 ## 格式分派
 
-[dispatch.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/dispatch.py) 的 `convert_member(data, *, format, source, parser_options, limits, deadline)` 通过明确分支返回 `(result_kind, 原生结果)`。各独立适配文件接收本类别选项，文档适配器额外接收同一个 `limits` 和整包绝对截止，供结果下载与展开协作检查。不使用注册系统、通用插件接口或跨业务模块重构。
+[dispatch.py](dispatch.py) 的 `convert_member(data, *, format, source, parser_options, limits, deadline)` 根据[共享格式路线](../format_routes.py)的 ZIP 成员配置返回 `(result_kind, 原生结果)`；独立文件仍使用同表的独立输入路线。文档分支直接调用[独立托管文档模块](../hosted_documents.py)，透传同一个 `limits` 和整包绝对截止，供结果下载与展开协作检查；图片与媒体分支沿用各自适配文件。限额与截止信号由[共享归档预算](../archive_budget.py)提供，容器负责解释停止原因及汇总成员状态。
 
 原生结果以自己的 `success` 判断，包括正常空文字；待核验不会改成失败，异常只隔离到对应成员。API 缺配置或调用失败必须明确失败，不能回退到本地重解析。
 
 ## 验证
 
-基础固定样本与构造方法见 [zip_samples.md](/E:/aaa-project/rag-me/tests/testFile/zip_samples.md)，基础 red → green 和命令见 [IMPLEMENTATION.md](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/IMPLEMENTATION.md)。默认测试通过公开文件/字节入口运行真实本地解析或本地 HTTP 协议服务，CLI 使用真实子进程；显式真实 API 验收与默认协议回归分别记录，不把可控响应当作识别质量证据。
+基础固定样本与构造方法见 [zip_samples.md](../../../../tests/testFile/zip_samples.md)，基础 red → green 和命令见 [IMPLEMENTATION.md](IMPLEMENTATION.md)。默认测试通过公开文件/字节入口运行真实本地解析或本地 HTTP 协议服务，CLI 使用真实子进程；显式真实 API 验收与默认协议回归分别记录，不把可控响应当作识别质量证据。

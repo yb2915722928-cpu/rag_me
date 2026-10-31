@@ -156,7 +156,7 @@ class CombinedMediaExtraTests(unittest.TestCase):
                 f"STEP_API_KEY=file-test-key\nSTEP_BASE_URL={url}\n"
                 "STEP_ASR_MODEL=file-asr-model\nSTEP_MODEL=file-video-model\n", encoding="utf-8")
             run = subprocess.run([
-                sys.executable, "-m", media.__name__, str(SAMPLES / "video_extra_delayed.mp4"),
+                sys.executable, "-m", "app.modules.1_documentIngestionAndParsing.audioTranscriptionAndVideoUnderstanding", str(SAMPLES / "video_extra_delayed.mp4"),
                 "--task", "both", "--env-file", str(env_file), "--question", QUESTION,
                 "--source", "cli:combined", "--format", "mp4", "--audio-seconds", "2.5",
                 "--video-seconds", "2", "--timeout", "2"],
@@ -197,7 +197,7 @@ class CombinedMediaExtraTests(unittest.TestCase):
                 f"STEP_API_KEY=test-key\nSTEP_BASE_URL={config.base_url}\n"
                 "STEP_ASR_MODEL=stepaudio-2.5-asr\nSTEP_MODEL=step-5-preview\n", encoding="utf-8")
             run = subprocess.run([
-                sys.executable, "-m", media.__name__, str(SAMPLES / "media_rules.mp4"),
+                sys.executable, "-m", "app.modules.1_documentIngestionAndParsing.audioTranscriptionAndVideoUnderstanding", str(SAMPLES / "media_rules.mp4"),
                 "--task", "both", "--env-file", str(env_file), "--source", "cli:timeout",
                 "--timeout", "0.03"], cwd=Path(__file__).resolve().parents[1], env=environment,
                 capture_output=True, encoding="utf-8", timeout=15, check=False)
