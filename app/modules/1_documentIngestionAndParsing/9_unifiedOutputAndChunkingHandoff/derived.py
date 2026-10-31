@@ -5,7 +5,7 @@ from .models import ContentUnit, Diagnostic, Document, HandoffReport, IdAllocato
 
 
 ImageResult = import_module("..6_imageProcessing", __package__).ConversionResult
-MediaResult = import_module("..7_audioAndVideoProcessing", __package__).ConversionResult
+MediaResult = import_module("..audioTranscriptionAndVideoUnderstanding", __package__).ConversionResult
 
 
 def adapt_image(

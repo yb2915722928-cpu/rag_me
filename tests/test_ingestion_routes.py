@@ -25,7 +25,7 @@ class IngestionRoutingTests(unittest.TestCase):
             ("4_tabularFileProcessing", ("csv", "xlsx"), {}),
             ("5_presentationsAndStructuredDocuments", ("pptx", "json", "xml"), {}),
             ("6_imageProcessing", ("png", "jpg", "jpeg", "webp"), {"task": "ocr"}),
-            ("7_audioAndVideoProcessing", ("wav", "mp3", "m4a", "ogg", "flac", "mp4", "mov", "mkv"),
+            ("audioTranscriptionAndVideoUnderstanding", ("wav", "mp3", "m4a", "ogg", "flac", "mp4", "mov", "mkv"),
              {"task": "transcribe"}),
             ("8_zipContainers", ("zip",), {}),
         )

@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from importlib import import_module
 
 
-media = import_module("..7_audioAndVideoProcessing", __package__)
+media = import_module("..audioTranscriptionAndVideoUnderstanding", __package__)
 
 
 def convert_bytes(data, *, format, source, task=None, question=None, config=None, options=None,

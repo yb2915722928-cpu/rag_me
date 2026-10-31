@@ -1,6 +1,6 @@
 # ZIP 音视频 API（#43）
 
-ZIP 文件/字节入口默认使用既有阶跃 API。适配器仅转换选项并调用原媒体字节入口，未引入本地模型、API 启用开关或失败回退。实现见 [media_api.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/media_api.py)，现有媒体实现见 [媒体公开入口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/__init__.py)。
+ZIP 文件/字节入口默认使用既有阶跃 API。适配器仅转换选项并调用原媒体字节入口，未引入本地模型、API 启用开关或失败回退。实现见 [media_api.py](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/media_api.py)，现有媒体实现见 [媒体公开入口](../audioTranscriptionAndVideoUnderstanding/__init__.py)。
 
 支持 WAV/MP3/M4A/OGG/FLAC 与 MP4/MOV/MKV。后缀只决定分派，实际容器和编码由 FFprobe/FFmpeg 检查；视频沿用复制码流重封装，不能保证任意 MKV 编码可放入 MP4。部署仍需 FFmpeg、FFprobe 和临时磁盘，媒体准备仍占 CPU/磁盘，模型计算由 API 完成。成员名不会作为落盘路径，原字节入口以受控临时目录写入输入和切片，退出时清理。
 
@@ -14,7 +14,7 @@ ZIP 文件/字节入口默认使用既有阶跃 API。适配器仅转换选项�
 | config | 可选既有 StepFunConfig 或同字段 mapping；支持 api_key、base_url、asr_model、video_model、timeout |
 | options | 可选既有 ProcessingOptions 或同字段 mapping；支持 audio_segment_seconds、video_segment_seconds、media_timeout、ffmpeg、ffprobe |
 
-mapping 供 CLI JSON 使用；其字段的业务校验交给既有媒体模块。未知 mapping 字段返回成员级 invalid_options。format、source 由 ZIP 提供，不能覆盖。
+mapping 供 CLI JSON 使用；其字段的业务校验交给既有媒体模块。未知 mapping 字段返回成员级 invalid_options。format、source 由 ZIP 提供，不能覆盖。生产适配器调用正式包 `audioTranscriptionAndVideoUnderstanding`；旧包兼容入口导出的 `StepFunConfig`、`ProcessingOptions` 与原生结果类型具有相同身份，已有进程内调用仍可使用。
 
 配置优先级：显式 config 字段优先，缺省字段由既有客户端读取进程环境。STEP_API_KEY、STEP_BASE_URL 必需；视频模型使用 **STEP_MODEL**，ASR 使用可选 STEP_ASR_MODEL（默认 stepaudio-2.5-asr）。timeout 默认 180 秒。ZIP 核心不读取环境文件；调用应用负责准备进程环境。缺配置返回 missing_config，该成员失败而其他成员继续。
 
