@@ -1,4 +1,4 @@
-from .. import export_json
+from ..exports import export_json
 
 from .models import (
     BodySpan, ContentUnit, Diagnostic, Document, HandoffReport, IdAllocator, Source,

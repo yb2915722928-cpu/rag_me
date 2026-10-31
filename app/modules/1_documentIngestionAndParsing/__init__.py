@@ -1,8 +1,9 @@
 """文件或字节 → 格式解析 → 统一输出与切分交接。"""
 
 from importlib import import_module
-import json
 from pathlib import Path
+
+from .exports import export_json
 
 
 __all__ = ["convert_file", "convert_bytes", "export_json"]
@@ -42,14 +43,6 @@ def convert_bytes(data, *, format, source, business_id=None, version=None, **opt
     return _convert(
         "convert_bytes", data, format, source, business_id, version, options,
     )
-
-
-def export_json(report, path) -> Path:
-    """包括失败报告在内均可导出；写入异常按普通 I/O 错误向调用方传播。"""
-    data = json.dumps(report.to_dict(), ensure_ascii=False, indent=2)
-    path = Path(path)
-    path.write_bytes((data + "\n").encode("utf-8"))
-    return path
 
 
 def _convert(entry, value, format, source, business_id, version, options):
