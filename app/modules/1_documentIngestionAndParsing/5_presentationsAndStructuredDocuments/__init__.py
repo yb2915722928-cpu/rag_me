@@ -1,14 +1,11 @@
-from importlib import import_module
 from pathlib import Path
 from zipfile import BadZipFile
 from zlib import error as ZlibError
 
 from pptx.exc import InvalidXmlError
 
+from ..exports import export_markdown
 from .models import ContentSource, ConversionResult, ReviewIssue, Source
-
-
-export_markdown = import_module("..2_textAndWebContent", __package__).export_markdown
 
 
 def convert_file(path, *, format=None, source=None, encoding=None) -> ConversionResult:

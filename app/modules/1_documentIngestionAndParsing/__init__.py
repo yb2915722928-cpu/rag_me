@@ -1,8 +1,10 @@
 """文件或字节 → 格式解析 → 统一输出与切分交接。"""
 
 from importlib import import_module
-import json
 from pathlib import Path
+
+from .exports import export_json
+from .identity import validate_identity
 
 
 __all__ = ["convert_file", "convert_bytes", "export_json"]
@@ -44,14 +46,6 @@ def convert_bytes(data, *, format, source, business_id=None, version=None, **opt
     )
 
 
-def export_json(report, path) -> Path:
-    """包括失败报告在内均可导出；写入异常按普通 I/O 错误向调用方传播。"""
-    data = json.dumps(report.to_dict(), ensure_ascii=False, indent=2)
-    path = Path(path)
-    path.write_bytes((data + "\n").encode("utf-8"))
-    return path
-
-
 def _convert(entry, value, format, source, business_id, version, options):
     """业务身份先于解析校验；内部交接复用已校验分派，避免重复校验或重新解析。"""
     if entry == "convert_file":
@@ -59,13 +53,13 @@ def _convert(entry, value, format, source, business_id, version, options):
         if format is None:
             format = value.suffix
     parser, format = _parser(format)
-    handoff = import_module(".9_unifiedOutputAndChunkingHandoff", __name__)
-    handoff._validate_identity(business_id, version)
+    handoff = import_module(".9_unifiedOutputAndChunkingHandoff.dispatch", __name__)
+    validate_identity(business_id, version)
     if format != "zip":
         options["format"] = format
     native = getattr(parser, entry)(value, source=source, **options)
-    return handoff._adapt_result(
-        native, handoff.IdAllocator(), business_id=business_id, version=version,
+    return handoff.adapt_validated_result(
+        native, business_id=business_id, version=version,
     )
 
 

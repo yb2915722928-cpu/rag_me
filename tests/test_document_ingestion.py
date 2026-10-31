@@ -1,8 +1,10 @@
 from importlib import import_module
+import copy
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 from tests.test_audio_video import TRANSCRIPT, media_server
 from tests.test_image_ocr import RULES, step_server
@@ -10,36 +12,52 @@ from tests.zip_document_support import SERVICE_MARKDOWN, document_server
 
 
 ingestion = import_module("app.modules.1_documentIngestionAndParsing")
+handoff = import_module(ingestion.__name__ + ".9_unifiedOutputAndChunkingHandoff")
 SAMPLES = Path(__file__).parent / "testFile"
 
 
 class DocumentIngestionTests(unittest.TestCase):
+    def assert_complete_reports_equal(self, reports):
+        expected = reports[0].to_dict()
+        with TemporaryDirectory() as directory:
+            for index, report in enumerate(reports):
+                with self.subTest(entry=index):
+                    self.assertEqual(report.to_dict(), expected)
+                    for export in (ingestion.export_json, handoff.export_json):
+                        output = export(report, Path(directory) / "完整报告.json")
+                        self.assertEqual(json.loads(output.read_bytes()), expected)
+        return reports[0]
+
     def test_local_formats_keep_their_content_and_structure_through_both_entries(self):
         cases = (
-            ("txt_gb18030.txt", "document", "长江流经武汉"),
-            ("md_list_fence.md", "document", "first  value"),
-            ("html_table_pipe.html", "document", "普通文字中的管道"),
-            ("mhtml_start_shorter.mhtml", "document", "Start chooses this shorter page."),
-            ("pdf_digital_page_order.pdf", "pdf_page", "Printed page 41"),
-            ("docx_sections.docx", "paragraph", None),
-            ("csv_travel.csv", "table_row", None),
-            ("xlsx_travel.xlsx", "table_row", None),
-            ("pptx_refund.pptx", "slide", None),
-            ("structured_json_pointers.json", "json_node", None),
-            ("xml_refund_rules.xml", "xml_element", None),
+            ("2_textAndWebContent", "txt_gb18030.txt", "document", "长江流经武汉"),
+            ("2_textAndWebContent", "md_list_fence.md", "document", "first  value"),
+            ("2_textAndWebContent", "html_table_pipe.html", "document", "普通文字中的管道"),
+            ("2_textAndWebContent", "mhtml_start_shorter.mhtml", "document", "Start chooses this shorter page."),
+            ("3_pdfAndWordParsing", "pdf_digital_page_order.pdf", "pdf_page", "Printed page 41"),
+            ("3_pdfAndWordParsing", "docx_sections.docx", "paragraph", None),
+            ("4_tabularFileProcessing", "csv_travel.csv", "table_row", None),
+            ("4_tabularFileProcessing", "xlsx_travel.xlsx", "table_row", None),
+            ("5_presentationsAndStructuredDocuments", "pptx_refund.pptx", "slide", None),
+            ("5_presentationsAndStructuredDocuments", "structured_json_pointers.json", "json_node", None),
+            ("5_presentationsAndStructuredDocuments", "xml_refund_rules.xml", "xml_element", None),
         )
-        for filename, kind, evidence in cases:
+        for module, filename, kind, evidence in cases:
             path = SAMPLES / filename
+            parser = import_module(ingestion.__name__ + "." + module)
+            identity = {"business_id": "规则", "version": "v2"}
             reports = (
-                ingestion.convert_file(path, source="资料", business_id="规则", version="v2"),
+                ingestion.convert_file(path, source="资料", **identity),
                 ingestion.convert_bytes(
-                    path.read_bytes(), format=path.suffix, source="资料",
-                    business_id="规则", version="v2",
+                    path.read_bytes(), format=path.suffix, source="资料", **identity,
                 ),
+                handoff.adapt_result(parser.convert_file(path, source="资料"), **identity),
+                handoff.adapt_result(parser.convert_bytes(
+                    path.read_bytes(), format=path.suffix, source="资料",
+                ), **identity),
             )
             with self.subTest(filename=filename):
-                self.assertEqual(reports[0].to_dict(), reports[1].to_dict())
-                report = reports[0]
+                report = self.assert_complete_reports_equal(reports)
                 self.assertEqual(report.status, "success", report.to_dict())
                 document = report.documents[0]
                 self.assertEqual((document.business_id, document.version), ("规则", "v2"))
@@ -129,9 +147,11 @@ class DocumentIngestionTests(unittest.TestCase):
                 ingestion.convert_bytes(
                     path.read_bytes(), format="png", source="规则图", task="ocr", config=config,
                 ),
+                handoff.adapt_result(import_module(
+                    ingestion.__name__ + ".6_imageProcessing",
+                ).convert_file(path, source="规则图", task="ocr", config=config)),
             )
-        self.assertEqual(reports[0].to_dict(), reports[1].to_dict())
-        document = reports[0].documents[0]
+        document = self.assert_complete_reports_equal(reports).documents[0]
         self.assertEqual(document.body, RULES)
         self.assertEqual(document.units[0].kind, "ocr")
         self.assertTrue(document.requires_review)
@@ -144,9 +164,12 @@ class DocumentIngestionTests(unittest.TestCase):
                 ingestion.convert_bytes(
                     path.read_bytes(), format="wav", source="录音", task="transcribe", config=config,
                 ),
+                handoff.adapt_result(import_module(
+                    ingestion.__name__ + ".7_audioAndVideoProcessing",
+                ).convert_file(path, source="录音", task="transcribe", config=config)),
             )
-        self.assertEqual(len(requests), 2)
-        self.assertEqual(reports[0].to_dict(), reports[1].to_dict())
+        self.assertEqual(len(requests), 3)
+        self.assert_complete_reports_equal(reports)
         self.assertEqual(reports[0].status, "content")
         document = reports[0].documents[0]
         self.assertIn(TRANSCRIPT, document.body)
@@ -165,9 +188,11 @@ class DocumentIngestionTests(unittest.TestCase):
                 path.read_bytes(), format=" .ZIP ", source="资料包",
                 business_id="集合", version="v2",
             ),
+            handoff.adapt_result(import_module(
+                ingestion.__name__ + ".8_zipContainers",
+            ).convert_file(path, source="资料包"), business_id="集合", version="v2"),
         )
-        self.assertEqual(reports[0].to_dict(), reports[1].to_dict())
-        report = reports[0]
+        report = self.assert_complete_reports_equal(reports)
         self.assertEqual(report.status, "partial_success")
         self.assertEqual(report.metadata["container"]["business_id"], "集合")
         self.assertTrue(report.metadata["members"])
@@ -176,15 +201,45 @@ class DocumentIngestionTests(unittest.TestCase):
             self.assertIsNone(document.version)
 
     def test_zip_still_uses_hosted_documents(self):
+        path = SAMPLES / "zip_document_pdf.zip"
+        parser = import_module(ingestion.__name__ + ".8_zipContainers")
         with document_server() as service:
-            report = ingestion.convert_file(
-                SAMPLES / "zip_document_pdf.zip",
-                parser_options={"document": {"mineru": service.config}},
+            options = {"parser_options": {"document": {"mineru": service.config}}}
+            reports = (
+                ingestion.convert_file(path, source="托管资料包", **options),
+                ingestion.convert_bytes(
+                    path.read_bytes(), format="zip", source="托管资料包", **options,
+                ),
             )
+            native = parser.convert_file(path, source="托管资料包", **options)
+            network_before = copy.deepcopy((service.requests, service.uploads, service.polls))
+            before = copy.deepcopy(native)
+            with patch("pathlib.Path.open", side_effect=AssertionError("handoff read input")), \
+                    patch("http.client.HTTPConnection.request", side_effect=AssertionError("handoff requested HTTP")):
+                reports += (handoff.adapt_result(native),)
+            self.assertEqual(native, before)
+            self.assertEqual((service.requests, service.uploads, service.polls), network_before)
+        report = self.assert_complete_reports_equal(reports)
         self.assertEqual(report.status, "success", report.to_dict())
-        self.assertEqual(len(service.requests), 1)
+        self.assertEqual(len(service.requests), 3)
         self.assertEqual(report.documents[0].body, SERVICE_MARKDOWN)
         self.assertTrue(report.documents[0].requires_review)
+
+    def test_handoff_uses_only_the_native_zip_after_its_input_disappears(self):
+        parser = import_module(ingestion.__name__ + ".8_zipContainers")
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "资料.zip"
+            path.write_bytes((SAMPLES / "zip_members.zip").read_bytes())
+            native = parser.convert_file(path, source="持久来源")
+        self.assertFalse(path.exists())
+        before = copy.deepcopy(native)
+        with patch("pathlib.Path.open", side_effect=AssertionError("handoff read input")), \
+                patch("http.client.HTTPConnection.request", side_effect=AssertionError("handoff requested HTTP")):
+            report = handoff.adapt_result(native, business_id="容器", version="v2")
+        self.assertEqual(native, before)
+        self.assertEqual(report.status, "partial_success")
+        self.assertEqual(report.metadata["container"]["business_id"], "容器")
+        self.assertTrue(all(document.business_id is None for document in report.documents))
 
 
 if __name__ == "__main__":

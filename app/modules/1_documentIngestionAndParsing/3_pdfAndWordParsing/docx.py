@@ -5,7 +5,7 @@ from docx import Document
 from docx.oxml.ns import qn
 from docx.table import Table
 
-from . import ContentSource, ConversionResult, Source
+from .models import ContentSource, ConversionResult, Source
 
 
 def extract_docx(data: bytes, source: Source) -> ConversionResult:
