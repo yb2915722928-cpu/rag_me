@@ -12,7 +12,7 @@ BASE = "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
 HANDOFF = "app.modules.1_documentIngestionAndParsing.unifiedDocumentHandoff"
 content = import_module(BASE)
 handoff = import_module(HANDOFF)
-SAMPLES = Path(__file__).parent / "testFile"
+SAMPLES = Path(__file__).parent
 
 
 class PdfWordModelContractTests(unittest.TestCase):
@@ -136,7 +136,7 @@ print("OK")
             with self.subTest(order=order):
                 process = subprocess.run(
                     [sys.executable, "-c", script, json.dumps((BASE, canonical, HANDOFF, order))],
-                    cwd=Path(__file__).resolve().parents[1],
+                    cwd=Path(__file__).resolve().parents[2],
                     capture_output=True, text=True, timeout=30,
                 )
                 self.assertEqual(process.returncode, 0, process.stdout + process.stderr)

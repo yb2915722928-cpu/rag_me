@@ -8,7 +8,7 @@ from unittest.mock import patch
 ingestion = import_module("app.modules.1_documentIngestionAndParsing")
 handoff = import_module(ingestion.__name__ + ".unifiedDocumentHandoff")
 text_web = import_module(ingestion.__name__ + ".2_textAndWebContent")
-SAMPLES = Path(__file__).parent / "testFile"
+SAMPLES = Path(__file__).parent
 
 
 class IngestionIdentityDispatchTests(unittest.TestCase):

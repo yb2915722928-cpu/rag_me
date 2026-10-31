@@ -30,7 +30,7 @@ class IngestionRoutingTests(unittest.TestCase):
             ("8_zipContainers", ("zip",), {}),
         )
         identity = {"business_id": "业务", "version": "v2"}
-        with TemporaryDirectory() as directory:
+        with TemporaryDirectory(dir=Path(__file__).parent) as directory:
             for module, formats, options in cases:
                 parser = import_module(INGESTION_PACKAGE + "." + module)
                 for format in formats:
@@ -98,7 +98,7 @@ class IngestionRoutingTests(unittest.TestCase):
         self.assertEqual(report.documents[-1].body, "保留兄弟成员")
 
     def test_media_file_entry_does_not_read_the_entire_original_input(self):
-        path = Path(__file__).parent / "testFile" / "media_rules.wav"
+        path = Path(__file__).parent / "media_rules.wav"
         original_read_bytes = Path.read_bytes
 
         def read_prepared_clip(candidate):

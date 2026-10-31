@@ -5,7 +5,7 @@ import sys
 import unittest
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 PREFIX = "app.modules.1_documentIngestionAndParsing."
 OLD = PREFIX + "9_unifiedOutputAndChunkingHandoff"
 NEW = PREFIX + "unifiedDocumentHandoff"
@@ -54,7 +54,7 @@ for module_name in (new_name, old_name):
     handoff = import_module(module_name)
     report = handoff.adapt_result(native, business_id=" business ", version="v2")
     assert report.to_dict() == expected, report.to_dict()
-    with TemporaryDirectory() as directory:
+    with TemporaryDirectory(dir=Path("tests/testFile")) as directory:
         path = handoff.export_json(report, Path(directory) / "report.json")
         assert json.loads(path.read_bytes()) == expected
     assert native == before
@@ -150,7 +150,7 @@ assert report.documents[0].body == body, report.to_dict()
 assert report.documents[0].business_id == "business"
 assert report.documents[0].version == "v2"
 assert getattr(leaf, adapter_name)(native, handoff.IdAllocator(), business_id="business", version="v2").to_dict() == report.to_dict()
-with TemporaryDirectory() as directory:
+with TemporaryDirectory(dir=Path("tests/testFile")) as directory:
     assert json.loads(handoff.export_json(report, Path(directory) / "report.json").read_bytes()) == report.to_dict()
 assert native == before
 for name in ("openpyxl", "pptx", "pypdf", "docx", *[prefix + suffix for suffix in forbidden]):

@@ -16,7 +16,7 @@ import unittest
 from tests.test_audio_video import QUESTION, SAMPLES, media_server, video_reply
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 OLD_MEDIA = "app.modules.1_documentIngestionAndParsing.7_audioAndVideoProcessing"
 NEW_MEDIA = "app.modules.1_documentIngestionAndParsing.audioTranscriptionAndVideoUnderstanding"
 
@@ -124,7 +124,7 @@ class MediaResultCompatibilityTests(unittest.TestCase):
         for report in reports:
             self.assertEqual(report.to_dict(), expected)
             self.assertEqual(json.loads(json.dumps(report.to_dict(), ensure_ascii=False)), expected)
-        with TemporaryDirectory() as directory:
+        with TemporaryDirectory(dir=SAMPLES) as directory:
             output = Path(directory) / "media.json"
             self.ingestion.export_json(reports[0], output)
             self.assertEqual(json.loads(output.read_bytes()), expected)
@@ -228,7 +228,7 @@ class MediaCliCompatibilityTests(unittest.TestCase):
             for failed in (False, True):
                 with self.subTest(task=task, failed=failed), \
                         media_server(http_status=503 if failed else 200) as (config, _), \
-                        TemporaryDirectory() as directory:
+                        TemporaryDirectory(dir=SAMPLES) as directory:
                     root = Path(directory)
                     env_file = root / "media.env"
                     env_file.write_text("\n".join([

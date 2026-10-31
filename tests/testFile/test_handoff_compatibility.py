@@ -6,7 +6,7 @@ import sys
 import unittest
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 PREFIX = "app.modules.1_documentIngestionAndParsing."
 OLD = PREFIX + "9_unifiedOutputAndChunkingHandoff"
 NEW = PREFIX + "unifiedDocumentHandoff"
