@@ -12,7 +12,7 @@ from tests.zip_document_support import SERVICE_MARKDOWN, document_server, zip_co
 
 
 content = importlib.import_module(
-    "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
+    "app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction"
 )
 handoff = importlib.import_module(
     "app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff"

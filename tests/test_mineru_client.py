@@ -1,13 +1,27 @@
+from dataclasses import asdict
 import importlib
 import unittest
 
-from tests.zip_document_support import SAMPLES, document_server, mineru as legacy
+from tests.test_pdf_word_mineru import HISTORY, mineru_server
+from tests.zip_document_support import SAMPLES, document_server
 
 
 ROOT = "app.modules.1_documentIngestionAndParsing"
+legacy = importlib.import_module(f"{ROOT}.3_pdfAndWordParsing.mineru")
 
 
 class MinerUClientCompatibilityTests(unittest.TestCase):
+    def test_legacy_configuration_is_accepted_by_canonical_pdf_client(self):
+        canonical = importlib.import_module(f"{ROOT}.pdfAndDocxExtraction.mineru")
+        self.assertIs(canonical.MinerUConfig, legacy.MinerUConfig)
+        self.assertIs(canonical.MinerUError, legacy.MinerUError)
+        self.assertIs(canonical.MinerUClient, legacy.MinerUClient)
+        data = (SAMPLES / "pdf_scanned_teaching.pdf").read_bytes()
+        with mineru_server() as config:
+            legacy_config = legacy.MinerUConfig(**asdict(config))
+            blocks = canonical.MinerUClient(legacy_config).extract(data, 1)
+        self.assertEqual(blocks, HISTORY)
+
     def test_legacy_configuration_is_accepted_by_shared_document_client(self):
         shared = importlib.import_module(f"{ROOT}.mineru_client")
         hosted = importlib.import_module(f"{ROOT}.hosted_documents")

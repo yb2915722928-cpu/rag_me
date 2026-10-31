@@ -9,7 +9,7 @@ import threading
 
 SAMPLES = Path(__file__).parent / "testFile"
 zip_containers = importlib.import_module("app.modules.1_documentIngestionAndParsing.8_zipContainers")
-mineru = importlib.import_module("app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing.mineru")
+mineru = importlib.import_module("app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction.mineru")
 SERVICE_MARKDOWN = "# Service original\n\nKeep **formatting**, order and trailing spaces.  \n"
 
 
