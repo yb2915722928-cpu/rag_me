@@ -2,10 +2,8 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from ..exports import export_markdown
-from .decoding import decode_bytes
+from ..text_support import convert_json, decode_bytes, normalize_markdown
 from .html_conversion import html_encoding_declarations, html_to_markdown
-from .json_content import convert_json
-from .markdown import normalize_markdown
 from .mhtml import select_mhtml_html
 
 

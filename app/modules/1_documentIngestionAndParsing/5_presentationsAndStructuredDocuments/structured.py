@@ -1,13 +1,10 @@
 import re
-from importlib import import_module
 from urllib.parse import quote
 from xml.etree import ElementTree
 
+from ..text_support import decode_bytes, load_json, render_json
 from .models import ContentSource, ConversionResult, Source
 
-
-decode_bytes = import_module("..2_textAndWebContent.decoding", __package__).decode_bytes
-json_content = import_module("..2_textAndWebContent.json_content", __package__)
 
 _JSON_NODE_TYPES = {
     dict: "object", list: "array", str: "string", int: "number",
@@ -30,8 +27,8 @@ def convert_structured(
         return ConversionResult(None, source, error=f"Decoding failed: {exc}")
     try:
         if source.format == "json":
-            value = json_content.load_json(text)
-            markdown = json_content.render_json(value)
+            value = load_json(text)
+            markdown = render_json(value)
             sources = list(_json_sources(value))
         else:
             root = ElementTree.fromstring(text)
