@@ -184,7 +184,7 @@ class PostgresVectorStore:
             connection.close()
 
     def validate_and_activate(self, scheme: IndexSchemeVersion, *, expected_count: int,
-                              representative_vector: Sequence[float], expected_keys: Sequence[tuple[str, str, str]] | None = None,
+                              representative_vector: Sequence[float], expected_keys: Sequence[tuple[str, str, str]],
                               representative_key: tuple[str, str, str] | None = None,
                               threshold: float = 0.99) -> dict:
         values = tuple(float(value) for value in representative_vector)
@@ -211,9 +211,9 @@ class PostgresVectorStore:
                         (scheme.identity,),
                     )
                     actual_keys = {tuple(row) for row in cursor.fetchall()}
-                    expected_key_set = set(expected_keys) if expected_keys is not None else None
-                    identities_valid = expected_key_set is None or actual_keys == expected_key_set
-                    selected_key = representative_key or (next(iter(expected_key_set)) if expected_key_set else None)
+                    expected_key_set = set(expected_keys)
+                    identities_valid = actual_keys == expected_key_set
+                    selected_key = representative_key or next(iter(expected_key_set), None)
                     cursor.execute(
                         "SELECT document_id, document_version, chunk_id, "
                         "1 - (vector <=> %s::vector) AS score FROM indexed_chunks "
