@@ -10,7 +10,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from zipfile import BadZipFile, ZipFile
 
-from . import ContentSource, ConversionResult, Source
+from .models import ContentSource, ConversionResult, Source
 
 
 @dataclass
