@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import Sequence
 
-from .batching import embed_texts
+from .batching import embed_texts, validate_query_vector
 from .contracts import EmbeddingAdapter, IndexSchemeVersion
 from .postgres import SearchHit
 
@@ -28,5 +28,8 @@ def index_chunks(chunks: Sequence[object], adapter: EmbeddingAdapter, store, *, 
 def search_chunks(query: str, adapter: EmbeddingAdapter, store, *, scheme: IndexSchemeVersion | None = None, limit: int = 10) -> list[SearchHit]:
     selected = scheme or IndexSchemeVersion(adapter.metadata)
     adapter.validate_scheme(selected)
-    vector = adapter.embed([query])[0]
+    vectors = adapter.embed([query])
+    if len(vectors) != 1:
+        raise ValueError("adapter returned a different number of vectors than queries")
+    vector = validate_query_vector(vectors[0], adapter)
     return store.search(selected, vector, limit=limit)

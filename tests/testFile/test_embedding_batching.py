@@ -12,6 +12,13 @@ class FailingAdapter(embedding.DeterministicEmbeddingAdapter):
         return super().embed(texts)
 
 
+class MalformedVectorAdapter(embedding.DeterministicEmbeddingAdapter):
+    def embed(self, texts):
+        vectors = super().embed(texts)
+        vectors[1] = (float("nan"),) * self.metadata.dimensions
+        return vectors
+
+
 class EmbeddingBatchingTests(unittest.TestCase):
     def test_batches_obey_item_and_token_limits_in_input_order(self):
         adapter = embedding.DeterministicEmbeddingAdapter(dimensions=3, token_counter=str.split)
@@ -32,6 +39,11 @@ class EmbeddingBatchingTests(unittest.TestCase):
         self.assertEqual(len({item.key for item in fixed.items}), 3)
         self.assertEqual(fixed.items[1].retry_count, 1)
 
+    def test_malformed_vector_fails_only_its_own_item(self):
+        result = embedding.embed_texts(["good", "bad", "also good"], MalformedVectorAdapter(3))
+        self.assertEqual([item.status for item in result.items], ["embedded", "failed", "embedded"])
+        self.assertEqual(result.items[1].error_code, "EMBEDDING_FAILED")
+
     def test_empty_input_and_single_oversized_input_are_explicit(self):
         adapter = embedding.DeterministicEmbeddingAdapter(dimensions=3, token_counter=str.split)
         self.assertEqual(embedding.embed_texts([], adapter).items, ())
@@ -41,7 +53,3 @@ class EmbeddingBatchingTests(unittest.TestCase):
         retried = embedding.retry_failed(result, adapter, keys={"0"}, max_tokens=1)
         self.assertEqual(retried.items[0].retry_count, 0)
         self.assertEqual(retried.items[0].error_code, "ITEM_EXCEEDS_TOKEN_BUDGET")
-
-
-if __name__ == "__main__":
-    unittest.main()

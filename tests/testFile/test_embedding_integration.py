@@ -21,6 +21,15 @@ class FakeStore:
 
 
 class EmbeddingIntegrationTests(unittest.TestCase):
+    def test_search_rejects_malformed_query_vector(self):
+        class MalformedQueryAdapter(indexing.DeterministicEmbeddingAdapter):
+            def embed(self, texts):
+                return [(float("nan"),) * self.metadata.dimensions]
+
+        store = FakeStore()
+        with self.assertRaises(indexing.EmbeddingContractError):
+            indexing.search_chunks("query", MalformedQueryAdapter(3), store)
+
     def test_chunk_to_embedding_to_same_scheme_search_preserves_chunk_context(self):
         adapter = indexing.DeterministicEmbeddingAdapter(3)
         store = FakeStore()

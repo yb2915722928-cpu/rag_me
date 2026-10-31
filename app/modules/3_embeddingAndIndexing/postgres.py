@@ -183,7 +183,10 @@ class PostgresVectorStore:
         finally:
             connection.close()
 
-    def validate_and_activate(self, scheme: IndexSchemeVersion, *, expected_count: int, representative_vector: Sequence[float]) -> dict:
+    def validate_and_activate(self, scheme: IndexSchemeVersion, *, expected_count: int,
+                              representative_vector: Sequence[float], expected_keys: Sequence[tuple[str, str, str]] | None = None,
+                              representative_key: tuple[str, str, str] | None = None,
+                              threshold: float = 0.99) -> dict:
         values = tuple(float(value) for value in representative_vector)
         if len(values) != scheme.metadata.dimensions:
             raise EmbeddingContractError("representative vector dimension does not match scheme")
@@ -203,15 +206,30 @@ class PostgresVectorStore:
                     )
                     count, incomplete, malformed = cursor.fetchone()
                     cursor.execute(
-                        "SELECT count(*) FROM (SELECT 1 FROM indexed_chunks WHERE scheme_identity=%s "
-                        "AND status='stored' ORDER BY vector <=> %s::vector LIMIT 1) representative",
-                        (scheme.identity, _vector_literal(values)),
+                        "SELECT document_id, document_version, chunk_id FROM indexed_chunks "
+                        "WHERE scheme_identity=%s AND status='stored'",
+                        (scheme.identity,),
                     )
-                    has_representative = cursor.fetchone()[0] == 1
+                    actual_keys = {tuple(row) for row in cursor.fetchall()}
+                    expected_key_set = set(expected_keys) if expected_keys is not None else None
+                    identities_valid = expected_key_set is None or actual_keys == expected_key_set
+                    selected_key = representative_key or (next(iter(expected_key_set)) if expected_key_set else None)
+                    cursor.execute(
+                        "SELECT document_id, document_version, chunk_id, "
+                        "1 - (vector <=> %s::vector) AS score FROM indexed_chunks "
+                        "WHERE scheme_identity=%s AND status='stored' ORDER BY vector <=> %s::vector LIMIT 1",
+                        (_vector_literal(values), scheme.identity, _vector_literal(values)),
+                    )
+                    representative = cursor.fetchone()
+                    has_representative = representative is not None
+                    representative_valid = has_representative and float(representative[3]) >= threshold
+                    if selected_key is not None:
+                        representative_valid = representative_valid and tuple(representative[:3]) == tuple(selected_key)
                     report = {"expected_count": expected_count, "actual_count": count,
                               "incomplete_count": incomplete, "dimension_errors": malformed,
-                              "representative_retrieval": has_representative}
-                    if count != expected_count or incomplete or malformed or not has_representative:
+                              "identities_valid": identities_valid,
+                              "representative_retrieval": representative_valid}
+                    if count != expected_count or incomplete or malformed or not identities_valid or not representative_valid:
                         raise ValueError(f"index validation failed: {report}")
                     cursor.execute("UPDATE index_registry SET is_active=false WHERE is_active")
                     cursor.execute(
@@ -313,6 +331,14 @@ class PostgresVectorStore:
         values = tuple(float(value) for value in vector)
         if len(values) != scheme.metadata.dimensions:
             raise EmbeddingContractError("query vector dimension does not match scheme")
+        import math
+        if not all(math.isfinite(value) for value in values):
+            raise EmbeddingContractError("query vector values must be finite")
+        magnitude = math.sqrt(sum(value * value for value in values))
+        if magnitude == 0:
+            raise EmbeddingContractError("query vector must be nonzero for cosine search")
+        if scheme.metadata.normalization == "unit" and abs(magnitude - 1.0) > 1e-6:
+            raise EmbeddingContractError("query vector does not satisfy unit normalization policy")
         if limit <= 0:
             raise ValueError("limit must be positive")
         connection = self._connection()

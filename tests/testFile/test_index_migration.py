@@ -16,7 +16,7 @@ class IndexMigrationTests(unittest.TestCase):
         ))
         self.registry.register(self.old)
         self.registry.seed(self.old, ["a", "b"], [[1, 0, 0], [0, 1, 0]])
-        self.registry.activate(self.old, lambda report: report.valid)
+        self.registry.activate(self.old, lambda report: report.valid, expected_keys={"a", "b"})
 
     def test_failed_validation_keeps_old_active_and_success_switches_retaining_old(self):
         self.registry.register(self.new)
@@ -35,7 +35,7 @@ class IndexMigrationTests(unittest.TestCase):
             self.registry.delete(self.old)
         self.registry.register(self.new)
         self.registry.seed(self.new, ["a", "b"], [[1, 0, 0], [0, 1, 0]])
-        self.registry.activate(self.new, lambda report: report.valid)
+        self.registry.activate(self.new, lambda report: report.valid, expected_keys={"a", "b"})
         self.registry.delete(self.old)
         self.assertNotIn(self.old.identity, self.registry.schemes)
 
@@ -43,7 +43,15 @@ class IndexMigrationTests(unittest.TestCase):
         self.registry.register(self.new)
         self.registry.seed(self.new, ["wrong-a", "wrong-b"], [[1, 0, 0], [0, 1, 0]])
         with self.assertRaises(indexing.IndexValidationError):
-            self.registry.activate(self.new, lambda report: report.valid)
+            self.registry.activate(self.new, lambda report: report.valid, expected_keys={"a", "b"})
+
+    def test_initial_activation_requires_identity_manifest(self):
+        registry = indexing.InMemoryIndexRegistry()
+        registry.register(self.new)
+        registry.seed(self.new, ["unexpected"], [[1, 0, 0]])
+        with self.assertRaises(indexing.IndexValidationError):
+            registry.activate(self.new)
+        registry.activate(self.new, expected_keys={"unexpected"})
 
     def test_invalid_vectors_are_rejected_during_build(self):
         self.registry.register(self.new)

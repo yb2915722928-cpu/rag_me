@@ -25,6 +25,10 @@ class EmbeddingBatchResult:
     items: tuple[EmbeddedItem, ...]
 
 
+def validate_query_vector(vector: Sequence[float], adapter: EmbeddingAdapter) -> tuple[float, ...]:
+    return _validate_vector(vector, adapter)
+
+
 def _validate_vector(vector: Sequence[float], adapter: EmbeddingAdapter) -> tuple[float, ...]:
     if len(vector) != adapter.metadata.dimensions:
         raise EmbeddingContractError(
@@ -86,11 +90,17 @@ def embed_texts(
             vectors = adapter.embed([texts[index] for index in indexes])
             if len(vectors) != len(indexes):
                 raise EmbeddingContractError("adapter returned a different number of vectors than inputs")
-            for index, vector in zip(indexes, vectors):
-                staged[index] = EmbeddedItem(str(index), texts[index], "embedded", _validate_vector(vector, adapter), updated_at=datetime.now(timezone.utc))
         except Exception as error:
             for index in indexes:
                 staged[index] = EmbeddedItem(str(index), texts[index], "failed", error_code="EMBEDDING_FAILED", reason=str(error), updated_at=datetime.now(timezone.utc))
+            continue
+        for index, vector in zip(indexes, vectors):
+            try:
+                validated = _validate_vector(vector, adapter)
+            except Exception as error:
+                staged[index] = EmbeddedItem(str(index), texts[index], "failed", error_code="EMBEDDING_FAILED", reason=str(error), updated_at=datetime.now(timezone.utc))
+            else:
+                staged[index] = EmbeddedItem(str(index), texts[index], "embedded", validated, updated_at=datetime.now(timezone.utc))
     return EmbeddingBatchResult(tuple(item for item in staged if item is not None))
 
 

@@ -99,11 +99,17 @@ class InMemoryIndexRegistry:
             raise IndexValidationError(f"index validation failed for {scheme.identity}: {report}")
         return report
 
-    def activate(self, scheme: IndexSchemeVersion, validator: Callable[[ValidationReport], bool] | None = None) -> None:
-        expected_keys = None
-        if self._active is not None and self._active != scheme.identity:
+    def activate(self, scheme: IndexSchemeVersion, validator: Callable[[ValidationReport], bool] | None = None,
+                 *, expected_keys: set[str] | None = None,
+                 representative_key: str | None = None,
+                 representative_vector: Sequence[float] | None = None) -> None:
+        if expected_keys is None and self._active is not None and self._active != scheme.identity:
             expected_keys = {key for key, _ in self._items.get(self._active, [])}
-        report = self.validate(scheme, expected_keys=expected_keys)
+        if expected_keys is None and self._active is None:
+            raise IndexValidationError("expected_keys manifest is required for initial activation")
+        report = self.validate(scheme, expected_keys=expected_keys,
+                               representative_key=representative_key,
+                               representative_vector=representative_vector)
         if validator is not None and not validator(report):
             raise IndexValidationError(f"index validation rejected {scheme.identity}")
         self._active = scheme.identity
