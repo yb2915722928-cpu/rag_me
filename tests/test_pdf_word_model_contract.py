@@ -9,7 +9,7 @@ import unittest
 
 
 BASE = "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
-HANDOFF = "app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff"
+HANDOFF = "app.modules.1_documentIngestionAndParsing.unifiedDocumentHandoff"
 content = import_module(BASE)
 handoff = import_module(HANDOFF)
 SAMPLES = Path(__file__).parent / "testFile"

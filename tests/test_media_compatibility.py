@@ -77,7 +77,7 @@ class MediaResultCompatibilityTests(unittest.TestCase):
         self.new = import_module(NEW_MEDIA)
         self.ingestion = import_module("app.modules.1_documentIngestionAndParsing")
         self.handoff = import_module(
-            "app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff",
+            "app.modules.1_documentIngestionAndParsing.unifiedDocumentHandoff",
         )
         self.path = SAMPLES / "video_extra_delayed.mp4"
         self.identity = {"business_id": "培训业务", "version": "业务三"}

@@ -40,7 +40,7 @@ def _convert(entry, value, format, source, business_id, version, options):
         if format is None:
             format = value.suffix
     parser, format = _parser(format)
-    handoff = import_module(".9_unifiedOutputAndChunkingHandoff.dispatch", __name__)
+    handoff = import_module(".unifiedDocumentHandoff.dispatch", __name__)
     validate_identity(business_id, version)
     if format != "zip":
         options["format"] = format
