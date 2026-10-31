@@ -4,6 +4,7 @@ from importlib import import_module
 from pathlib import Path
 
 from .exports import export_json
+from .identity import validate_identity
 
 
 __all__ = ["convert_file", "convert_bytes", "export_json"]
@@ -52,13 +53,13 @@ def _convert(entry, value, format, source, business_id, version, options):
         if format is None:
             format = value.suffix
     parser, format = _parser(format)
-    handoff = import_module(".9_unifiedOutputAndChunkingHandoff", __name__)
-    handoff._validate_identity(business_id, version)
+    handoff = import_module(".9_unifiedOutputAndChunkingHandoff.dispatch", __name__)
+    validate_identity(business_id, version)
     if format != "zip":
         options["format"] = format
     native = getattr(parser, entry)(value, source=source, **options)
-    return handoff._adapt_result(
-        native, handoff.IdAllocator(), business_id=business_id, version=version,
+    return handoff.adapt_validated_result(
+        native, business_id=business_id, version=version,
     )
 
 

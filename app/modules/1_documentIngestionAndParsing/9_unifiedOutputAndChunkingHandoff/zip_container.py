@@ -8,12 +8,10 @@ ZipResult = import_module("..8_zipContainers", __package__).ZipResult
 
 
 def adapt_zip(
-    result: ZipResult, ids: IdAllocator, *,
+    result: ZipResult, ids: IdAllocator, *, adapt_member,
     business_id: str | None = None, version: str | None = None,
 ) -> HandoffReport:
     """成员使用同一静态分派；容器业务身份不传给成员文档。"""
-    from . import _adapt_result
-
     report = HandoffReport(result.status, metadata={
         "container": {
             "source": result.source, "business_id": business_id, "version": version,
@@ -32,7 +30,7 @@ def adapt_zip(
         }
         report.metadata["members"].append(record)
         if member.result is not None:
-            child = _adapt_result(member.result, ids)
+            child = adapt_member(member.result, ids)
             report.documents.extend(child.documents)
             report.diagnostics.extend(child.diagnostics)
             record["document_ids"] = [document.id for document in child.documents]
