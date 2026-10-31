@@ -23,7 +23,7 @@ SAMPLES = Path(__file__).parent / "testFile"
 class DocumentIngestionTests(unittest.TestCase):
     def assert_complete_reports_equal(self, reports):
         expected = reports[0].to_dict()
-        with TemporaryDirectory() as directory:
+        with TemporaryDirectory(dir=SAMPLES) as directory:
             for index, report in enumerate(reports):
                 with self.subTest(entry=index):
                     self.assertEqual(report.to_dict(), expected)
