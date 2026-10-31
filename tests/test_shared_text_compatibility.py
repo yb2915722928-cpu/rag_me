@@ -12,6 +12,14 @@ class SharedTextCompatibilityTests(unittest.TestCase):
 
         self.assertIs(existing.decode_bytes, shared.decode_bytes)
 
+    def test_existing_json_module_reexports_shared_functions(self):
+        existing = import_module(ROOT + ".2_textAndWebContent.json_content")
+        shared = import_module(ROOT + ".text_support")
+
+        for name in ("convert_json", "load_json", "render_json"):
+            with self.subTest(function=name):
+                self.assertIs(getattr(existing, name), getattr(shared, name))
+
 
 if __name__ == "__main__":
     unittest.main()
