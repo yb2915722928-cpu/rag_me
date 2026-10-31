@@ -25,7 +25,7 @@ FORMAT_ROUTES = {
         ("5_presentationsAndStructuredDocuments", "5_presentationsAndStructuredDocuments", "structured",
          ("json", "xml")),
         ("6_imageProcessing", "8_zipContainers.image_api", "image", ("png", "jpg", "jpeg", "webp")),
-        ("7_audioAndVideoProcessing", "8_zipContainers.media_api", "media",
+        ("audioTranscriptionAndVideoUnderstanding", "8_zipContainers.media_api", "media",
          ("wav", "mp3", "m4a", "ogg", "flac", "mp4", "mov", "mkv")),
         ("8_zipContainers", None, None, ("zip",)),
     )

@@ -165,7 +165,7 @@ class DocumentIngestionTests(unittest.TestCase):
                     path.read_bytes(), format="wav", source="录音", task="transcribe", config=config,
                 ),
                 handoff.adapt_result(import_module(
-                    ingestion.__name__ + ".7_audioAndVideoProcessing",
+                    ingestion.__name__ + ".audioTranscriptionAndVideoUnderstanding",
                 ).convert_file(path, source="录音", task="transcribe", config=config)),
             )
         self.assertEqual(len(requests), 3)

@@ -20,7 +20,7 @@ import wave
 from tests.image_test_support import image_server
 
 
-media = importlib.import_module("app.modules.1_documentIngestionAndParsing.7_audioAndVideoProcessing")
+media = importlib.import_module("app.modules.1_documentIngestionAndParsing.audioTranscriptionAndVideoUnderstanding")
 SAMPLES = Path(__file__).parent / "testFile"
 MANIFEST = json.loads((SAMPLES / "media_constructed.json").read_text(encoding="utf-8"))
 QUESTION = MANIFEST["question"]
@@ -275,7 +275,7 @@ class AudioVideoTests(unittest.TestCase):
             env_file = Path(directory) / ".env"
             env_file.write_text(f"STEP_API_KEY=test-key\nSTEP_BASE_URL={config.base_url}\n", encoding="utf-8")
             environment = {k: v for k, v in os.environ.items() if not k.startswith("STEP_")}
-            command = [os.sys.executable, "-m", media.__name__, str(SAMPLES / "media_rules.wav"),
+            command = [os.sys.executable, "-m", "app.modules.1_documentIngestionAndParsing.audioTranscriptionAndVideoUnderstanding", str(SAMPLES / "media_rules.wav"),
                        "--task", "transcribe", "--env-file", str(env_file)]
             run = subprocess.run(command, capture_output=True, encoding="utf-8", env=environment, check=False)
         self.assertEqual(run.returncode, 0, run.stderr)
