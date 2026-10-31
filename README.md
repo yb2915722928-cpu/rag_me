@@ -27,6 +27,20 @@ ingestion.export_json(report, "handoff.json")
 
 字节输入使用 `convert_bytes(data, format="json", source="upload.json")`。两种入口均返回既有统一报告，保留正文、结构、来源与诊断；格式专属选项原样传入。图片与音视频仍须明确指定任务，ZIP 保留整包状态及成员清单。原生解析与独立交接入口继续可用。原生 PDF/DOCX、媒体与交接的新代码分别使用 [pdfAndDocxExtraction](app/modules/1_documentIngestionAndParsing/pdfAndDocxExtraction/README.md)、[audioTranscriptionAndVideoUnderstanding](app/modules/1_documentIngestionAndParsing/audioTranscriptionAndVideoUnderstanding/README.md) 和 [unifiedDocumentHandoff](app/modules/1_documentIngestionAndParsing/unifiedDocumentHandoff/README.md)。三个旧目录及其已有子模块保留薄兼容入口，新旧路径共用实现、类型和原有默认值；旧媒体 CLI 继续可用。
 
+## 从文件直接取得统一输出
+
+[文档接入与解析模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/README.md)提供顶层入口，集中完成格式选择、解析和统一交接：
+
+```python
+from importlib import import_module
+
+ingestion = import_module("app.modules.1_documentIngestionAndParsing")
+report = ingestion.convert_file("manual.docx", business_id="manual", version="v2")
+ingestion.export_json(report, "handoff.json")
+```
+
+字节输入使用 `convert_bytes(data, format="json", source="upload.json")`。两种入口均返回既有统一报告，保留正文、结构、来源与诊断；格式专属选项原样传入。图片与音视频仍须明确指定任务，ZIP 保留整包状态及成员清单。原生解析与独立交接入口继续可用。
+
 ## 转换与导出
 
 目录名包含数字前缀，使用 `importlib.import_module` 取得[公开接口](app/modules/1_documentIngestionAndParsing/2_textAndWebContent/__init__.py)：
