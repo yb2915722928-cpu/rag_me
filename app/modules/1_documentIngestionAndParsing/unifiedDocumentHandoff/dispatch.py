@@ -1,13 +1,37 @@
-"""Static native-result dispatch and handoff orchestration."""
+"""Nominal native-result dispatch without initializing unrelated parsers."""
+from __future__ import annotations
+
+from importlib import import_module
+import sys
 
 from ..identity import validate_identity
 from .models import HandoffReport, IdAllocator
-from .text_web import TextWebResult, adapt_text_web
-from .documents import HostedDocumentResult, PdfWordResult, adapt_hosted_document, adapt_pdf_word
-from .tables import TableResult, adapt_tables
-from .derived import ImageResult, MediaResult, adapt_image, adapt_media
-from .structured import StructuredResult, adapt_structured
-from .zip_container import ZipResult, adapt_zip
+
+
+_PARSER_PACKAGE = __package__.rsplit(".", 1)[0]
+# Keep the original isinstance precedence, including multiple-inheritance results.
+# Native results already have their defining module loaded; importing a model leaf
+# here would also execute its parser's initializer and load unrelated dependencies.
+_NATIVE_RESULTS = (
+    ("TextWebResult", "2_textAndWebContent", "ConversionResult", "text_web", "adapt_text_web"),
+    ("PdfWordResult", "pdfAndDocxExtraction.models", "ConversionResult", "documents", "adapt_pdf_word"),
+    ("HostedDocumentResult", "hosted_documents", "DocumentResult", "hosted_documents", "adapt_hosted_document"),
+    ("TableResult", "4_tabularFileProcessing.models", "ConversionResult", "tables", "adapt_tables"),
+    ("StructuredResult", "5_presentationsAndStructuredDocuments.models", "ConversionResult", "structured", "adapt_structured"),
+    ("ImageResult", "6_imageProcessing.models", "ConversionResult", "derived", "adapt_image"),
+    ("MediaResult", "audioTranscriptionAndVideoUnderstanding.models", "ConversionResult", "derived", "adapt_media"),
+    ("ZipResult", "8_zipContainers.models", "ZipResult", "zip_container", "adapt_zip"),
+)
+
+
+def __getattr__(name):
+    """Resolve existing explicit type/adapter imports only when callers ask for them."""
+    for alias, native_module, native_name, adapter_module, adapter_name in _NATIVE_RESULTS:
+        if name == alias:
+            return getattr(import_module(".." + native_module, __package__), native_name)
+        if name == adapter_name:
+            return getattr(import_module("." + adapter_module, __package__), adapter_name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def adapt_result(
@@ -29,21 +53,13 @@ def adapt_validated_result(result, *, business_id=None, version=None) -> Handoff
 
 def _adapt_result(result, ids: IdAllocator, *, business_id=None, version=None) -> HandoffReport:
     """容器成员复用静态分派与同一个分配器，业务身份只属于当前输入。"""
-    if isinstance(result, TextWebResult):
-        return adapt_text_web(result, ids, business_id=business_id, version=version)
-    if isinstance(result, PdfWordResult):
-        return adapt_pdf_word(result, ids, business_id=business_id, version=version)
-    if isinstance(result, HostedDocumentResult):
-        return adapt_hosted_document(result, ids, business_id=business_id, version=version)
-    if isinstance(result, TableResult):
-        return adapt_tables(result, ids, business_id=business_id, version=version)
-    if isinstance(result, StructuredResult):
-        return adapt_structured(result, ids, business_id=business_id, version=version)
-    if isinstance(result, ImageResult):
-        return adapt_image(result, ids, business_id=business_id, version=version)
-    if isinstance(result, MediaResult):
-        return adapt_media(result, ids, business_id=business_id, version=version)
-    if isinstance(result, ZipResult):
-        return adapt_zip(result, ids, adapt_member=_adapt_result,
-                         business_id=business_id, version=version)
+    for alias, native_module, native_name, adapter_module, adapter_name in _NATIVE_RESULTS:
+        module = sys.modules.get(_PARSER_PACKAGE + "." + native_module)
+        if module is None or not isinstance(result, getattr(module, native_name)):
+            continue
+        adapter = getattr(import_module("." + adapter_module, __package__), adapter_name)
+        if alias == "ZipResult":
+            return adapter(result, ids, adapt_member=_adapt_result,
+                           business_id=business_id, version=version)
+        return adapter(result, ids, business_id=business_id, version=version)
     raise TypeError(f"Unsupported result type: {type(result).__name__}")

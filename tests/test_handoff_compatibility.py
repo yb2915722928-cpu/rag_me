@@ -1,5 +1,4 @@
 """Public import and report contracts for canonical and legacy handoff paths."""
-from importlib import import_module
 import json
 from pathlib import Path
 import subprocess

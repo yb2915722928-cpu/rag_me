@@ -2,6 +2,8 @@
 
 通过统一公开入口 `adapt_result(native_result, business_id=None, version=None)` 接收第6节图片或第7节音视频的原生 `ConversionResult`，再使用 `export_json(report, path)` 导出 UTF-8 JSON。适配不读原文件、不重新解析、不调用 API，也不修改原结果。
 
+图片与媒体共用的 [derived.py](derived.py) 不会在导入时初始化这两类解析器。图片结果交接不加载媒体解析器，媒体结果交接不加载图片解析器或 Pillow；原有 `ImageResult`、`MediaResult` 别名仅在显式读取时加载各自的真实类型。
+
 ## 正文、单元与来源
 
 正文使用上游完整 `text`，`body_format="text"`。媒体正文包含上游已生成的时间及模态标记，不能以片段单元重新拼接替代。`content`、`no_text`、`uncertain`、`failed` 保持原状态；正常空文字为 `""`，失败正文为 `null` 且没有内容单元。

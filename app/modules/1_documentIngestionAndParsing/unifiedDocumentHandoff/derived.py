@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 from dataclasses import asdict
 from importlib import import_module
 
 from .models import ContentUnit, Diagnostic, Document, HandoffReport, IdAllocator, Source
 
 
-ImageResult = import_module("..6_imageProcessing", __package__).ConversionResult
-MediaResult = import_module("..audioTranscriptionAndVideoUnderstanding", __package__).ConversionResult
+def __getattr__(name):
+    if name == "ImageResult":
+        return import_module("..6_imageProcessing.models", __package__).ConversionResult
+    if name == "MediaResult":
+        return import_module("..audioTranscriptionAndVideoUnderstanding.models", __package__).ConversionResult
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def adapt_image(

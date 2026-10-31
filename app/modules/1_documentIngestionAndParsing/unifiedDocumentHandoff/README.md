@@ -20,6 +20,8 @@ print(document.body, document.units, document.sources, document.diagnostics)
 
 旧包 `9_unifiedOutputAndChunkingHandoff` 及其全部已有子模块继续作为薄兼容入口，公开函数和模型与本包共用一份实现；新代码使用 `unifiedDocumentHandoff`。本包只执行交接适配，不执行检索切分。
 
+[#62](https://github.com/yb2915722928-cpu/rag_me/issues/62) 将交接实现迁至本包，并按原生结果的真实类型延迟加载对应适配器。真实类型的外部子类继续受支持；多继承结果仍按文本、PDF/DOCX、托管文档、表格、结构化、图片、媒体、ZIP 的原有次序分派。仅有同名或相似字段的对象不被接受。真实文本转换及交接不会初始化其他格式的解析器；依赖仍按项目完整依赖安装，显式读取某个原生类型别名会加载该类型所属的解析器。
+
 ## 结果约定
 
 一份报告包含零到多份独立文档。每份文档的 body 保存完整原正文，body_format 区分 Markdown 与普通派生文字；units 是交给后续处理的内容单位，不能直接当作已经完成的最终检索块。sources 给出实际来源，diagnostics 与正文分开，structure 和 metadata 保留原生结构与上下文。

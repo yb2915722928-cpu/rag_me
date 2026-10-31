@@ -1,15 +1,22 @@
+from __future__ import annotations
+
 from dataclasses import asdict
 from importlib import import_module
 
-from ..hosted_documents import DocumentResult as HostedDocumentResult
 from .diagnostics import _upstream_diagnostics
-from .hosted_documents import adapt_hosted_document
 from .models import (
     BodySpan, ContentUnit, Document, HandoffReport, IdAllocator, Source,
 )
 
 
-PdfWordResult = import_module("..pdfAndDocxExtraction.models", __package__).ConversionResult
+def __getattr__(name):
+    if name == "PdfWordResult":
+        return import_module("..pdfAndDocxExtraction.models", __package__).ConversionResult
+    if name == "HostedDocumentResult":
+        return import_module("..hosted_documents", __package__).DocumentResult
+    if name == "adapt_hosted_document":
+        return import_module(".hosted_documents", __package__).adapt_hosted_document
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def adapt_pdf_word(

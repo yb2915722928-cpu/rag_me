@@ -1,7 +1,7 @@
 # PDF、DOCX 与托管文档交接
 
-任务 [#47](https://github.com/yb2915722928-cpu/rag_me/issues/47) 的适配实现见
-[documents.py](documents.py)。
+任务 [#47](https://github.com/yb2915722928-cpu/rag_me/issues/47) 的原生 PDF/DOCX 适配实现见
+[documents.py](documents.py)，托管结果适配见独立的 [hosted_documents.py](hosted_documents.py)。托管结果直接选择该叶模块，不初始化原生 PDF/DOCX 解析器；原有 `documents.adapt_hosted_document` 与类型别名仍可显式读取。
 通过模块[公开入口](__init__.py)接收：
 
 - 第 3 节的 PDF/DOCX `ConversionResult`，包括上游已经完成的 OCR 结果。
