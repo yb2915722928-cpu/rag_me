@@ -1,0 +1,191 @@
+from importlib import import_module
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+import unittest
+
+from tests.test_audio_video import TRANSCRIPT, media_server
+from tests.test_image_ocr import RULES, step_server
+from tests.zip_document_support import SERVICE_MARKDOWN, document_server
+
+
+ingestion = import_module("app.modules.1_documentIngestionAndParsing")
+SAMPLES = Path(__file__).parent / "testFile"
+
+
+class DocumentIngestionTests(unittest.TestCase):
+    def test_local_formats_keep_their_content_and_structure_through_both_entries(self):
+        cases = (
+            ("txt_gb18030.txt", "document", "长江流经武汉"),
+            ("md_list_fence.md", "document", "first  value"),
+            ("html_table_pipe.html", "document", "普通文字中的管道"),
+            ("mhtml_start_shorter.mhtml", "document", "Start chooses this shorter page."),
+            ("pdf_digital_page_order.pdf", "pdf_page", "Printed page 41"),
+            ("docx_sections.docx", "paragraph", None),
+            ("csv_travel.csv", "table_row", None),
+            ("xlsx_travel.xlsx", "table_row", None),
+            ("pptx_refund.pptx", "slide", None),
+            ("structured_json_pointers.json", "json_node", None),
+            ("xml_refund_rules.xml", "xml_element", None),
+        )
+        for filename, kind, evidence in cases:
+            path = SAMPLES / filename
+            reports = (
+                ingestion.convert_file(path, source="资料", business_id="规则", version="v2"),
+                ingestion.convert_bytes(
+                    path.read_bytes(), format=path.suffix, source="资料",
+                    business_id="规则", version="v2",
+                ),
+            )
+            with self.subTest(filename=filename):
+                self.assertEqual(reports[0].to_dict(), reports[1].to_dict())
+                report = reports[0]
+                self.assertEqual(report.status, "success", report.to_dict())
+                document = report.documents[0]
+                self.assertEqual((document.business_id, document.version), ("规则", "v2"))
+                self.assertEqual(document.sources[0].locator["location"], "资料")
+                self.assertIn(kind, {unit.kind for unit in document.units})
+                self.assertTrue(document.body)
+                if evidence is not None:
+                    self.assertIn(evidence, document.body)
+
+    def test_explicit_format_and_parser_options_override_the_filename(self):
+        report = ingestion.convert_file(
+            SAMPLES / "structured_json_override.txt", format=" .JSON ", encoding="utf-8",
+        )
+        self.assertEqual(report.status, "success")
+        self.assertTrue(all(unit.kind == "json_node" for unit in report.documents[0].units))
+
+        report = ingestion.convert_bytes(
+            "姓名;城市\n小明;武汉".encode("gb18030"), format=" .CSV ", source="表格",
+            delimiter=";", encoding="gb18030", mode="rows",
+        )
+        self.assertEqual(report.status, "success")
+        self.assertIn("武汉", report.documents[0].units[0].text)
+        self.assertEqual(report.documents[0].metadata["encoding"], "gb18030")
+
+    def test_format_aliases_reach_the_expected_parser(self):
+        for format, filename in (
+            ("markdown", "md_list_fence.md"), ("htm", "html_table_pipe.html"),
+            ("mht", "mhtml_start_shorter.mhtml"),
+        ):
+            with self.subTest(format=format):
+                report = ingestion.convert_bytes(
+                    (SAMPLES / filename).read_bytes(), format=format, source="上传",
+                )
+                self.assertEqual(report.status, "success")
+                self.assertTrue(report.documents[0].body)
+
+    def test_native_failures_remain_exportable_reports_without_content_units(self):
+        reports = (
+            ingestion.convert_file(SAMPLES / "missing-file.txt"),
+            ingestion.convert_bytes(b"{", format="json", source="broken.json"),
+            ingestion.convert_bytes("not bytes", format="txt", source="wrong.txt"),
+            ingestion.convert_bytes(b"text", format="txt", source=""),
+            ingestion.convert_bytes(b"bad image", format="png", source="bad.png", task="ocr"),
+        )
+        with TemporaryDirectory() as directory:
+            output = Path(directory) / "失败.json"
+            for report in reports:
+                with self.subTest(report=report.to_dict()):
+                    self.assertEqual(report.status, "failed")
+                    document = report.documents[0]
+                    self.assertIsNone(document.body)
+                    self.assertEqual(document.units, [])
+                    self.assertTrue(any(item.level == "error" for item in document.diagnostics))
+                    ingestion.export_json(report, output)
+                    self.assertEqual(json.loads(output.read_bytes()), report.to_dict())
+
+    def test_unsupported_format_and_unknown_options_raise_before_file_io(self):
+        for format in (None, "", "   ", "exe", 123):
+            with self.subTest(format=format), self.assertRaises(ValueError):
+                ingestion.convert_bytes(b"", format=format, source="upload")
+        with self.assertRaisesRegex(ValueError, "Unsupported format"):
+            ingestion.convert_file(SAMPLES / "missing.exe")
+        with self.assertRaises(TypeError):
+            ingestion.convert_file(SAMPLES / "missing.txt", unrecognized_option=True)
+
+    def test_invalid_identity_is_rejected_before_any_model_request(self):
+        with step_server() as config:
+            for identity in ({"business_id": " "}, {"version": 123}):
+                with self.subTest(identity=identity), self.assertRaises((TypeError, ValueError)):
+                    ingestion.convert_file(
+                        SAMPLES / "image_ocr_rules.png", task="ocr", config=config, **identity,
+                    )
+        with document_server() as service:
+            with self.assertRaises(ValueError):
+                ingestion.convert_file(
+                    SAMPLES / "zip_document_pdf.zip", version="",
+                    parser_options={"document": {"mineru": service.config}},
+                )
+        self.assertEqual(service.requests, [])
+        self.assertEqual(service.uploads, [])
+
+    def test_images_keep_derived_text_and_review_state(self):
+        with step_server() as config:
+            path = SAMPLES / "image_ocr_rules.png"
+            reports = (
+                ingestion.convert_file(path, source="规则图", task="ocr", config=config),
+                ingestion.convert_bytes(
+                    path.read_bytes(), format="png", source="规则图", task="ocr", config=config,
+                ),
+            )
+        self.assertEqual(reports[0].to_dict(), reports[1].to_dict())
+        document = reports[0].documents[0]
+        self.assertEqual(document.body, RULES)
+        self.assertEqual(document.units[0].kind, "ocr")
+        self.assertTrue(document.requires_review)
+
+    def test_media_keeps_segment_sources_through_file_and_byte_entries(self):
+        path = SAMPLES / "media_rules.wav"
+        with media_server() as (config, requests):
+            reports = (
+                ingestion.convert_file(path, source="录音", task="transcribe", config=config),
+                ingestion.convert_bytes(
+                    path.read_bytes(), format="wav", source="录音", task="transcribe", config=config,
+                ),
+            )
+        self.assertEqual(len(requests), 2)
+        self.assertEqual(reports[0].to_dict(), reports[1].to_dict())
+        self.assertEqual(reports[0].status, "content")
+        document = reports[0].documents[0]
+        self.assertIn(TRANSCRIPT, document.body)
+        self.assertTrue(document.requires_review)
+        self.assertEqual(document.units[0].alignment, "unmapped")
+        source = next(item for item in document.sources if item.kind == "media_segment")
+        self.assertEqual(source.locator["time_precision"], "segment")
+        self.assertEqual(source.locator["start_seconds"], 0)
+        self.assertGreater(source.locator["end_seconds"], 0)
+
+    def test_zip_preserves_partial_success_inventory_and_container_identity(self):
+        path = SAMPLES / "zip_members.zip"
+        reports = (
+            ingestion.convert_file(path, source="资料包", business_id="集合", version="v2"),
+            ingestion.convert_bytes(
+                path.read_bytes(), format=" .ZIP ", source="资料包",
+                business_id="集合", version="v2",
+            ),
+        )
+        self.assertEqual(reports[0].to_dict(), reports[1].to_dict())
+        report = reports[0]
+        self.assertEqual(report.status, "partial_success")
+        self.assertEqual(report.metadata["container"]["business_id"], "集合")
+        self.assertTrue(report.metadata["members"])
+        for document in report.documents:
+            self.assertIsNone(document.business_id)
+            self.assertIsNone(document.version)
+
+    def test_zip_still_uses_hosted_documents(self):
+        with document_server() as service:
+            report = ingestion.convert_file(
+                SAMPLES / "zip_document_pdf.zip",
+                parser_options={"document": {"mineru": service.config}},
+            )
+        self.assertEqual(report.status, "success", report.to_dict())
+        self.assertEqual(len(service.requests), 1)
+        self.assertEqual(report.documents[0].body, SERVICE_MARKDOWN)
+        self.assertTrue(report.documents[0].requires_review)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,5 +1,4 @@
-import json
-from pathlib import Path
+from .. import export_json
 
 from .models import (
     BodySpan, ContentUnit, Diagnostic, Document, HandoffReport, IdAllocator, Source,
@@ -58,11 +57,3 @@ def _validate_identity(business_id, version):
             raise TypeError(f"{name} must be a nonempty string or None")
         if not value.strip():
             raise ValueError(f"{name} must be a nonempty string or None")
-
-
-def export_json(report: HandoffReport, path) -> Path:
-    """包括失败报告在内均可导出；写入异常按普通 I/O 错误向调用方传播。"""
-    data = json.dumps(report.to_dict(), ensure_ascii=False, indent=2)
-    path = Path(path)
-    path.write_bytes((data + "\n").encode("utf-8"))
-    return path
