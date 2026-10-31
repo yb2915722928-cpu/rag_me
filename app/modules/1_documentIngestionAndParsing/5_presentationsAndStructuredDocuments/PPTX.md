@@ -1,6 +1,6 @@
 # PPTX 演示页归属与待核验关系
 
-使用固定依赖 `python-pptx==1.0.2` 在本地提取实际幻灯片对象和演讲者备注，不需要安装 PowerPoint，也不上传资料。文件、字节与导出调用及共享结果见 [模块说明](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/README.md)。旧版 PPT 和 PPTX 文本编码选项明确拒绝。
+使用固定依赖 `python-pptx==1.0.2` 在本地提取实际幻灯片对象和演讲者备注，不需要安装 PowerPoint，也不上传资料。文件、字节与导出调用及共享结果见 [模块说明](README.md)。旧版 PPT 和 PPTX 文本编码选项明确拒绝。
 
 ```python
 from importlib import import_module
@@ -26,7 +26,7 @@ else:
 
 ## 提取与来源
 
-[PPTX 提取实现](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/pptx_content.py) 按原页序输出页标识，保留真实标题、独立文本对象、原段落顺序与层级，以及每页讲者备注占位符中的文字。无标题页不根据首段编造标题。文本中的 Markdown/HTML 符号按输出语境转义，软换行保留为 `<br>`。
+[PPTX 提取实现](pptx_content.py) 按原页序输出页标识，保留真实标题、独立文本对象、原段落顺序与层级，以及每页讲者备注占位符中的文字。无标题页不根据首段编造标题。文本中的 Markdown/HTML 符号按输出语境转义，软换行保留为 `<br>`。
 
 普通表格使用 HTML 的 `table`、`tr`、`td` 保留行列与文本；合并起始单元格保留 `rowspan`、`colspan`，被覆盖的格不重复输出。不把第一行臆定为表头，不把原文中的 HTML 当成标签。
 
@@ -66,7 +66,7 @@ else:
 
 ## 固定验收与依据
 
-[公开测试](/E:/aaa-project/rag-me/tests/test_presentations_pptx.py) 验证原第 8 页退款条件与备注、反向创建的左右栏、组合内坐标、表格与跨度、转义、视觉对象、空包、两种末页损坏、解压错误及导出。只读取已保存的固定文件，不使用模型回答；[构造脚本](/E:/aaa-project/rag-me/tests/testFile/build_pptx_samples.py) 和 [来源说明](/E:/aaa-project/rag-me/tests/testFile/constructed-pptx.md) 支持重建。
+[公开测试](../../../../tests/test_presentations_pptx.py) 验证原第 8 页退款条件与备注、反向创建的左右栏、组合内坐标、表格与跨度、转义、视觉对象、空包、两种末页损坏、解压错误及导出。只读取已保存的固定文件，不使用模型回答；[构造脚本](../../../../tests/testFile/build_pptx_samples.py) 和 [来源说明](../../../../tests/testFile/constructed-pptx.md) 支持重建。
 
 教学退款样本不代表真实企业资料已经核验，也不证明下游检索问答效果。
 

@@ -32,8 +32,8 @@
 
 通过公开 convert_file／convert_bytes 读取固定真实 XLSX，不直接测试内部格式化函数。覆盖整表和按行两种表示、结构化元数据、来源、独立警告及入口等价性。
 
-- [独立行为测试](/E:/aaa-project/rag-me/tests/test_tabular_xlsx_values.py)
-- [样本构造及固定期望说明](/E:/aaa-project/rag-me/tests/testFile/xlsx_values_constructed.md)
-- [评审回归样本说明](/E:/aaa-project/rag-me/tests/testFile/xlsx_review_constructed.md)
+- [独立行为测试](../../../../tests/test_tabular_xlsx_values.py)
+- [样本构造及固定期望说明](../../../../tests/testFile/xlsx_values_constructed.md)
+- [评审回归样本说明](../../../../tests/testFile/xlsx_review_constructed.md)
 
 运行 `python -m unittest tests.test_tabular_xlsx_values tests.test_tabular_xlsx tests.test_tabular_csv -v`；默认回归沿用 `python -m unittest discover -s tests -v`。

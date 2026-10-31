@@ -1,9 +1,10 @@
-from importlib import import_module
 from pathlib import Path
 from xml.etree.ElementTree import ParseError
 from zipfile import BadZipFile
 
 from openpyxl.utils.exceptions import InvalidFileException
+
+from ..text_support import decode_bytes
 
 from .csv_content import read_csv
 from .models import (
@@ -11,9 +12,6 @@ from .models import (
 )
 from .rendering import render_rows, render_table
 from .xlsx_content import read_xlsx, validate_xlsx_options
-
-
-decode_bytes = import_module("..2_textAndWebContent.decoding", __package__).decode_bytes
 
 
 def convert_file(

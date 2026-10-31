@@ -15,7 +15,7 @@ class HostedDocumentTests(unittest.TestCase):
             "app.modules.1_documentIngestionAndParsing.hosted_documents"
         )
         handoff = importlib.import_module(
-            "app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff"
+            "app.modules.1_documentIngestionAndParsing.unifiedDocumentHandoff"
         )
         budget = importlib.import_module(
             "app.modules.1_documentIngestionAndParsing.archive_budget"

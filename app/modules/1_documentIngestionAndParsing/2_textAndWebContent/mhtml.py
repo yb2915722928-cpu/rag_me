@@ -2,7 +2,7 @@ from email import policy
 from email.parser import BytesParser
 import re
 
-from .decoding import decode_bytes
+from ..text_support import decode_bytes
 from .html_conversion import html_encoding_declarations
 
 

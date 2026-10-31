@@ -4,7 +4,7 @@
 
 准备面试时，先练熟第 1 节的整体介绍，再按第 3 节补齐被追问的格式，最后用第 5 节脱稿自测。源码链接用于核对细节，不需要背目录名和函数名。
 
-想练现场怎么接话，可以看单独的[本模块面试对话](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/INTERVIEW.md)。里面有 16 组问答和 3 道场景题，回答会把原理和例子讲完整，听的人不用先了解项目。
+想练现场怎么接话，可以看单独的[本模块面试对话](INTERVIEW.md)。里面有 16 组问答和 3 道场景题，回答会把原理和例子讲完整，听的人不用先了解项目。
 
 ## 1. 面试时，先把整体讲清楚
 
@@ -46,7 +46,7 @@ flowchart TD
     H --> I["统一报告：交给后续切分，也可导出 JSON"]
 ```
 
-入口和路线选择见[顶层实现](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/__init__.py:25)，纯交接见[交接适配入口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/__init__.py:19)。顶层负责把流程串起来，交接适配只处理已经取得的结果，不重新解析或调用模型。
+入口和路线选择见[顶层实现](__init__.py)，纯交接见[交接分派](unifiedDocumentHandoff/dispatch.py)。顶层负责把流程串起来，交接适配只处理已经取得的结果，不重新解析或调用模型。
 
 ### 格式路线速查
 
@@ -67,7 +67,7 @@ flowchart TD
 | WAV、MP3、M4A、OGG、FLAC、MP4、MOV、MKV | FFmpeg/FFprobe 准备媒体，阶跃 API 识别 | 沿用媒体处理 | 语音／画面归属、实际片段时间、原媒体版本 |
 | ZIP | 容器管理和逐成员分派 | 不递归展开内嵌 ZIP | 成员清单、独立结果、整包状态 |
 
-ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/dispatch.py:10)和 [ADR 0001](/E:/aaa-project/rag-me/docs/adr/0001-zip-api-first-parsing.md)确定。不要把 ZIP 的托管策略扩大成“项目中所有文档都走远端”。
+ZIP 路线由[分派实现](8_zipContainers/dispatch.py)和 [ADR 0001](../../../docs/adr/0001-zip-api-first-parsing.md)确定。不要把 ZIP 的托管策略扩大成“项目中所有文档都走远端”。
 
 ## 3. 各种格式，被追问时怎么说
 
@@ -79,7 +79,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 追问时展开：显式编码优先于 BOM；BOM 优先于格式内声明；纯 TXT 没有 HTML 那样的编码声明。解码成功只说明拿到了文字，不证明自动探测一定判断正确。
 
-源码证据：[解码顺序](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/2_textAndWebContent/decoding.py:6)、[Markdown 处理](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/2_textAndWebContent/markdown.py)。
+源码证据：[共享解码与 Markdown 处理](text_support.py)。
 
 ### 3.2 HTML、MHTML：区分正文与页面附属内容
 
@@ -91,7 +91,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 当前入口处理已有静态内容，不抓取网页、不执行 JavaScript，也不自动识别网页内嵌图片。ZIP 内的 HTML 走托管路线，MHTML 只在本地完成主部分选择后提交。
 
-源码证据：[HTML 转换](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/2_textAndWebContent/html_conversion.py:25)、[MHTML 主部分选择](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/2_textAndWebContent/mhtml.py:9)。
+源码证据：[HTML 转换](2_textAndWebContent/html_conversion.py)、[MHTML 主部分选择](2_textAndWebContent/mhtml.py)。
 
 ### 3.3 PDF：数字页和扫描页分开处理，再回到原页序
 
@@ -103,7 +103,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 还要补一句：**文本层非空不代表正文完整。** 扫描正文可能只提取到一个页码，此时需要对照原页，并可用 `ocr_pages=(2,)` 指定原始第 2 页识字。当前本地提取也没有保证恢复多栏、复杂表格和全部阅读顺序。pypdf 官方同样区分[文本提取与 OCR](https://pypdf.readthedocs.io/en/stable/user/extract-text.html#ocr-vs-text-extraction)。
 
-源码证据：[逐页提取与合并](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/pdf.py:9)、[MinerU 上传与结果轮询](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/mineru.py:30)。PDF 页序指文件中的实际顺序，和纸面印刷页码分别解释。
+源码证据：[逐页提取与合并](pdfAndDocxExtraction/pdf.py)、[MinerU 上传与结果轮询](mineru_client.py)及 [PDF 专属 OCR 解释](pdfAndDocxExtraction/mineru.py)。PDF 页序指文件中的实际顺序，和纸面印刷页码分别解释。
 
 ### 3.4 Word：保留段落、表格与章节归属
 
@@ -113,7 +113,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 当前覆盖正文段落和普通矩形表格；图片、文本框、页眉页脚以及复杂合并或嵌套表格布局不保证恢复。正文块号能说明内容顺序，不能当成 Word 页码。旧二进制 DOC 格式没有列入当前支持范围。
 
-源码证据：[DOCX 正文顺序与章节来源](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/docx.py:11)。
+源码证据：[DOCX 正文顺序与章节来源](pdfAndDocxExtraction/docx.py)。
 
 ### 3.5 CSV：值要带着列名和条件一起交接
 
@@ -123,7 +123,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 例如一行是“武汉，500”，单独交出去含义不完整。按行表示需要能说明“城市：武汉；住宿上限：500 元”，并保留调用方提供的适用对象、版本等共同上下文。这个例子用于说明设计，具体条件仍来自输入或显式配置，不自动猜补。
 
-源码证据：[CSV 解析](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/csv_content.py:9)、[表格与按行表示](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/rendering.py)。
+源码证据：[CSV 解析](4_tabularFileProcessing/csv_content.py)、[表格与按行表示](4_tabularFileProcessing/rendering.py)。
 
 ### 3.6 Excel：表头、合并关系和公式要分别处理
 
@@ -135,7 +135,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 这项取舍意味着可以保存和解释文件已有结果，但不能声称实现了 Excel 计算引擎。[openpyxl 官方教程](https://openpyxl.readthedocs.io/en/stable/tutorial.html#loading-from-a-file)说明了公式与已有值视图的区别。
 
-源码证据：[工作簿双视图及表头读取](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/xlsx_content.py:46)、[公式与缓存表示](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/xlsx_values.py:10)。当前独立表格支持 CSV、XLSX，未接入旧 XLS。
+源码证据：[工作簿双视图及表头读取](4_tabularFileProcessing/xlsx_content.py)、[公式与缓存表示](4_tabularFileProcessing/xlsx_values.py)。当前独立表格支持 CSV、XLSX，未接入旧 XLS。
 
 ### 3.7 PPT：先保留演示页归属，再说明阅读顺序的限制
 
@@ -145,7 +145,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 本地 PPTX 路线使用 python-pptx，没有自动把每张幻灯片渲染后交给视觉模型。图片对象可以留下来源和待核验信息，但不能说已经完成图片 OCR。旧 PPT 格式没有接入。
 
-源码证据：[演示页、对象与备注提取](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/pptx_content.py:12)。
+源码证据：[演示页、对象与备注提取](5_presentationsAndStructuredDocuments/pptx_content.py)。
 
 ### 3.8 JSON、XML：保留树形关系，路径不冒充正文偏移
 
@@ -157,7 +157,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 本项目的 XML 节点路径是自定义的可区分位置表示，不是完整 XPath；XML 正文保留解码后的原文表示，不通过重新序列化猜造字符映射。顶层 JSON 路由选择的是带节点来源的结构化入口。
 
-源码证据：[JSON/XML 解析与节点来源](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/structured.py:18)。
+源码证据：[JSON/XML 解析与节点来源](5_presentationsAndStructuredDocuments/structured.py)。
 
 ### 3.9 图片：识字、描述和按问题理解是三种任务
 
@@ -169,7 +169,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 结构化响应能帮助检查输出形状，但不保证识别事实正确。正常无文字、无法确认和调用失败保持不同状态；裁剪图可以携带原图映射，但模块不负责永久保存原图。
 
-源码证据：[图片入口与响应处理](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/__init__.py:14)、[任务提示与响应约束](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/prompts.py)、[原图映射](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/provenance.py)。
+源码证据：[图片入口与响应处理](6_imageProcessing/__init__.py)、[任务提示与响应约束](6_imageProcessing/prompts.py)、[原图映射](6_imageProcessing/provenance.py)。
 
 ### 3.10 音视频：语音和画面分开识别，定位到实际片段
 
@@ -183,7 +183,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 - 片段时间来自实际准备结果，并处理原音轨或画面延迟起始的情况；不能直接用“片段序号 × 目标时长”猜测。
 - 当前逐片串行处理；时间定位是片段级，未取得逐词时间和说话人区分时保持未知。模型计算在远端，本机没有部署 ASR 或视觉模型。
 
-源码证据：[媒体探测与切片](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/media.py:43)、[任务编排及派生文字](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/__init__.py:59)。
+源码证据：[媒体探测与切片](audioTranscriptionAndVideoUnderstanding/media.py)、[任务编排](audioTranscriptionAndVideoUnderstanding/__init__.py)、[完成片段的纯结果组装](audioTranscriptionAndVideoUnderstanding/assembly.py)。
 
 ### 3.11 ZIP：处理一组独立资料，明确哪些完成了
 
@@ -195,7 +195,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 对低配置服务器，ZIP 内 PDF、DOCX、PPTX、XLSX、HTML/MHTML 默认用托管解析；TXT、Markdown、JSON、XML、CSV 仍做轻量本地处理。托管配置缺失或调用失败会明确报告，当前没有自动回退到本地重解析。
 
-源码证据：[成员处理与失败隔离](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/__init__.py:70)、[容器预算说明](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/README.md)、[托管文档处理](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/hosted_documents.py:60)。
+源码证据：[成员处理与失败隔离](8_zipContainers/__init__.py)、[容器预算说明](8_zipContainers/README.md)、[托管文档处理](hosted_documents.py)。
 
 ## 4. 最值得讲清楚的设计取舍
 
@@ -205,7 +205,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 > 因为后续问答依赖的通常是关系。比如“500 元”要知道限制的是住宿还是交通，“负责人审批”要知道适用哪个金额条件。我会把正文和已有结构、来源一起交接，避免下游只看见结论、看不见条件。后面把块调大，也恢复不了解析阶段已经丢失的关系。
 
-统一结果的主要内容见[结果模型](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/models.py:33)：
+统一结果的主要内容见[结果模型](unifiedDocumentHandoff/models.py)：
 
 | 内容 | 口语解释 |
 | --- | --- |
@@ -250,7 +250,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 可以举三个检查点：混合 PDF 的 OCR 结果是否回到原第 2、4 页；表格一行能否对应完整列名和共同上下文；ZIP 里一个成员失败后，其他结果和整包部分成功是否都保留下来。
 
-入口验证见[顶层回归](/E:/aaa-project/rag-me/tests/test_document_ingestion.py:16)，更细的来源检查见[文档交接测试](/E:/aaa-project/rag-me/tests/test_handoff_documents.py)、[表格交接测试](/E:/aaa-project/rag-me/tests/test_handoff_tables.py)、[ZIP 交接测试](/E:/aaa-project/rag-me/tests/test_handoff_zip.py)。
+入口验证见[顶层回归](../../../tests/test_document_ingestion.py)，更细的来源检查见[文档交接测试](../../../tests/test_handoff_documents.py)、[表格交接测试](../../../tests/test_handoff_tables.py)、[ZIP 交接测试](../../../tests/test_handoff_zip.py)。
 
 ## 5. 面试追问：先脱稿回答，再展开核对
 
@@ -323,7 +323,7 @@ ZIP 路线由[分派实现](/E:/aaa-project/rag-me/app/modules/1_documentIngesti
 
 ## 6. 实际调用与开发参考
 
-[顶层公开入口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/__init__.py)完成格式选择、原生解析和统一交接。调用方使用文件或字节入口，直接取得统一输出，不必选择子目录或处理中间结果类型。
+[顶层公开入口](__init__.py)完成格式选择、原生解析和统一交接。调用方使用文件或字节入口，直接取得统一输出，不必选择子目录或处理中间结果类型。
 
 ```python
 from importlib import import_module
@@ -345,11 +345,11 @@ for document in report.documents:
 
 ### 公开入口
 
-- [convert_file](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/__init__.py:25)：接受文件路径，以及可选的格式、来源、业务身份和格式专属选项。默认按文件扩展名选择格式，显式格式可覆盖扩展名；来源默认使用文件路径。
-- [convert_bytes](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/__init__.py:36)：接受已有字节，格式与来源必须明确提供；同样支持业务身份和格式专属选项。
-- [export_json](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/__init__.py:47)：接受报告和写入位置，以 UTF-8 导出，返回写入位置；原有交接入口继续使用同一实现。
+- [convert_file](__init__.py)：接受文件路径，以及可选的格式、来源、业务身份和格式专属选项。默认按文件扩展名选择格式，显式格式可覆盖扩展名；来源默认使用文件路径。
+- [convert_bytes](__init__.py)：接受已有字节，格式与来源必须明确提供；同样支持业务身份和格式专属选项。
+- [export_json](exports.py)：接受报告和写入位置，以 UTF-8 导出，返回写入位置；原有交接入口继续使用同一实现。
 
-两个转换入口返回既有 [HandoffReport](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/models.py:66)。完整正文、交接内容单元、结构、来源和诊断的含义见[统一交接约定](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/9_unifiedOutputAndChunkingHandoff/README.md)。交接内容单元并非最终检索块。
+两个转换入口返回既有 [HandoffReport](unifiedDocumentHandoff/models.py)。完整正文、交接内容单元、结构、来源和诊断的含义见[统一交接约定](unifiedDocumentHandoff/README.md)。交接内容单元并非最终检索块。
 
 业务标识与版本只接受非空白字符串或空值，先于文件读取和模型调用校验。ZIP 的业务标识与版本属于容器；成员文档保持各自身份未知，不继承容器身份。
 
@@ -359,13 +359,13 @@ for document in report.documents:
 
 | 输入格式 | 使用的原生 Module | 常用选项 |
 | --- | --- | --- |
-| TXT、MD/Markdown、HTML/HTM、MHTML/MHT | [文本与网页](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/2_textAndWebContent/__init__.py) | encoding、mode |
-| PDF、DOCX | [PDF 与 Word](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/__init__.py) | mineru、ocr_pages |
-| CSV、XLSX | [表格文件](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/__init__.py) | context、mode、encoding、delimiter、header_record、xlsx |
-| PPTX、JSON、XML | [演示文稿与结构化文档](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/__init__.py) | encoding（仅 JSON/XML） |
-| PNG、JPG/JPEG、WebP | [图片](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/__init__.py) | task、question、config、document、crop |
-| WAV、MP3、M4A、OGG、FLAC、MP4、MOV、MKV | [音视频](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/__init__.py) | task、question、config、options |
-| ZIP | [ZIP 容器](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/__init__.py) | limits、metadata_encoding、parser_options |
+| TXT、MD/Markdown、HTML/HTM、MHTML/MHT | [文本与网页](2_textAndWebContent/__init__.py) | encoding、mode |
+| PDF、DOCX | [PDF 与 DOCX](pdfAndDocxExtraction/__init__.py) | mineru、ocr_pages |
+| CSV、XLSX | [表格文件](4_tabularFileProcessing/__init__.py) | context、mode、encoding、delimiter、header_record、xlsx |
+| PPTX、JSON、XML | [演示文稿与结构化文档](5_presentationsAndStructuredDocuments/__init__.py) | encoding（仅 JSON/XML） |
+| PNG、JPG/JPEG、WebP | [图片](6_imageProcessing/__init__.py) | task、question、config、document、crop |
+| WAV、MP3、M4A、OGG、FLAC、MP4、MOV、MKV | [音视频](audioTranscriptionAndVideoUnderstanding/__init__.py) | task、question、config、options |
+| ZIP | [ZIP 容器](8_zipContainers/__init__.py) | limits、metadata_encoding、parser_options |
 
 JSON 始终选择结构化解析，以保留节点路径和父子归属。图片与音视频仍须明确指定任务；媒体的 `options` 是其原有处理选项，ZIP 的 `parser_options` 保持原有按类别配置方式。
 
@@ -380,7 +380,15 @@ report = ingestion.convert_file(
 )
 ```
 
-独立格式沿用各自原有解析路线；ZIP 内的文档仍按照 [ADR 0001](/E:/aaa-project/rag-me/docs/adr/0001-zip-api-first-parsing.md)使用托管解析。图片、音视频继续使用既有远端模型。文件交给原生文件入口，不通过顶层整份读取后再转交字节入口；导入顶层包也不会提前导入全部解析器。
+独立格式沿用各自原有解析路线；ZIP 内的文档仍按照 [ADR 0001](../../../docs/adr/0001-zip-api-first-parsing.md)使用托管解析。图片、音视频继续使用既有远端模型。文件交给原生文件入口，不通过顶层整份读取后再转交字节入口；导入顶层包也不会提前导入全部解析器。
+
+### 实现职责与兼容入口
+
+新代码采用 `pdfAndDocxExtraction`、`audioTranscriptionAndVideoUnderstanding`、`unifiedDocumentHandoff`。旧 `3_pdfAndWordParsing`、`7_audioAndVideoProcessing`、`9_unifiedOutputAndChunkingHandoff` 及其已有子模块只做兼容转发，共用函数、模型和配置；旧媒体命令仍可运行，不增加弃用警告。
+
+共享能力按职责放置：[exports.py](exports.py)提供 JSON 与 Markdown 导出，[identity.py](identity.py)校验业务身份，[text_support.py](text_support.py)处理解码、严格 JSON 与 Markdown 共性，[format_routes.py](format_routes.py)分别记录独立输入与 ZIP 成员路线。[mineru_client.py](mineru_client.py)负责通用传输；PDF 的选页、OCR 解释与原页序映射仍由 PDF/DOCX 包负责。[stepfun_support.py](stepfun_support.py)仅共享配置与完成响应信封检查，图片和媒体保留各自任务、类型及默认超时。
+
+托管文档的[编排](hosted_documents.py)调用[输入准备](hosted_document_input.py)、共享客户端和[产物读取](hosted_document_artifacts.py)，交接包中的[托管适配](unifiedDocumentHandoff/hosted_documents.py)只转换已有结果。媒体探测、切片、请求和临时文件清理由媒体编排负责；[纯组装](audioTranscriptionAndVideoUnderstanding/assembly.py)只处理已完成片段的正文、状态、警告与待核验信息。交接分派按真实原生类型选择适配器，避免提前初始化无关解析依赖。
 
 ### 失败与验证
 
@@ -393,17 +401,17 @@ python -m unittest tests.test_document_ingestion -v
 python -m unittest discover -s tests -q
 ```
 
-[入口回归](/E:/aaa-project/rag-me/tests/test_document_ingestion.py)通过真实固定文件、本地 HTTP 协议服务和现有媒体准备，检查格式选择、文件／字节结果一致性、原生结构与来源保留、错误及 ZIP 托管路线。
+[入口回归](../../../tests/test_document_ingestion.py)通过真实固定文件、本地 HTTP 协议服务和现有媒体准备，检查格式选择、文件／字节结果一致性、原生结构与来源保留、错误及 ZIP 托管路线。
 
 ### 运行条件与当前范围
 
-依赖按项目现有的 [requirements.txt](/E:/aaa-project/rag-me/requirements.txt) 安装，媒体处理需要可用的 FFmpeg/FFprobe。远端处理使用运行时配置；名称与示例见[环境配置示例](/E:/aaa-project/rag-me/.env.example)，核心库不会自行搜索或加载环境文件。
+依赖按项目现有的 [requirements.txt](../../../requirements.txt) 安装，媒体处理需要可用的 FFmpeg/FFprobe。远端处理使用运行时配置；名称与示例见[环境配置示例](../../../.env.example)，核心库不会自行搜索或加载环境文件。
 
 当前实现止于接入、解析和交接，没有在此完成实际切块、embedding、向量索引、召回或完整问答。也没有加入统一上传端点、任务队列、自动重试平台和原始资料持久化。后续模块若需要回查原文，调用方仍要保存相同版本的原始资料。
 
 ### 推荐阅读顺序
 
-1. 先读[项目术语表](/E:/aaa-project/rag-me/GLOSSARY.md)，统一“来源信息”“交接内容单元”“片段级时间定位”等概念。
+1. 先读[项目术语表](../../../GLOSSARY.md)，统一“来源信息”“交接内容单元”“片段级时间定位”等概念。
 2. 对 PDF 重点读 [pypdf 官方文本提取说明](https://pypdf.readthedocs.io/en/stable/user/extract-text.html)，理解为什么有文字也不等于恢复了版式关系。
 3. 对 Excel 重点读 [openpyxl 官方加载说明](https://openpyxl.readthedocs.io/en/stable/tutorial.html#loading-from-a-file)，再对照本项目的公式与缓存实现。
 4. 对结构化文档读 [RFC 6901](https://www.rfc-editor.org/rfc/rfc6901)，理解 JSON Pointer 表示的节点位置与字符偏移的区别。

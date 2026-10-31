@@ -1,6 +1,6 @@
 # rag_me
 
-RAG 项目。文本与网页模块将本地 TXT、Markdown、JSON、静态 HTML 和 MHTML 转为整篇 Markdown，并支持 UTF-8 导出。PDF 与 Word 模块通过同一公开调用方式处理数字 PDF、DOCX 和需要 MinerU 官方 API 识字的扫描 PDF，正文与来源、诊断分别返回。演示文稿与结构化文档模块提供 PPTX 演示页归属及 JSON 节点来源，待核验关系独立返回。
+RAG 项目。文本与网页模块将本地 TXT、Markdown、JSON、静态 HTML 和 MHTML 转为整篇 Markdown，并支持 UTF-8 导出。PDF 与 DOCX 模块通过同一公开调用方式处理数字 PDF、DOCX 和需要 MinerU 官方 API 识字的扫描 PDF，正文与来源、诊断分别返回。演示文稿与结构化文档模块提供 PPTX 演示页归属及 JSON 节点来源，待核验关系独立返回。
 
 ## 安装与验证
 
@@ -11,7 +11,21 @@ python -m pip install -r requirements.txt
 python -m unittest discover -s tests -v
 ```
 
-验收使用仓库内的固定样本，无需联网下载。六个公开样本的来源、大小及 SHA-256 见[来源记录](/E:/aaa-project/rag-me/tests/testFile/sources.json)。补充样本的构造方式记录在同目录。
+验收使用仓库内的固定样本，无需联网下载。六个公开样本的来源、大小及 SHA-256 见[来源记录](tests/testFile/sources.json)。补充样本的构造方式记录在同目录。
+
+## 从文件直接取得统一输出
+
+[文档接入与解析模块](app/modules/1_documentIngestionAndParsing/README.md)提供顶层入口，集中完成格式选择、解析和统一交接：
+
+```python
+from importlib import import_module
+
+ingestion = import_module("app.modules.1_documentIngestionAndParsing")
+report = ingestion.convert_file("manual.docx", business_id="manual", version="v2")
+ingestion.export_json(report, "handoff.json")
+```
+
+字节输入使用 `convert_bytes(data, format="json", source="upload.json")`。两种入口均返回既有统一报告，保留正文、结构、来源与诊断；格式专属选项原样传入。图片与音视频仍须明确指定任务，ZIP 保留整包状态及成员清单。原生解析与独立交接入口继续可用。原生 PDF/DOCX、媒体与交接的新代码分别使用 [pdfAndDocxExtraction](app/modules/1_documentIngestionAndParsing/pdfAndDocxExtraction/README.md)、[audioTranscriptionAndVideoUnderstanding](app/modules/1_documentIngestionAndParsing/audioTranscriptionAndVideoUnderstanding/README.md) 和 [unifiedDocumentHandoff](app/modules/1_documentIngestionAndParsing/unifiedDocumentHandoff/README.md)。三个旧目录及其已有子模块保留薄兼容入口，新旧路径共用实现、类型和原有默认值；旧媒体 CLI 继续可用。
 
 ## 从文件直接取得统一输出
 
@@ -29,7 +43,7 @@ ingestion.export_json(report, "handoff.json")
 
 ## 转换与导出
 
-目录名包含数字前缀，使用 `importlib.import_module` 取得[公开接口](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/2_textAndWebContent/__init__.py)：
+目录名包含数字前缀，使用 `importlib.import_module` 取得[公开接口](app/modules/1_documentIngestionAndParsing/2_textAndWebContent/__init__.py)：
 
 ```python
 from importlib import import_module
@@ -68,7 +82,7 @@ result = text_web.convert_bytes(
 from importlib import import_module
 
 documents = import_module(
-    "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
+    "app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction"
 )
 
 result = documents.convert_file("manual.docx")
@@ -92,11 +106,11 @@ result = documents.convert_bytes(
 
 正文来源使用左闭右开的字符区间关联到实际 PDF 页序，或 DOCX 章节与正文块位置。PDF 页序不等于印刷页码，DOCX 正文块号不等于页码。失败结果的正文为 `None`，诊断不会拼进正文。本模块不承担最终切块或完整检索问答验证。
 
-默认测试使用固定文件和本地 HTTP 服务验证 API 协议，不向云端提交任务。真实扫描验收需显式设置 `MINERU_LIVE_TEST=1`，混合验收使用 `MINERU_MIXED_LIVE_TEST=1`。调用说明见 [PDF 与 Word 模块](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/app/modules/1_documentIngestionAndParsing/3_pdfAndWordParsing/README.md)，混合输入摘要、真实结果、耗时及局限见[固定样本记录](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/constructed-mixed-pdf.md)。
+默认测试使用固定文件和本地 HTTP 服务验证 API 协议，不向云端提交任务。真实扫描验收需显式设置 `MINERU_LIVE_TEST=1`，混合验收使用 `MINERU_MIXED_LIVE_TEST=1`。调用说明见 [PDF 与 DOCX 模块](app/modules/1_documentIngestionAndParsing/pdfAndDocxExtraction/README.md)，混合输入摘要、真实结果、耗时及局限见[固定样本记录](tests/testFile/constructed-mixed-pdf.md)。
 
 ## CSV 与 XLSX 表格文件
 
-[表格模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/README.md)提供真实 CSV／XLSX 的文件和字节转换入口，支持整表 Markdown 与按行文本。行记录可独立取得完整列名、共同上下文和来源；XLSX 来源包含工作表与原始单元格位置。
+[表格模块](app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/README.md)提供真实 CSV／XLSX 的文件和字节转换入口，支持整表 Markdown 与按行文本。行记录可独立取得完整列名、共同上下文和来源；XLSX 来源包含工作表与原始单元格位置。
 
 ```python
 from importlib import import_module
@@ -118,13 +132,13 @@ else:
     print(result.error)
 ```
 
-CSV 保留字段文本、前导零及字段内换行，并支持显式编码、分隔符和表头记录。XLSX 可显式指定工作表、区域与连续表头行；[表头和合并关系](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/TABLE_STRUCTURE.md)只按真实覆盖范围表示，普通空白不会填成零或上一行的值。
+CSV 保留字段文本、前导零及字段内换行，并支持显式编码、分隔符和表头记录。XLSX 可显式指定工作表、区域与连续表头行；[表头和合并关系](app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/TABLE_STRUCTURE.md)只按真实覆盖范围表示，普通空白不会填成零或上一行的值。
 
-[公式和单元格值](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/CELL_VALUES.md)保留原值、类型与数字格式，支持明确的常见显示格式；公式表达式和文件缓存分别保存，不执行重算。正文、来源和诊断分别返回，任一选中表解析失败时不返回部分成功结果。本模块止于表格解析与表示，不执行最终切块、检索或模型问答。
+[公式和单元格值](app/modules/1_documentIngestionAndParsing/4_tabularFileProcessing/CELL_VALUES.md)保留原值、类型与数字格式，支持明确的常见显示格式；公式表达式和文件缓存分别保存，不执行重算。正文、来源和诊断分别返回，任一选中表解析失败时不返回部分成功结果。本模块止于表格解析与表示，不执行最终切块、检索或模型问答。
 
 ## PPTX 与结构化文档
 
-[演示文稿与结构化文档模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/README.md) 沿用文件、字节与 UTF-8 正文导出入口。[PPTX](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/PPTX.md) 在本地保留原页、标题、独立文本对象、段落层级、表格跨度与演讲者备注，并返回对象 ID 路径及父容器内坐标。
+[演示文稿与结构化文档模块](app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/README.md) 沿用文件、字节与 UTF-8 正文导出入口。[PPTX](app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/PPTX.md) 在本地保留原页、标题、独立文本对象、段落层级、表格跨度与演讲者备注，并返回对象 ID 路径及父容器内坐标。
 
 ```python
 from importlib import import_module
@@ -140,27 +154,27 @@ else:
     print(result.error)
 ```
 
-`success` 与 `requires_review` 独立：完成提取后，分栏阅读顺序、箭头、图文对应和条件归属仍需对照原页。图片页不宣称 OCR；母版、版式继承内容与嵌入文件不展开。无需安装 PowerPoint，不调用视觉模型或上传资料。损坏包及后续页解析失败时整篇失败，导出失败结果不会覆盖文件。固定文件与重建方法见 [PPTX 样本说明](/E:/aaa-project/rag-me/tests/testFile/constructed-pptx.md)。
+`success` 与 `requires_review` 独立：完成提取后，分栏阅读顺序、箭头、图文对应和条件归属仍需对照原页。图片页不宣称 OCR；母版、版式继承内容与嵌入文件不展开。无需安装 PowerPoint，不调用视觉模型或上传资料。损坏包及后续页解析失败时整篇失败，导出失败结果不会覆盖文件。固定文件与重建方法见 [PPTX 样本说明](tests/testFile/constructed-pptx.md)。
 
-[JSON](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/JSON.md) 复用原有严格解析和完整结构表示，补充 JSON Pointer 及父节点来源，保留值类型与数组顺序，不把对象字段排列推断为业务步骤。
+[JSON](app/modules/1_documentIngestionAndParsing/5_presentationsAndStructuredDocuments/JSON.md) 复用原有严格解析和完整结构表示，补充 JSON Pointer 及父节点来源，保留值类型与数组顺序，不把对象字段排列推断为业务步骤。
 
 ## 独立图片处理
 
-[图片模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/6_imageProcessing/README.md)通过文件或字节入口处理静态 PNG、JPEG、WebP，一次明确选择图像识字（OCR）、图像描述或按问题进行视觉理解。三类任务统一调用阶跃星辰视觉 API，使用 STEP_API_KEY、STEP_BASE_URL、STEP_MODEL 配置；可运行入口负责明确载入本地环境文件，核心模块使用运行时环境或显式配置。
+[图片模块](app/modules/1_documentIngestionAndParsing/6_imageProcessing/README.md)通过文件或字节入口处理静态 PNG、JPEG、WebP，一次明确选择图像识字（OCR）、图像描述或按问题进行视觉理解。三类任务统一调用阶跃星辰视觉 API，使用 STEP_API_KEY、STEP_BASE_URL、STEP_MODEL 配置；可运行入口负责明确载入本地环境文件，核心模块使用运行时环境或显式配置。
 
 结果将图片派生文字与图片版本标识、来源信息、模型及提示词版本、待核验事项和错误分开返回。未识别到文字、无法确认关系与调用失败有不同含义；成功不等于内容已核验。裁剪图可以携带原图映射和文档来源，模块不推测缺失区域之外的关系。
 
-所有固定样本位于[测试样本目录](/E:/aaa-project/rag-me/tests/testFile/)。默认回归使用本地 HTTP 服务验证真实请求与结果契约，真实识图质量通过显式启用的阶跃星辰验收记录核对。模块止于图片处理与表示，不提供原图存储、自动嵌图提取、向量索引或完整 RAG 问答。
+所有固定样本位于[测试样本目录](tests/testFile)。默认回归使用本地 HTTP 服务验证真实请求与结果契约，真实识图质量通过显式启用的阶跃星辰验收记录核对。模块止于图片处理与表示，不提供原图存储、自动嵌图提取、向量索引或完整 RAG 问答。
 
 ## 音视频处理
 
-[音视频模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/7_audioAndVideoProcessing/README.md)通过文件、字节或命令行处理本地音视频，可选择语音转写、视频画面理解或两者。模型计算使用阶跃 API，本机仅运行 FFmpeg/FFprobe 做媒体准备，默认逐片串行处理。
+[音视频模块](app/modules/1_documentIngestionAndParsing/audioTranscriptionAndVideoUnderstanding/README.md)通过文件、字节或命令行处理本地音视频，可选择语音转写、视频画面理解或两者。模型计算使用阶跃 API，本机仅运行 FFmpeg/FFprobe 做媒体准备，默认逐片串行处理。
 
 结果区分语音原话与画面派生文字，保留原媒体版本、真实片段范围和待核验状态；时间为片段级定位，说话人保持未知。本模块提供后续 RAG 的媒体表示，不包含上传、存储、索引和完整问答。
 
 ## ZIP 容器
 
-[ZIP 模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/8_zipContainers/README.md)通过文件、字节或命令行逐成员处理资料包，返回整包摘要、成员来源和独立解析结果。一个成员失败时保留其他成员结果并报告部分成功；目录和系统元数据单独计为忽略项，不拼成一篇 Markdown。
+[ZIP 模块](app/modules/1_documentIngestionAndParsing/8_zipContainers/README.md)通过文件、字节或命令行逐成员处理资料包，返回整包摘要、成员来源和独立解析结果。一个成员失败时保留其他成员结果并报告部分成功；目录和系统元数据单独计为忽略项，不拼成一篇 Markdown。
 
 ```python
 from importlib import import_module
@@ -175,13 +189,13 @@ result = containers.convert_file(
 print(result.to_dict())
 ```
 
-面向低配置服务器，PDF（含数字 PDF）、DOCX、PPTX、XLSX 和 HTML 默认走 MinerU API，MHTML 轻量选择主 HTML 部分后提交。图片和音视频沿用阶跃 API；ZIP、TXT/Markdown、JSON/XML/CSV 及现有媒体准备在本地完成。按[配置示例](/E:/aaa-project/rag-me/.env.example)提供 MINERU_API_TOKEN 和 STEP 配置，核心入口只使用运行时环境或显式配置，不自行加载环境文件。API 缺配置或失败明确报告，不自动回退本地重解析。
+面向低配置服务器，PDF（含数字 PDF）、DOCX、PPTX、XLSX 和 HTML 默认走 MinerU API，MHTML 轻量选择主 HTML 部分后提交。图片和音视频沿用阶跃 API；ZIP、TXT/Markdown、JSON/XML/CSV 及现有媒体准备在本地完成。按[配置示例](.env.example)提供 MINERU_API_TOKEN 和 STEP 配置，核心入口只使用运行时环境或显式配置，不自行加载环境文件。API 缺配置或失败明确报告，不自动回退本地重解析。
 
 成员数量、压缩大小、单成员和累计展开量及协作式截止均有限制；首版不递归内嵌 ZIP、不解密密码包、不按成员原路径解压。API 返回的来源粒度与本地解析器可能不同，缺少的原生单元格或对象位置如实说明。语义关系和生成内容仍需核验，API 成功不等于内容质量通过。
 
 ## 托管文档解析
 
-[托管文档模块](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/hosted_documents.py)集中处理 MinerU 文档请求、结果包读取和来源表示，支持直接提交文档字节。ZIP 分派与统一交接共同依赖此模块；[归档预算](/E:/aaa-project/rag-me/app/modules/1_documentIngestionAndParsing/archive_budget.py)供输入资料包和服务结果包复用，ZIP 原有的 ZipLimits 名称继续可用。
+[托管文档模块](app/modules/1_documentIngestionAndParsing/hosted_documents.py)编排输入准备、服务调用与来源表示，支持直接提交文档字节。[输入准备](app/modules/1_documentIngestionAndParsing/hosted_document_input.py)保留整份文档或 MHTML 主 HTML 选择，[共享 MinerU 客户端](app/modules/1_documentIngestionAndParsing/mineru_client.py)负责传输，[产物读取](app/modules/1_documentIngestionAndParsing/hosted_document_artifacts.py)分别保留 Markdown、JSON 和 HTML。ZIP 分派调用该编排；[托管结果交接](app/modules/1_documentIngestionAndParsing/unifiedDocumentHandoff/hosted_documents.py)只转换已有结果。[归档预算](app/modules/1_documentIngestionAndParsing/archive_budget.py)供输入资料包和各服务结果包独立计量，ZIP 原有的 ZipLimits 名称继续可用。
 
 ```python
 from importlib import import_module
@@ -197,7 +211,7 @@ parsed = hosted.convert_bytes(
 )
 ```
 
-该入口沿用 PDF、DOCX、PPTX、XLSX、HTML/HTM 和 MHTML/MHT 的既有托管处理；来源由调用方传入，归档预算和绝对截止沿用本次处理上下文。PDF/Word 等独立格式入口的默认路线遵循各自原有约定。
+该入口沿用 PDF、DOCX、PPTX、XLSX、HTML/HTM 和 MHTML/MHT 的既有托管处理；来源由调用方传入，归档预算和绝对截止沿用本次处理上下文。PDF/DOCX 等独立格式入口的默认路线遵循各自原有约定；独立输入和 ZIP 成员的格式路线集中于[路由表](app/modules/1_documentIngestionAndParsing/format_routes.py)。
 
 ## 统一输出与切分交接
 
@@ -210,7 +224,7 @@ text_web = import_module(
     "app.modules.1_documentIngestionAndParsing.2_textAndWebContent"
 )
 handoff = import_module(
-    "app.modules.1_documentIngestionAndParsing.9_unifiedOutputAndChunkingHandoff"
+    "app.modules.1_documentIngestionAndParsing.unifiedDocumentHandoff"
 )
 
 parsed = text_web.convert_bytes(

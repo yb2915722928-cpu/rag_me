@@ -2,13 +2,15 @@
 
 Issue #11 使用[官方云 API](https://mineru.net/apiManage/docs)，Issue #12 复用同一客户端处理混合 PDF。数字页继续本地文本层，扫描页复制为一份选页 PDF 上传；DOCX 使用原生结构。没有新增 provider、本机 OCR 或其他上传服务。
 
+独立 PDF 的选页与页序逻辑位于本包的 [MinerU 包装器](mineru.py)，通用上传、轮询和下载复用 [共享客户端](../mineru_client.py)。旧路径 `3_pdfAndWordParsing.mineru` 与本包 `mineru` 引用相同的客户端、`MinerUConfig` 和 `MinerUError`。ZIP 内文档继续按托管文档策略上传完整原文件；本包的选页策略只用于独立 PDF。
+
 ## 公开调用
 
 ```python
 import importlib
 
 parsing = importlib.import_module(
-    "app.modules.1_documentIngestionAndParsing.3_pdfAndWordParsing"
+    "app.modules.1_documentIngestionAndParsing.pdfAndDocxExtraction"
 )
 api = parsing.MinerUConfig(language="en")
 result = parsing.convert_file("scan.pdf", mineru=api)
@@ -77,6 +79,6 @@ python -m unittest tests.test_pdf_word_mixed_live -v
 
 通过公开 convert_file 运行两页扫描表格教学 PDF：约 25.847 秒，完整保留断电说明、Do not service while power is on、30 days、60 C、Pump—Monthly、Valve—Quarterly，表格仍在说明与 Restart 段落之间。来源为实际第 1、2 页，没有使用印刷页码 41、7。首个标题返回二级 Markdown 标题，第二页标题未返回层级；不将标题文字存在等同于任意标题层级恢复。
 
-输入摘要、生成方法、red→green 记录和脱敏真实结果见[扫描样本说明](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/constructed-scanned-pdf.md)。原历史扫描教学样本曾在本地 OCR 漏字；真实 MinerU 研究探针完整恢复两条规则，该记录保留为历史对照，不改写旧失败观察。探针成功与本次公开入口成功分别记录。
+输入摘要、生成方法、red→green 记录和脱敏真实结果见[扫描样本说明](../../../../tests/testFile/constructed-scanned-pdf.md)。原历史扫描教学样本曾在本地 OCR 漏字；真实 MinerU 研究探针完整恢复两条规则，该记录保留为历史对照，不改写旧失败观察。探针成功与本次公开入口成功分别记录。
 
-混合样本经公开文件入口处理耗时 9.570 秒：数字原第 1 页资产编号 PUMP-A17、第 3 页扭矩 12 Nm 逐字保留；两页扫描正文落在原第 2、4 页，断电、不得带电维护、30 days、60 C 和两组表格对应关系通过。正文中印刷页码 90、41、12、7 没有被当成来源页序。扫描首页标题实际为二级标题，另一扫描页只返回标题文字，仍不承诺统一标题层级。详见[混合固定样本与真实记录](/C:/Users/29157/.codex/worktrees/pdf-word-integration/rag-me/tests/testFile/constructed-mixed-pdf.md)。文本非空不足以证明文字正确或结构完整，混合合并也不会修补上游 OCR 或版面损失；不代表完整 RAG 链路通过。
+混合样本经公开文件入口处理耗时 9.570 秒：数字原第 1 页资产编号 PUMP-A17、第 3 页扭矩 12 Nm 逐字保留；两页扫描正文落在原第 2、4 页，断电、不得带电维护、30 days、60 C 和两组表格对应关系通过。正文中印刷页码 90、41、12、7 没有被当成来源页序。扫描首页标题实际为二级标题，另一扫描页只返回标题文字，仍不承诺统一标题层级。详见[混合固定样本与真实记录](../../../../tests/testFile/constructed-mixed-pdf.md)。文本非空不足以证明文字正确或结构完整，混合合并也不会修补上游 OCR 或版面损失；不代表完整 RAG 链路通过。
