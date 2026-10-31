@@ -7,7 +7,7 @@ indexing = importlib.import_module("app.modules.3_embeddingAndIndexing")
 
 class IndexLifecycleTests(unittest.TestCase):
     def test_lifecycle_rejects_invalid_transitions_and_marks_deleted(self):
-        item = indexing.IndexItemState("doc", "v1", "chunk", "scheme", "pending")
+        item = indexing.IndexItemState("doc", "v1", "chunk", "scheme", "pending", "chunk-v1")
         item = item.transition("embedded")
         item = item.transition("stored")
         with self.assertRaises(indexing.InvalidLifecycleTransition):
@@ -17,8 +17,8 @@ class IndexLifecycleTests(unittest.TestCase):
         self.assertFalse(deleted.searchable)
 
     def test_failure_preserves_diagnostics_and_retry_identity(self):
-        identity = indexing.LogicalIndexIdentity("doc", "v1", "chunk", "scheme")
-        failed = indexing.IndexItemState.from_failure(identity, "EMBEDDING_FAILED", "timeout")
+        identity = indexing.LogicalIndexIdentity("doc", "v1", "chunk", "scheme", "chunk-v1")
+        failed = indexing.IndexItemState.from_failure(identity, "EMBEDDING_FAILED", "temporary", retryable=True)
         self.assertEqual(failed.retry_count, 0)
         retried = failed.retry()
         self.assertEqual(retried.retry_count, 1)

@@ -78,19 +78,26 @@ class InMemoryIndexRegistry:
     def validate(self, scheme: IndexSchemeVersion, expected_count: int | None = None,
                  expected_keys: set[str] | None = None, representative_key: str | None = None,
                  representative_vector: Sequence[float] | None = None, threshold: float = 0.99) -> ValidationReport:
+        if not scheme.metadata.verifiable:
+            raise IndexValidationError("legacy scheme requires explicit role backfill and revalidation")
         items = self._items.get(scheme.identity, [])
         dimensions_valid = all(len(vector) == scheme.metadata.dimensions for _, vector in items)
         states_valid = True
+        if not expected_keys or representative_vector is None:
+            raise IndexValidationError("expected_keys and an independent representative query vector are required")
+        if not isinstance(threshold, (int, float)) or isinstance(threshold, bool) or not isfinite(threshold) or not -1 <= threshold <= 1:
+            raise IndexValidationError("representative threshold must be finite in -1..1")
         keys = {key for key, _ in items}
-        identities_valid = expected_keys is None or keys == expected_keys
-        if representative_key is None:
-            representative_key = sorted(expected_keys or keys)[0] if (expected_keys or keys) else None
-        actual_vector = next((vector for key, vector in items if key == representative_key), None)
-        expected_vector = tuple(representative_vector) if representative_vector is not None else actual_vector
-        representative_valid = (
-            actual_vector is not None and expected_vector is not None
-            and _cosine(actual_vector, expected_vector) >= threshold
-        )
+        identities_valid = keys == expected_keys
+        representative_key = representative_key or sorted(expected_keys)[0]
+        expected_vector = tuple(float(value) for value in representative_vector)
+        if (len(expected_vector) != scheme.metadata.dimensions
+                or not all(isfinite(value) for value in expected_vector)
+                or not any(expected_vector)):
+            raise IndexValidationError("representative query vector is invalid")
+        ranked = sorted(((_cosine(vector, expected_vector), key) for key, vector in items),
+                        key=lambda hit: (-hit[0], hit[1]))
+        representative_valid = bool(ranked) and ranked[0][1] == representative_key and ranked[0][0] >= threshold
         report = ValidationReport(
             scheme, expected_count if expected_count is not None else len(items), len(items),
             dimensions_valid, states_valid, representative_valid, identities_valid,
@@ -103,10 +110,8 @@ class InMemoryIndexRegistry:
                  *, expected_keys: set[str] | None = None,
                  representative_key: str | None = None,
                  representative_vector: Sequence[float] | None = None) -> None:
-        if expected_keys is None and self._active is not None and self._active != scheme.identity:
-            expected_keys = {key for key, _ in self._items.get(self._active, [])}
-        if expected_keys is None and self._active is None:
-            raise IndexValidationError("expected_keys manifest is required for initial activation")
+        if expected_keys is None:
+            raise IndexValidationError("expected_keys manifest is required for activation")
         report = self.validate(scheme, expected_keys=expected_keys,
                                representative_key=representative_key,
                                representative_vector=representative_vector)
