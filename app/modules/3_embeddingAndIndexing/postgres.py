@@ -174,7 +174,7 @@ class PostgresVectorStore:
                         "ON CONFLICT (document_id, document_version, chunk_id, scheme_identity) DO UPDATE SET "
                         "body=EXCLUDED.body, metadata=EXCLUDED.metadata, vector=EXCLUDED.vector, "
                         "status='stored', error_code=NULL, error_reason=NULL, updated_at=now() "
-                        "WHERE indexed_chunks.status <> 'deleted'", 
+                        "WHERE indexed_chunks.status <> 'deleted'",
                         (chunk.document_id, chunk.document_version, chunk.chunk_id, scheme.identity,
                          chunk.text, json.dumps(chunk.metadata), _vector_literal(values)),
                     )
