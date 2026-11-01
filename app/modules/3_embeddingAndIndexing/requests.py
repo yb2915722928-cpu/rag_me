@@ -1,4 +1,4 @@
-"""Provider-neutral request identities and explicit outcomes at the call boundary."""
+"""与提供方无关的请求身份，以及调用边界上的明确结果分类。"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -20,7 +20,7 @@ class ProviderOutcome(str, Enum):
 
 
 class ProviderError(Exception):
-    """A provider adapter classifies errors explicitly; unknown is never retried."""
+    """提供方适配器显式分类错误；unknown 状态绝不自动重试。"""
 
     def __init__(self, outcome: ProviderOutcome | str, code: str, message: str, *,
                  request_id: str | None = None, retry_after_seconds: float | None = None):
@@ -72,7 +72,7 @@ class UnknownResolution:
 
 
 class RequestAdapter(Protocol):
-    """Optional capability; basic adapters need only embed_role(texts, role)."""
+    """可选能力；基础适配器仅需实现 embed_role(texts, role)。"""
 
     supports_request_metadata: bool
     supports_status_query: bool

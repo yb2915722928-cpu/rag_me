@@ -1,4 +1,4 @@
-"""SQL shape/transaction contracts. These do not emulate or prove PostgreSQL execution."""
+"""SQL 结构与事务契约测试；不模拟 PostgreSQL，也不证明 SQL 已在 PostgreSQL 中执行。"""
 from dataclasses import asdict, replace
 from datetime import datetime, timezone
 import json

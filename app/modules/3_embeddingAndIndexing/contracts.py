@@ -1,4 +1,4 @@
-"""Role-aware synchronous provider boundary and compatibility exports."""
+"""区分编码角色的同步提供方接口及兼容导出。"""
 from __future__ import annotations
 
 import hashlib
@@ -13,11 +13,11 @@ from app.models.embedding import (
 
 
 class EmbeddingAdapter:
-    """Adapters explicitly declare the compatible document/query role pair.
+    """适配器必须显式声明兼容的 document/query 编码角色组合。
 
-    ``embed`` remains the synchronous legacy implementation hook. Adapters using
-    different encoder endpoints must override ``embed_role``; the default hook
-    supports one encoder with optional different instructions only.
+    ``embed`` 保留为兼容旧实现的同步扩展方法。使用不同编码器端点的
+    适配器必须覆盖 ``embed_role``；默认实现仅支持同一编码器，
+    但两个角色可以使用不同指令。
     """
 
     metadata: EmbeddingMetadata
@@ -49,7 +49,7 @@ class EmbeddingAdapter:
 
 
 class DeterministicEmbeddingAdapter(EmbeddingAdapter):
-    """Stable local adapter explicitly declaring a compatible symmetric pair."""
+    """输出稳定的本地适配器，显式声明兼容的对称编码角色组合。"""
 
     def __init__(self, dimensions: int, normalization: str = "unit", token_counter=None) -> None:
         self.token_counter = token_counter

@@ -1,4 +1,4 @@
-"""Synchronous role-aware embedding and versioned vector indexing API."""
+"""区分编码角色的同步 Embedding 与版本化向量索引 API。"""
 from .batching import (
     EmbeddedItem, EmbeddingBatchResult, LongInputPolicy, PreparedInput,
     embed_texts, prepare_long_inputs, retry_failed, resolve_unknown, validate_query_vector,
@@ -22,7 +22,7 @@ from .requests import (
     RequestAdapter,
 )
 from .scheduling import LocalRateLimiter, QuotaCapacityExceeded, QuotaWaitExceeded
-# Compatibility entry point for existing callers. Application flow itself uses ports.
+# 为现有调用方保留兼容入口；应用流程本身依赖存储协议。
 from .postgres import (
     PostgresVectorStore, PhysicalIndexConfig, RequestAttempt,
     DuplicateRequestAttempt, FingerprintConflict,

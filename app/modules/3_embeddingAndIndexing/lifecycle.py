@@ -1,4 +1,4 @@
-"""Index item lifecycle; uncertain requests require explicit resolution."""
+"""索引条目的生命周期；结果未知的请求必须显式确认。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, replace

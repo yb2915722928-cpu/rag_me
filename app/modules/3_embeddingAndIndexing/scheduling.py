@@ -1,4 +1,4 @@
-"""Thread-safe local quotas shared by calls, including every retry attempt."""
+"""调用间共享的线程安全本地配额，每次重试也计入配额。"""
 from __future__ import annotations
 
 from collections import deque
@@ -30,7 +30,7 @@ def _seconds(value, name, *, positive=False):
 
 
 class WaitBudget:
-    """Bound both real elapsed time and injected sleepers that do not advance clocks."""
+    """同时计量实际经过时间和累计休眠时间，兼容不推进时钟的注入休眠函数。"""
 
     def __init__(self, limit, clock, sleeper):
         _seconds(limit, "max_wait_seconds")
@@ -50,10 +50,10 @@ class WaitBudget:
 
 
 class LocalRateLimiter:
-    """Sliding-window request/token quotas and a shared in-flight concurrency bound.
+    """滑动窗口内的请求数和 Token 配额，以及共享的在途并发上限。
 
-    A reservation is charged once acquired, even if the subsequent request fails.
-    Sharing this object shares the provider/account budget across adapters as well.
+    配额获取成功即计入窗口用量，即使后续请求失败也不退回窗口配额。
+    多个适配器共享此对象时，也共享相应提供方或账号的配额。
     """
 
     def __init__(self, *, request_budget=None, token_budget=None, window_seconds=1.0,
@@ -85,7 +85,7 @@ class LocalRateLimiter:
                 quota_full = ((self.request_budget is not None and len(self._events) >= self.request_budget)
                               or (self.token_budget is not None and self._tokens + tokens > self.token_budget))
                 if not quota_full and self._inflight < self.max_concurrency:
-                    # Do not retain unlimited zero-token calls when only tokens are bounded.
+                    # 仅限制 Token 配额时不记录零 Token 调用，避免记录数无限增长。
                     if self.request_budget is not None or self.token_budget is not None and tokens:
                         self._events.append((now, tokens))
                         self._tokens += tokens
@@ -107,7 +107,7 @@ _registry = weakref.WeakKeyDictionary()
 
 def shared_limiter(adapter, *, request_budget=None, token_budget=None, window_seconds=1.0,
                    max_concurrency=1, clock=time.monotonic, sleeper=time.sleep):
-    """Keep quota state for the adapter's lifetime instead of resetting per call."""
+    """在适配器的整个生命周期内保留配额状态，避免每次调用时重置。"""
     config = (request_budget, token_budget, window_seconds, max_concurrency, clock, sleeper)
     with _registry_lock:
         limiters = _registry.setdefault(adapter, {})

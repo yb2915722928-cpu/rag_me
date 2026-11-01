@@ -1,4 +1,4 @@
-"""Synchronous embedding application flow, depending only on domain storage ports."""
+"""同步 Embedding 应用流程，仅依赖领域存储协议。"""
 from __future__ import annotations
 
 from dataclasses import asdict, replace
@@ -33,8 +33,8 @@ def _repository(store, repository):
 
 
 def _chunk(chunk) -> ChunkRecord:
-    # Upstream must supply both revisions. Missing attributes are contract errors,
-    # never synthesized from a document revision or a global default.
+    # 上游必须同时提供文档和 Chunk 修订；缺失属性属于契约错误，
+    # 不能用文档修订或全局默认值推导 Chunk 修订。
     try:
         return ChunkRecord(chunk.chunk_id, chunk.document_id, chunk.document_version,
                            chunk.text, dict(chunk.metadata), chunk.chunk_version)
@@ -84,12 +84,14 @@ def _persist(result, identities, repository):
     for item in result.items:
         attempt = repository.get_attempt_for_identity(identities[item.key])
         if attempt is None:
-            # Rejected/token/quota items have never been sent to a provider.
+            # 因输入、Token 上限或配额而在发送前被拒绝的条目未提交给提供方。
             continue
         status = "succeeded" if item.status in {"embedded", "stored"} else item.status
         if status not in {"succeeded", "failed", "retryable", "unknown"}:
             raise EmbeddingContractError("invalid request result state")
         repository.resolve_attempt(attempt.attempt_id, status, request_id=item.request_id,
+            # CAS 预期值取自刚读取的当前请求；旧响应不能覆盖重试后的新请求。
+            expected_request_id=attempt.request_id,
             error=item.reason, request_payload=asdict(item.request) if item.request else None,
             result_payload={
                 "vector": list(item.vector) if item.vector is not None else None,
@@ -114,8 +116,8 @@ def _write(result, chunks, scheme, store):
                          content_fingerprint=item.content_fingerprint,
                          fingerprint_algorithm=item.fingerprint_algorithm, generated_at=item.updated_at)
         except Exception as error:
-            # The provider result is already durable. Repeating index_chunks can
-            # retry this write with that vector without submitting a new request.
+            # 提供方结果已经持久化；再次调用 index_chunks 时可复用该向量
+            # 重试写入，无需向提供方提交新请求。
             items.append(replace(item, status="failed", error_code="INDEX_PERSISTENCE_FAILED", reason=str(error)))
         else:
             items.append(replace(item, status="stored"))
@@ -132,8 +134,11 @@ def index_chunks(chunks: Sequence, adapter, store: VectorStore, *,
     repository = _repository(store, request_repository)
     sources = [_chunk(chunk) for chunk in chunks]
     policy = batch_options.pop("long_input_policy", None)
+    limits = [limit for limit in (batch_options.get("max_tokens"), batch_options.get("token_budget"))
+              if limit is not None]
+    effective_max_tokens = min(limits) if limits else None
     prepared = prepare_long_inputs([chunk.text for chunk in sources], adapter,
-        max_tokens=batch_options.get("max_tokens"), token_counter=batch_options.get("token_counter"),
+        max_tokens=effective_max_tokens, token_counter=batch_options.get("token_counter"),
         policy=policy or LongInputPolicy())
     records, identities, prepared_by_key = {}, {}, {}
     for entry in prepared:
@@ -171,8 +176,8 @@ def index_chunks(chunks: Sequence, adapter, store: VectorStore, *,
             if attempt_number:
                 return
             if retry:
-                # Retry groups contain one item, preserving an explicit decision
-                # for every previously retryable logical identity.
+                # 每个重试组仅含一个条目，确保逐个明确决定是否重试
+                # 先前被标记为可重试的逻辑身份。
                 old = retrying[keys[0]]
                 repository.retry_attempt(old.attempt_id, request_payload=asdict(request))
             else:
@@ -193,7 +198,7 @@ def index_chunks(chunks: Sequence, adapter, store: VectorStore, *,
         outcome = embed_texts([records[key].text for key in keys], adapter, scheme=scheme, role="document",
             keys=keys, prepared_inputs=[prepared_by_key[key] for key in keys],
             before_request=reserve, after_batch=finalize, **batch_options)
-        # Include unsent items, which do not pass through a provider batch callback.
+        # 补充未发送的条目，它们不会经过提供方批次完成回调。
         return finalize(outcome)
 
     completed = dict(previous)
@@ -208,7 +213,7 @@ def index_chunks(chunks: Sequence, adapter, store: VectorStore, *,
 def resolve_index_requests(chunks: Sequence, adapter, store: VectorStore, *,
                            request_repository: RequestRepository | None = None,
                            keys: set[str] | None = None) -> EmbeddingBatchResult:
-    """Explicit provider reconciliation, including requests restored after restart."""
+    """显式向提供方核实请求结果，支持重启后恢复的请求。"""
     scheme = IndexSchemeVersion(adapter.metadata)
     adapter.validate_scheme(scheme)
     repository = _repository(store, request_repository)
@@ -230,7 +235,7 @@ def resolve_index_requests(chunks: Sequence, adapter, store: VectorStore, *,
 
 def adjudicate_index_request(identity: LogicalIndexIdentity, repository, *,
                              state: str, actor: str, reason: str) -> None:
-    """Caller-confirmed outcome when a provider cannot query request status."""
+    """提供方无法查询请求状态时，由调用方确认请求结果。"""
     if state not in {"failed", "retryable"} or not actor.strip() or not reason.strip():
         raise EmbeddingContractError("adjudication requires failed/retryable, actor and reason")
     attempt = repository.get_attempt_for_identity(identity)
@@ -261,7 +266,7 @@ def search_chunks(query: str, adapter, store: VectorStore, *, limit: int = 10,
 def resolve_query_request(result: EmbeddingBatchResult, adapter, store: VectorStore, *,
                           request_repository: RequestRepository | None = None,
                           limit: int = 10, **search_options):
-    """Reconcile a durable query request without submitting its text again."""
+    """核实已持久化的查询请求，无需重新提交查询文本。"""
     import json
     if len(result.items) != 1 or result.items[0].role != "query":
         raise EmbeddingContractError("query resolution requires exactly one query item")
@@ -280,7 +285,7 @@ def resolve_query_request(result: EmbeddingBatchResult, adapter, store: VectorSt
 
 
 def search_serving_chunks(query: str, adapter_for_scheme, store, **options):
-    """Capture a complete active scheme/config pair once before encoding."""
+    """编码前一次性读取完整的活动方案与物理配置组合。"""
     if "config" in options:
         raise EmbeddingContractError("serving query uses the active physical configuration")
     scheme, config = store.active_binding()

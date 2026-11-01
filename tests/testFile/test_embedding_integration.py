@@ -20,7 +20,7 @@ class Attempt:
 
 
 class FakeStore:
-    """Contract fake: requests survive rebuilding the application flow."""
+    """遵循存储契约的测试替身，重建应用流程后仍保留请求记录。"""
     def __init__(self):
         self.rows = {}
         self.attempts = {}
@@ -44,9 +44,11 @@ class FakeStore:
             created.append(attempt)
         return created
 
-    def resolve_attempt(self, attempt_id, status, *, request_id=None, error=None,
-                        result_payload=None, request_payload=None):
+    def resolve_attempt(self, attempt_id, status, *, request_id=None, expected_request_id=None,
+                        error=None, result_payload=None, request_payload=None):
         attempt = self.attempts[attempt_id]
+        if expected_request_id is not None and attempt.request_id != expected_request_id:
+            raise ValueError("stale request resolution does not match the current provider request")
         if attempt.status in {"succeeded", "failed"} and (
                 status != attempt.status or result_payload is not None and result_payload != attempt.result_payload):
             raise ValueError("terminal request resolution is immutable")
@@ -150,6 +152,25 @@ class EmbeddingIntegrationTests(unittest.TestCase):
             indexing.index_chunks([self.chunk], self.adapter, self.store)
         self.assertEqual(self.adapter.calls, 0)
 
+    def test_stale_provider_resolution_cannot_overwrite_explicit_retry(self):
+        scheme = indexing.IndexSchemeVersion(self.adapter.metadata)
+        identity = indexing.LogicalIndexIdentity("doc", "revision-1", "c1", scheme.identity, "chunk-revision-1")
+        algorithm, fingerprint = indexing.content_fingerprint("alpha", self.adapter.metadata, "document")
+        old_request = indexing.BatchRequest("old-request", "old-key", (identity.key,), ("alpha",), ("alpha",),
+            "document", (fingerprint,), algorithm, scheme.identity)
+        self.store.reserve_batch_attempts([identity], [fingerprint], request_payload=asdict(old_request))
+        attempt = self.store.get_attempt_for_identity(identity)
+        self.store.resolve_attempt(attempt.attempt_id, "retryable", request_id="old-provider")
+        new_request = replace(old_request, request_id="new-request", idempotency_key="new-key")
+        self.store.retry_attempt(attempt.attempt_id, request_payload=asdict(new_request))
+        with self.assertRaisesRegex(ValueError, "stale request resolution"):
+            self.store.resolve_attempt(attempt.attempt_id, "failed", request_id="old-provider",
+                expected_request_id="old-provider", error="late response")
+        self.store.resolve_attempt(attempt.attempt_id, "succeeded", request_id="new-provider",
+            expected_request_id="new-request", result_payload={"vector": [1.0, 0.0, 0.0]})
+        self.assertEqual(self.store.attempts[identity.key].status, "succeeded")
+        self.assertEqual(self.store.attempts[identity.key].request_id, "new-provider")
+
     def test_unknown_is_durable_blocks_duplicates_and_explicitly_resolves_after_restart(self):
         adapter = UncertainAdapter()
         first = indexing.index_chunks([self.chunk], adapter, self.store)
@@ -157,11 +178,11 @@ class EmbeddingIntegrationTests(unittest.TestCase):
         again = indexing.index_chunks([self.chunk], adapter, self.store)
         self.assertEqual(again.items[0].status, "unknown")
         self.assertEqual(adapter.calls, 1)
-        # Only the repository and a new adapter remain; no in-memory batch result.
+        # 仅保留仓库和新建的适配器，不保留内存中的批处理结果。
         fresh = UncertainAdapter()
         resolved = indexing.resolve_index_requests([self.chunk], fresh, self.store)
         self.assertEqual(resolved.items[0].status, "stored")
-        self.assertEqual(fresh.calls, 1)  # resolver locally creates the fixture vector
+        self.assertEqual(fresh.calls, 1)  # 状态确认方法在本地生成测试向量
         self.assertEqual(next(iter(self.store.attempts.values())).status, "succeeded")
 
     def test_pending_after_crash_requires_explicit_caller_adjudication(self):
@@ -178,6 +199,18 @@ class EmbeddingIntegrationTests(unittest.TestCase):
         result = indexing.index_chunks([self.chunk], self.adapter, self.store, retry_retryable=True)
         self.assertEqual(result.items[0].status, "stored")
         self.assertEqual(self.adapter.calls, 1)
+
+    def test_token_budget_uses_long_input_policy_before_persisting(self):
+        policy = indexing.LongInputPolicy("truncate", "words-v1", lambda text, mode: [" ".join(text.split()[:2])])
+        self.adapter.metadata = replace(self.adapter.metadata,
+            document_role=replace(self.adapter.metadata.document_role, tokenizer_policy=policy.policy_id))
+        chunk = replace(self.chunk, text="alpha beta gamma")
+        result = indexing.index_chunks([chunk], self.adapter, self.store,
+            token_budget=2, token_counter=str.split, long_input_policy=policy)
+        self.assertEqual(result.items[0].status, "stored")
+        self.assertEqual(result.items[0].text, "alpha beta")
+        self.assertTrue(result.items[0].version_suffix)
+        self.assertEqual(next(iter(self.store.rows.values()))[0].text, "alpha beta")
 
     def test_explicit_rechunk_creates_new_revisions_and_keeps_source_provenance(self):
         policy = indexing.LongInputPolicy("rechunk", "split-v1", lambda text, mode: ["al", "pha"])
@@ -268,7 +301,7 @@ class EmbeddingIntegrationTests(unittest.TestCase):
         result = error.exception.result
         hits = indexing.resolve_query_request(result, adapter, self.store)
         self.assertEqual(hits[0].chunk, self.chunk)
-        self.assertEqual(adapter.calls, 2)  # original send plus local fixture resolver
+        self.assertEqual(adapter.calls, 2)  # 原始发送一次，状态确认方法本地生成测试向量一次
         wrong = UncertainAdapter(dimensions=4)
         with self.assertRaisesRegex(indexing.EmbeddingContractError, "different representation"):
             indexing.resolve_query_request(result, wrong, self.store)

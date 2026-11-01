@@ -1,4 +1,4 @@
-"""Storage seams used by the synchronous application flow."""
+"""同步应用流程依赖的存储协议。"""
 from __future__ import annotations
 
 from typing import Any, Protocol, Sequence
@@ -21,7 +21,7 @@ class RequestRepository(Protocol):
                                fingerprints: Sequence[str], *, request_payload: dict) -> Sequence[Any]: ...
 
     def resolve_attempt(self, attempt_id: str, status: str, *,
-                        request_id: str | None = None, error: str | None = None,
+                        request_id: str | None = None, expected_request_id: str | None = None, error: str | None = None,
                         result_payload: dict | None = None,
                         request_payload: dict | None = None) -> None: ...
 

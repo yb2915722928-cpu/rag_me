@@ -1,4 +1,4 @@
-"""Versioned parallel index build and guarded activation."""
+"""并行构建版本化索引，并在校验通过后激活。"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -38,7 +38,7 @@ class ValidationReport:
 
 
 class InMemoryIndexRegistry:
-    """Deterministic migration adapter mirroring the versioned storage contract."""
+    """行为确定的内存迁移适配器，与版本化存储契约保持一致。"""
 
     def __init__(self) -> None:
         self.schemes: dict[str, IndexSchemeVersion] = {}

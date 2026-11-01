@@ -1,4 +1,4 @@
--- PostgreSQL 13+, pgvector >= 0.8.0. Existing rows keep unverifiable provenance.
+-- 要求 PostgreSQL 13+、pgvector >= 0.8.0；现有记录的来源绑定仍标记为不可验证。
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE TABLE IF NOT EXISTS embedding_schemes (
  identity text PRIMARY KEY, metadata jsonb NOT NULL,

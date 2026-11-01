@@ -1,13 +1,13 @@
-"""PostgreSQL persistence; domain records live in app.models.embedding.
+"""PostgreSQL 持久化；领域记录定义于 app.models.embedding。
 
-Each ANN configuration owns a relation with exactly one ANN index. PostgreSQL
-may choose a sequential scan, but can never choose a different configuration's
-ANN index. Exact queries materialize their input before ordering by distance.
-Bounds follow pgvector v0.8.2 src/{hnsw,ivfflat}.h and README.md:
+每个 ANN 配置独占一张表，且表上仅有一个 ANN 索引。PostgreSQL
+可以选择顺序扫描，但不会选用其他配置的 ANN 索引。
+精确查询先将输入物化，再按距离排序。参数边界依据
+pgvector v0.8.2 的 src/{hnsw,ivfflat}.h 和 README.md：
 https://github.com/pgvector/pgvector/blob/v0.8.2/README.md
 https://github.com/pgvector/pgvector/blob/v0.8.2/src/hnsw.h
 https://github.com/pgvector/pgvector/blob/v0.8.2/src/ivfflat.h
-ANN post-filtering can underfill candidate_limit and has no exact-recall guarantee.
+ANN 后置过滤可能导致候选数不足 candidate_limit，且不保证精确召回。
 """
 from __future__ import annotations
 
@@ -110,7 +110,7 @@ class RequestAttempt:
 
 
 class DuplicateRequestAttempt(ValueError):
-    """A durable request already occupies the logical identity."""
+    """已有持久化请求占用该逻辑身份。"""
 
 
 class FingerprintConflict(ContentFingerprintConflict):
@@ -170,7 +170,7 @@ def _validate_vector(scheme, vector):
         raise EmbeddingContractError("vector components must be numbers") from error
     if len(values) != scheme.metadata.dimensions:
         raise EmbeddingContractError("vector dimension does not match scheme")
-    # PostgreSQL vector stores float4, so finite float8 values alone are insufficient.
+    # PostgreSQL vector 使用 float4 存储，仅保证 float8 值有限还不够。
     if not all(math.isfinite(value) and abs(value) <= 3.4028234663852886e38 for value in values):
         raise EmbeddingContractError("vector values must be finite float32 values")
     magnitude = math.hypot(*values)
@@ -199,7 +199,7 @@ def _resource_names(scheme, config):
 
 
 def _relation(value):
-    # Only server-generated names can enter SQL identifier positions.
+    # SQL 标识符位置仅允许使用服务端生成的名称。
     if re.fullmatch(r"pv_(?:resource|index)_[0-9a-f]{40}", value) is None:
         raise ValueError("invalid physical resource identifier")
     return '"' + value + '"'
@@ -323,7 +323,7 @@ class PostgresVectorStore:
                 options = dict({"hnsw": {"m": 16, "ef_construction": 64}, "ivfflat": {"lists": 100}}[config.algorithm])
                 options.update(config.build_parameters)
                 settings = ",".join(f"{key}={value}" for key, value in sorted(options.items()))
-                # Quote the validated scheme literal for a planner-visible partial predicate.
+                # 转义已验证的索引方案字面量，使规划器能识别部分索引谓词。
                 predicate = scheme.identity.replace("'", "''")
                 cursor.execute(f"CREATE INDEX {_relation(index)} ON {_relation(resource)} USING {config.algorithm} "
                                f"((vector::vector({scheme.metadata.dimensions})) vector_cosine_ops) WITH ({settings}) "
@@ -387,7 +387,7 @@ class PostgresVectorStore:
                           1 - float(row[6]), scheme.identity, row[7], row[8], row[9]) for row in rows]
 
     def search_legacy(self, scheme_identity, vector, **options):
-        """Read persisted old identity unchanged; missing provenance stays explicitly None."""
+        """读取持久化的旧身份并保持原值；缺失的来源绑定字段明确保留为 None。"""
         if "config" in options or "legacy" in options:
             raise ValueError("legacy search always uses the exact compatibility path")
         with self._transaction() as cursor:
@@ -431,12 +431,12 @@ class PostgresVectorStore:
         else:
             source = "WITH "
             relation = _relation(resource)
-            # Partial index predicate must be visible at plan time, including prepared queries.
+            # 部分索引谓词必须在规划时可见，预备查询也不例外。
             predicates[0] = "scheme_identity='" + scheme.identity.replace("'", "''") + "'"
             params = list(filters)
         distance = f"vector::vector({scheme.metadata.dimensions}) <=> %s::vector"
         where = "" if relation == "eligible" else " WHERE " + " AND ".join(predicates)
-        # Single distance sort allows ANN index scans. Stable tie order is applied after candidate materialization.
+        # 仅按距离排序以支持 ANN 索引扫描；候选物化后再为同距结果应用稳定顺序。
         tie_order = ",document_id,document_version,chunk_id,chunk_version,row_id" if relation == "eligible" else ""
         sql = (source + "candidates AS MATERIALIZED (SELECT row_id," + distance + " AS distance FROM " + relation + where +
                " ORDER BY " + distance + tie_order + " LIMIT %s) SELECT c.document_id,c.document_version,c.chunk_id,c.body,c.metadata,"
@@ -498,7 +498,7 @@ class PostgresVectorStore:
         selected = config or PhysicalIndexConfig()
         self.register_physical_config(scheme, selected)
         with self._transaction() as cursor:
-            # Global advisory lock serializes activation; scheme-first ordering matches writes.
+            # 全局咨询锁使激活串行执行；先锁定索引方案，与写入顺序一致。
             cursor.execute("SELECT pg_advisory_xact_lock(713826004218046210)")
             cursor.execute("SELECT metadata,dimensions FROM embedding_schemes WHERE identity=%s FOR UPDATE", (scheme.identity,))
             row = cursor.fetchone()
@@ -581,7 +581,7 @@ class PostgresVectorStore:
 
     def delete_scheme(self, scheme):
         with self._transaction() as cursor:
-            # Match activation ordering so a concurrent switch cannot activate resources being dropped.
+            # 遵循激活的加锁顺序，避免并发切换激活正在删除的资源。
             cursor.execute("SELECT pg_advisory_xact_lock(713826004218046210)")
             cursor.execute("SELECT identity FROM embedding_schemes WHERE identity=%s FOR UPDATE", (scheme.identity,))
             cursor.execute("LOCK TABLE index_registry IN EXCLUSIVE MODE")
@@ -596,14 +596,14 @@ class PostgresVectorStore:
             resources = cursor.fetchall()
             if any(resource[2] for resource in resources):
                 raise ValueError("active physical configuration must be switched before deletion")
-            # Synchronization triggers still need the resources while canonical rows become tombstones.
+            # 主记录转为删除标记时，同步触发器仍需访问这些资源。
             cursor.execute("UPDATE indexed_chunks SET status='deleted',updated_at=now() WHERE scheme_identity=%s AND status <> 'deleted'", (scheme.identity,))
             for resource, index, _ in resources:
                 if index is not None:
                     cursor.execute(f"DROP INDEX IF EXISTS {_relation(index)}")
                 cursor.execute(f"DROP TABLE IF EXISTS {_relation(resource)}")
             cursor.execute("DELETE FROM physical_index_configs WHERE scheme_identity=%s", (scheme.identity,))
-            # Keep registration, canonical tombstones, request attempts and activation audit intact.
+            # 完整保留注册信息、主记录的删除标记、请求尝试和激活审计。
 
     def _transition(self, identity, status, *, previous, error_code=None, reason=None):
         values = _identity_values(identity)
@@ -631,7 +631,7 @@ class PostgresVectorStore:
             raise ValueError("idempotency_key must be non-empty")
         _validate_request_payload(identity, digest, request_payload)
         payload = json.dumps(request_payload, ensure_ascii=False, allow_nan=False) if request_payload is not None else None
-        # Shared with upsert: concurrent reservations/writes cannot disagree about content identity.
+        # 与 upsert 共用锁，确保并发预留与写入的内容身份一致。
         self._lock_identity(cursor, values)
         cursor.execute("SELECT content_fingerprint,status FROM indexed_chunks WHERE document_id=%s AND document_version=%s "
                        "AND chunk_id=%s AND chunk_version=%s AND scheme_identity=%s", values)
@@ -672,7 +672,7 @@ class PostgresVectorStore:
             raise ValueError("batch contains duplicate logical identities")
         attempts = {}
         with self._transaction() as cursor:
-            # Consistent lock order also prevents deadlocks between overlapping batches.
+            # 统一加锁顺序也可避免存在重叠项的批次之间发生死锁。
             for position in sorted(range(len(identities)), key=lambda index: _identity_values(identities[index])):
                 identity = identities[position]
                 item_key = hashlib.sha256(json.dumps([batch_key, _identity_values(identity)], ensure_ascii=False).encode()).hexdigest()
@@ -710,23 +710,29 @@ class PostgresVectorStore:
             identity = LogicalIndexIdentity(row[1], row[2], row[3], row[5], row[4])
             return RequestAttempt(row[0], identity, row[6], row[7], row[8], row[9], row[10], _json(row[11]), _json(row[12]))
 
-    def resolve_attempt(self, attempt_id, status, *, request_id=None, error=None, result_payload=None, request_payload=None):
+    def resolve_attempt(self, attempt_id, status, *, request_id=None, expected_request_id=None,
+                        error=None, result_payload=None, request_payload=None):
         if status not in {"unknown", "succeeded", "failed", "retryable"}:
             raise ValueError("request resolution must be unknown, succeeded, failed or retryable")
         result = json.dumps(result_payload, ensure_ascii=False, allow_nan=False) if result_payload is not None else None
         request = json.dumps(request_payload, ensure_ascii=False, allow_nan=False) if request_payload is not None else None
         with self._transaction() as cursor:
-            cursor.execute("SELECT status,result_payload,request_payload FROM embedding_request_attempts WHERE attempt_id=%s FOR UPDATE", (attempt_id,))
+            cursor.execute("SELECT status,result_payload,request_payload,request_id FROM embedding_request_attempts WHERE attempt_id=%s FOR UPDATE", (attempt_id,))
             row = cursor.fetchone()
             if row is None:
                 raise KeyError("request attempt not found")
-            if request_payload is not None and row[2] is not None:
-                original = _json(row[2])
+            current_request_id = row[3] if len(row) >= 4 else None
+            current_result_payload = row[1] if len(row) >= 2 else None
+            current_request_payload = row[2] if len(row) >= 3 else None
+            if expected_request_id is not None and current_request_id != expected_request_id:
+                raise ValueError("stale request resolution does not match the current provider request")
+            if request_payload is not None and current_request_payload is not None:
+                original = _json(current_request_payload)
                 immutable = ("idempotency_key", "keys", "texts", "prepared_texts", "role", "fingerprints", "fingerprint_algorithm", "scheme_identity")
                 if any(json.dumps(original.get(key), sort_keys=True) != json.dumps(request_payload.get(key), sort_keys=True) for key in immutable):
                     raise EmbeddingContractError("request payload identity and encoding input are immutable")
             if row[0] in {"succeeded", "failed"}:
-                if row[0] != status or result_payload is not None and _json(row[1]) != result_payload:
+                if row[0] != status or result_payload is not None and _json(current_result_payload) != result_payload:
                     raise ValueError("terminal request resolution is immutable")
             cursor.execute("UPDATE embedding_request_attempts SET status=%s,request_id=COALESCE(%s,request_id),error=%s,"
                            "result_payload=COALESCE(%s::jsonb,result_payload),request_payload=COALESCE(%s::jsonb,request_payload),updated_at=now() "
@@ -734,11 +740,11 @@ class PostgresVectorStore:
         return self.get_attempt(attempt_id)
 
     def retry_attempt(self, attempt_id, *, request_payload=None, idempotency_key=None):
-        """Explicit retry only after a confirmed retryable outcome."""
+        """仅在结果确认为可重试后显式重试。"""
         with self._transaction() as cursor:
             lookup = ("SELECT document_id,document_version,chunk_id,chunk_version,scheme_identity,status,content_fingerprint "
                       "FROM embedding_request_attempts WHERE attempt_id=%s")
-            # Discover identity without locking the request row: reserve/upsert acquire identity first.
+            # 查询身份时不锁定请求行：预留和 upsert 操作均先锁定身份。
             cursor.execute(lookup, (attempt_id,))
             original = cursor.fetchone()
             if original is None:

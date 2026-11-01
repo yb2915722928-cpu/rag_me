@@ -1,6 +1,6 @@
-"""Optional real PostgreSQL tests; require TEST_DATABASE_URL and pgvector >= 0.8.
+"""可选的真实 PostgreSQL 测试；要求设置 TEST_DATABASE_URL 且 pgvector >= 0.8。
 
-Each test uses an isolated schema. No database execution is claimed when skipped.
+每项测试使用隔离的 schema；跳过时不代表已执行数据库验证。
 """
 from dataclasses import asdict, replace
 import json
@@ -161,7 +161,7 @@ class PgVectorIndexingTests(unittest.TestCase):
         self.assertIsNone(self.store.get_attempt_for_identity(self.identity))
 
     def test_schema_upgrade_leaves_old_rows_explicitly_unverifiable(self):
-        # Recreate only the legacy canonical tables within this test's isolated schema.
+        # 仅在本测试的隔离 schema 内重建旧版主表。
         with self.connect(self.dsn) as connection:
             connection.execute("DROP TABLE indexed_chunks CASCADE")
             connection.execute("CREATE TABLE indexed_chunks(document_id text NOT NULL,document_version text NOT NULL,chunk_id text NOT NULL,"
@@ -220,7 +220,7 @@ class PgVectorIndexingTests(unittest.TestCase):
             before = connection.execute("SELECT row_id,body,content_fingerprint,generated_at FROM indexed_chunks WHERE scheme_identity=%s ORDER BY row_id", (self.scheme.identity,)).fetchall()
             audit_before = connection.execute("SELECT count(*) FROM index_activation_audit").fetchone()[0]
         self.store.delete_scheme(self.scheme)
-        self.store.delete_scheme(self.scheme)  # Repeated cleanup preserves already deleted identities.
+        self.store.delete_scheme(self.scheme)  # 重复清理仍保留已删除的身份。
         with self.connect(self.dsn) as connection:
             after = connection.execute("SELECT row_id,body,content_fingerprint,generated_at FROM indexed_chunks WHERE scheme_identity=%s AND status='deleted' ORDER BY row_id", (self.scheme.identity,)).fetchall()
             self.assertEqual(after, before)

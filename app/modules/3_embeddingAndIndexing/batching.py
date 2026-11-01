@@ -1,4 +1,4 @@
-"""Bounded synchronous role-aware embedding batches with durable request identity."""
+"""区分编码角色的有界同步 Embedding 批处理，支持持久化请求身份。"""
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
@@ -91,7 +91,7 @@ def _count_tokens(counter, text):
 
 def prepare_long_inputs(texts: Sequence[str], adapter: EmbeddingAdapter, *, max_tokens: int | None,
                         token_counter=None, role="document", policy: LongInputPolicy | None = None) -> tuple[PreparedInput, ...]:
-    """Transform explicitly before flow creates new Chunk revisions; never mutate source identity."""
+    """先显式转换文本，再由流程创建新的 Chunk 修订；不修改源身份。"""
     role_config = adapter.metadata.role_config(role)
     if max_tokens is not None:
         _positive_integer(max_tokens, "max_tokens")
@@ -164,7 +164,7 @@ def _request(items, adapter, scheme, role):
 
 
 def _backoff(attempt, base, maximum, jitter, retry_after=None):
-    # Clamp before exponentiation to keep arbitrarily large retry settings safe.
+    # 先限制指数范围，避免过大的重试配置导致幂运算溢出。
     exponential = min(maximum, base * 2 ** min(attempt, 60))
     sample = jitter()
     if not isinstance(sample, (int, float)) or not math.isfinite(sample):
@@ -218,7 +218,7 @@ def embed_texts(
         prepared = tuple(prepared_inputs)
         if len(prepared) != len(texts) or any(not isinstance(entry, PreparedInput) or entry.text != text for entry, text in zip(prepared, texts)):
             raise ValueError("prepared_inputs must match the final texts one to one")
-        # Recheck only the final prepared token boundary; retain transformation diagnostics.
+        # 仅重新检查最终准备文本的 Token 上限，并保留转换诊断。
         checked = prepare_long_inputs(texts, adapter, max_tokens=item_limit, token_counter=counter, role=role)
         prepared = tuple(replace(entry, rejected_reason=entry.rejected_reason or check.rejected_reason,
             diagnostics=entry.diagnostics + check.diagnostics) for entry, check in zip(prepared, checked))
@@ -275,7 +275,7 @@ def embed_texts(
                 error = None
             except Exception as failure:
                 vectors = None
-                # Contract violations cannot be reclassified as transient by a provider.
+                # 提供方不能将契约错误重新归类为暂时性故障。
                 error = (ProviderError(ProviderOutcome.FAILED, "EMBEDDING_CONTRACT", str(failure))
                     if isinstance(failure, EmbeddingContractError) else classify_provider_error(adapter, failure))
                 if error.request_id:
@@ -310,10 +310,10 @@ def embed_texts(
 
 
 def retry_failed(result: EmbeddingBatchResult, adapter: EmbeddingAdapter, *, keys: set[str] | None = None, **options) -> EmbeddingBatchResult:
-    """Retry only explicitly retryable items, retaining stable key and cumulative attempts."""
+    """仅重试明确允许重试的条目，并保留稳定键和累计尝试次数。"""
     selected = [item for item in result.items if item.status == "retryable" and (keys is None or item.key in keys)]
     replacements = {}
-    # Group by role without accidentally assigning the first role to every item.
+    # 按角色分组，避免将首个条目的角色错误地应用于全部条目。
     for role in ("document", "query"):
         group = [item for item in selected if item.role == role]
         if not group:
@@ -333,7 +333,7 @@ def retry_failed(result: EmbeddingBatchResult, adapter: EmbeddingAdapter, *, key
 
 
 def resolve_unknown(result: EmbeddingBatchResult, adapter: EmbeddingAdapter, *, keys: set[str] | None = None) -> EmbeddingBatchResult:
-    """Explicitly reconcile ambiguous requests using a declared provider capability."""
+    """使用提供方显式声明的状态确认能力，核实结果未知的请求。"""
     if not getattr(adapter, "supports_status_query", False):
         raise EmbeddingContractError("adapter does not support explicit request resolution")
     resolved = {}

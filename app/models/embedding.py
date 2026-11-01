@@ -1,4 +1,4 @@
-"""Provider- and storage-independent identities for embedding and retrieval."""
+"""与提供方和存储实现无关的 Embedding 与检索身份定义。"""
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
@@ -9,11 +9,11 @@ from typing import Any, Mapping
 
 
 class EmbeddingContractError(ValueError):
-    """An input or a vector does not satisfy its representation contract."""
+    """输入或向量不满足其表示契约。"""
 
 
 class ContentFingerprintConflict(EmbeddingContractError):
-    """The same immutable logical identity names different encoding input."""
+    """同一不可变逻辑身份对应了不同的编码输入。"""
 
 
 def canonical_json(value: Any) -> str:
@@ -91,8 +91,8 @@ class IndexSchemeVersion:
 
     @property
     def identity(self) -> str:
-        # Hash the complete structured contract; delimiter-concatenated identities
-        # cannot distinguish delimiters inside model IDs or policy names.
+        # 对完整的结构化契约计算哈希；直接用分隔符拼接身份，
+        # 无法区分模型 ID 或策略名称自身包含的分隔符。
         digest = hashlib.sha256(canonical_json(asdict(self.metadata)).encode("utf-8")).hexdigest()
         return ("scheme:v2:" if self.metadata.verifiable else "legacy:") + digest
 
@@ -136,7 +136,7 @@ class ChunkRecord:
 
     @property
     def version(self) -> str:
-        """Legacy document revision alias, never a Chunk revision."""
+        """兼容旧接口的文档修订别名，不代表 Chunk 修订。"""
         return self.document_version
 
 
