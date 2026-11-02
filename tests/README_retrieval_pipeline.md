@@ -1,7 +1,7 @@
 # #94 检索完整流水线：组合场景与运行前提
 
 状态：**独立准备阶段；所有测试、SQL、分词输出、后端组合和性能均未执行。**
-本文件与 [场景数据](retrieval_pipeline_cases.py) 是 #94 接入前的准备产物，不表示完整公共查询测试已接线或通过。
+本文件与 [场景数据](retrieval_pipeline_cases.py) 是 #94 接入前的准备产物。[确定性公共查询测试](test_retrieval_pipeline.py)、[真实后端测试](test_retrieval_pipeline_postgres.py) 与 [外部端口及断言辅助](retrieval_pipeline_support.py) 已编写源码；按协调者确认的最终接口接线，尚未合并依赖、运行或宣称通过。
 基线为 `5c52962`；待协调者明确 #87/#89/#90/#91/#92/#93 全部集成后，才合并最新 integration 并连接公共服务、补齐断言及修复组合缺口。
 本阶段没有安装依赖、下载模型、连接数据库、启动服务、部署、联调或 benchmark。
 
@@ -94,6 +94,7 @@ Windows应用可配受支持Linux数据库环境，但尚未确认具体发行�
 | [权威正文与发布](test_retrieval_postgres.py) | `TEST_DATABASE_URL` | PostgreSQL正文/发布/父读取，不要求向量/搜索扩展；创建和清理随机schema |
 | [向量过滤链路](integration/test_filtered_vector_retrieval.py) | `RAG_RETRIEVAL_TEST_DSN` | 真实pgvector，确定性外部编码；随机schema保留待维护者清理 |
 | [文档BM25](test_retrieval_bm25.py) | `RETRIEVAL_BM25_TEST_DSN` | 固定PG/扩展组合；创建/清理随机schema，包含显式物理索引丢失故障 |
+| [公共流水线](test_retrieval_pipeline_postgres.py) | `RETRIEVAL_PIPELINE_TEST_DSN` | 显式一次性数据库；检索数据与module3回执分别使用随机schema，均清理；检查PG和扩展精确版本，不启动服务 |
 
 仅设置DSN不代表本阶段授权执行。最终 #94 公共查询集成测试应复用明确的测试DSN约定、隔离随机schema，并在夹具中说明创建/清理范围；不能使用真实业务数据库。缺环境导致skip不能记作兼容性通过。
 
@@ -103,7 +104,9 @@ Windows应用可配受支持Linux数据库环境，但尚未确认具体发行�
 
 ## 未验证与后续收口
 
-- 本阶段只提交可复用测试输入/预期矩阵及必要说明；24组场景尚未接到公共查询断言，不能计作24个已完成测试。
+- 已编写两套各24组合的公共查询测试源码（确定性外部端口、真实数据库全链）；未运行、未collection，不能计作通过。确定性测试使用独立手算分数及MMR几何预期，真实后端不假定语义名次。
+- 故障源码覆盖父/去重/MMR默认降级和严格失败、路由失败不重分权重、空结果与全失败、pin失败、迟到MMR结果、真实父业务过滤、保留历史/多KB、查询中发布、物理FAQ索引丢失和编码器提前超时。提前TimeoutError被底层转成failed的已知静态线索保留为回归断言，待最终代码审阅处理。
+- 公共接口使用config.body_dedup/mmr/mmr_lambda、query(body_dedup_prover=...)与RetrievalService(mmr_encoder=...)。所有依赖集成后仍需核对最终接口与语义；不做反射兼容或skip掩盖不匹配。
 - 不运行pytest（含collection）、Python import/compile smoke、SQL、迁移、服务、容器、联调、benchmark或模型下载；也不以静态审阅宣称运行通过。
 - 所有SQL/tokenizer组合、`pdb.score`与MATERIALIZED CTE、过滤计划和扩展加载均未运行。全量文本命中再授权/过滤/排序/LIMIT是当前正确性基线，代价未经测量。
 - 每KB×snapshot独立语料/物理索引；FAQ与文档分别排名。独立统计、精确词项、ANN限制和业务过滤实际执行行为仍需真实后端验证。
