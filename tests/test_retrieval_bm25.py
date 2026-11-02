@@ -29,7 +29,7 @@ def store():
     if not dsn:
         pytest.skip("requires explicit real PostgreSQL/pg_search test database")
     psycopg = pytest.importorskip("psycopg")
-    module = importlib.import_module("app.modules.4_retrievalAndFusion.bm25_postgres")
+    module = importlib.import_module("app.modules.4_retrievalAndFusion")
     schema = "test_bm25_" + uuid.uuid4().hex
     value = module.PostgresBM25RetrievalStore(dsn, schema=schema)
     try:
@@ -193,7 +193,7 @@ def test_prepare_is_idempotent_and_failed_preparation_preserves_publication(stor
 
 def test_unavailable_backend_reports_failed_path_without_candidates():
     from datetime import datetime, timezone
-    module = importlib.import_module("app.modules.4_retrievalAndFusion.bm25_postgres")
+    module = importlib.import_module("app.modules.4_retrievalAndFusion")
     c = contracts()
 
     def unavailable(_dsn):
