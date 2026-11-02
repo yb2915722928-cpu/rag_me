@@ -151,6 +151,54 @@ def test_case_preserving_exact_models_and_answer_is_not_question_corpus(store):
     assert [h.content for h in result.candidates] == [exact]
 
 
+def test_public_ingest_publish_query_fuses_four_routes_once_per_item(store):
+    indexing = importlib.import_module("app.modules.3_embeddingAndIndexing")
+    encoder = indexing.DeterministicEmbeddingAdapter(3)
+    store.adapter_for_scheme = lambda scheme: encoder
+    entry = faq("one", "USB-C AX-100 v2.1 设置", ("USB-C AX-100 v2.1 安装", "USB-C AX-100 v2.1 使用"), product="AX-100")
+    doc = api().ContentRecord(api().EvidenceIdentity("kb", "manual", "v1", "chunk", "c1"),
+                              "USB-C AX-100 v2.1 中文说明", {"uri": "manual://one"}, {"product": "AX-100"})
+    store.index_documents([doc], encoder)
+    store.index_faq([entry], encoder)
+    scheme = indexing.IndexSchemeVersion(encoder.metadata)
+    store.prepare("kb", "mixed", [doc.identity], faq_identities=[entry.identity],
+                  required_indexes=("vector", "bm25", "faq_vector", "faq_bm25"),
+                  vector_scheme=scheme, faq_vector_scheme=scheme, field_types={"product": "string"})
+    store.publish("kb", "mixed")
+    service = api().RetrievalService(store)
+    result = service.query("AX-100", knowledge_base_ids=("kb",), authorization=api().AuthorizationScope(("kb",)),
+                           conditions=api().Eq("product", "AX-100"), exact_terms=("USB-C", "AX-100", "v2.1"))
+    assert result.status == "complete"
+    assert {route.method for route in result.routes} == {"vector", "bm25", "faq_vector", "faq_bm25"}
+    assert all(route.status == "success" for route in result.routes)
+    assert {hit.content.identity for hit in result.candidates} == {entry.identity, doc.identity}
+    hit = next(hit for hit in result.candidates if hit.content.identity == entry.identity)
+    assert hit.content == entry
+    assert {trace.method for trace in hit.traces} == {"faq_vector", "faq_bm25"}
+    assert len(hit.traces) == 2
+    assert hit.score == pytest.approx(2 / 61)
+    for trace in hit.traces:
+        assert trace.rank == 1
+        assert trace.snapshot_id == "mixed"
+        assert {q.question for q in trace.matched_questions} == set(entry.questions)
+        assert trace.raw_score == max(q.raw_score for q in trace.matched_questions)
+    empty = service.query("AX-100", knowledge_base_ids=("kb",), authorization=api().AuthorizationScope(("kb",)),
+                          conditions=api().Eq("product", "OTHER"))
+    assert empty.status == "complete"
+    assert empty.candidates == ()
+    assert all(route.status == "empty" for route in empty.routes)
+    # Query text matches, but both lexical adapters must honor absent exact tokens.
+    exact_empty = service.query("AX-100", knowledge_base_ids=("kb",), authorization=api().AuthorizationScope(("kb",)),
+                                exact_terms=("ABSENT-MODEL",))
+    assert {route.method for route in exact_empty.routes if route.status == "empty"} == {"bm25", "faq_bm25"}
+    faq_only = service.query("AX-100", knowledge_base_ids=("kb",),
+                             authorization=api().AuthorizationScope(("kb",), faq_item_ids={"kb": ("one",)}))
+    assert {hit.content.identity for hit in faq_only.candidates} == {entry.identity}
+    docs_only = service.query("AX-100", knowledge_base_ids=("kb",),
+                              authorization=api().AuthorizationScope(("kb",), {"kb": ("manual",)}))
+    assert {hit.content.identity for hit in docs_only.candidates} == {doc.identity}
+
+
 def test_missing_real_faq_index_blocks_publish_and_fails_without_candidates(store):
     import psycopg
     from psycopg import sql

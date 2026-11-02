@@ -50,6 +50,8 @@ class RetrievalService:
             methods = ("vector", "bm25")
             if callable(getattr(self.store, "search_faq_vector", None)):
                 methods += ("faq_vector",)
+            if callable(getattr(self.store, "search_faq_bm25", None)):
+                methods += ("faq_bm25",)
             return tuple(self._backend_route(kb, method) for kb in knowledge_base_ids
                          for method in methods)
         selected = tuple(route for route in self.routes if route.knowledge_base_id in knowledge_base_ids)
@@ -63,7 +65,7 @@ class RetrievalService:
 
         def search(query, *, scope, top_k, exact_terms):
             options = {"knowledge_base_id": knowledge_base_id, "scope": scope, "top_k": top_k}
-            if method == "bm25":
+            if method in ("bm25", "faq_bm25"):
                 options["exact_terms"] = exact_terms
             result = getattr(self.store, f"search_{method}")(query, **options)
             successful = result.status in ("success", "empty")
