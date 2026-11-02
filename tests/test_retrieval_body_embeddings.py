@@ -6,7 +6,7 @@ embed_texts result. These tests do not claim a remote model deployment exists.
 from dataclasses import dataclass, replace
 import importlib
 
-import pytest
+import unittest
 
 embedding = importlib.import_module("app.modules.3_embeddingAndIndexing")
 body = importlib.import_module("app.modules.4_retrievalAndFusion.body_embeddings")
@@ -81,93 +81,89 @@ class Provider(embedding.DeterministicEmbeddingAdapter):
         return [(1.0, 0.0) if "parent" in text else (0.0, 1.0) for text in texts]
 
 
-def test_real_batch_encodes_actual_bodies_once_and_durable_results_survive_encoder_recreation():
-    provider, repository, budget = Provider(), Repository(), Budget()
-    encoder = body.Module3BodyEncoder(provider, repository)
-    entries = encoder.encode(("full parent body", "FAQ answer", "full parent body"), remaining=budget)
-    assert provider.inputs == [(("full parent body", "FAQ answer"), "document")]
-    assert provider.budgets == [budget]
-    assert entries[0] == entries[2]
-    assert entries[0].vector == (1.0, 0.0)
-    assert entries[1].vector == (0.0, 1.0)
-    restored = body.Module3BodyEncoder(provider, repository).encode(
-        ("FAQ answer", "full parent body"), remaining=budget)
-    assert restored == (entries[1], entries[0])
-    assert len(provider.inputs) == 1
+class BodyEmbeddingTests(unittest.TestCase):
+    def test_real_batch_encodes_actual_bodies_once_and_durable_results_survive_encoder_recreation(self):
+        provider, repository, budget = Provider(), Repository(), Budget()
+        encoder = body.Module3BodyEncoder(provider, repository)
+        entries = encoder.encode(("full parent body", "FAQ answer", "full parent body"), remaining=budget)
+        assert provider.inputs == [(("full parent body", "FAQ answer"), "document")]
+        assert provider.budgets == [budget]
+        assert entries[0] == entries[2]
+        assert entries[0].vector == (1.0, 0.0)
+        assert entries[1].vector == (0.0, 1.0)
+        restored = body.Module3BodyEncoder(provider, repository).encode(
+            ("FAQ answer", "full parent body"), remaining=budget)
+        assert restored == (entries[1], entries[0])
+        assert len(provider.inputs) == 1
 
+    def test_only_same_full_scheme_and_exact_body_fingerprint_are_reused(self):
+        provider, repository, budget = Provider(), Repository(), Budget()
+        scheme = embedding.IndexSchemeVersion(provider.metadata)
+        valid = body.BodyVector.for_text("exact answer", scheme, (0, 1))
+        wrong_body = body.BodyVector.for_text("FAQ question", scheme, (1, 0))
+        wrong_model = replace(valid, scheme_identity=embedding.IndexSchemeVersion(
+            replace(provider.metadata, model_revision="v2")).identity)
+        encoder = body.Module3BodyEncoder(provider, repository, reusable=(valid, wrong_body, wrong_model))
+        entries = encoder.encode(("exact answer", "new answer", "full parent body"), remaining=budget)
+        assert entries[0] == valid
+        assert provider.inputs == [(("new answer", "full parent body"), "document")]
 
-def test_only_same_full_scheme_and_exact_body_fingerprint_are_reused():
-    provider, repository, budget = Provider(), Repository(), Budget()
-    scheme = embedding.IndexSchemeVersion(provider.metadata)
-    valid = body.BodyVector.for_text("exact answer", scheme, (0, 1))
-    wrong_body = body.BodyVector.for_text("FAQ question", scheme, (1, 0))
-    wrong_model = replace(valid, scheme_identity=embedding.IndexSchemeVersion(
-        replace(provider.metadata, model_revision="v2")).identity)
-    encoder = body.Module3BodyEncoder(provider, repository, reusable=(valid, wrong_body, wrong_model))
-    entries = encoder.encode(("exact answer", "new answer", "full parent body"), remaining=budget)
-    assert entries[0] == valid
-    assert provider.inputs == [(("new answer", "full parent body"), "document")]
+    def test_shared_cache_does_not_cross_model_revision_or_configuration(self):
+        for change in [{"model_revision": "v2"}, {"chunking_policy": "other"},
+                                            {"document_role": embedding.EmbeddingRoleConfig("document", "other") }]:
+            with self.subTest(change=change):
+                provider, repository, budget, cache = Provider(), Repository(), Budget(), {}
+                first = body.Module3BodyEncoder(provider, repository, cache=cache)
+                first.encode(("answer",), remaining=budget)
+                other = Provider()
+                other.metadata = replace(other.metadata, **change)
+                second = body.Module3BodyEncoder(other, repository, cache=cache)
+                second.encode(("answer",), remaining=budget)
+                assert len(other.inputs) == 1
+                assert len(cache) == 2
 
+    def test_unknown_provider_outcome_is_durable_and_never_silently_retried(self):
+        class UncertainProvider(Provider):
+            def embed_role(self, texts, role, *, remaining=None):
+                self.inputs.append((tuple(texts), role))
+                raise TimeoutError("private remote endpoint and body")
 
-@pytest.mark.parametrize("change", [{"model_revision": "v2"}, {"chunking_policy": "other"},
-                                    {"document_role": embedding.EmbeddingRoleConfig("document", "other") }])
-def test_shared_cache_does_not_cross_model_revision_or_configuration(change):
-    provider, repository, budget, cache = Provider(), Repository(), Budget(), {}
-    first = body.Module3BodyEncoder(provider, repository, cache=cache)
-    first.encode(("answer",), remaining=budget)
-    other = Provider()
-    other.metadata = replace(other.metadata, **change)
-    second = body.Module3BodyEncoder(other, repository, cache=cache)
-    second.encode(("answer",), remaining=budget)
-    assert len(other.inputs) == 1
-    assert len(cache) == 2
+        provider, repository, budget = UncertainProvider(), Repository(), Budget()
+        with self.assertRaises(TimeoutError):
+            body.Module3BodyEncoder(provider, repository).encode(("answer",), remaining=budget)
+        with self.assertRaises(body.BodyEncodingError) as caught:
+            body.Module3BodyEncoder(provider, repository).encode(("answer",), remaining=budget)
+        assert caught.exception.code == "mmr_encoding_unresolved"
+        assert len(provider.inputs) == 1
+        assert next(iter(repository.attempts.values())).status == "unknown"
 
+    def test_late_success_is_not_accepted_or_cached(self):
+        class LateProvider(Provider):
+            def embed_role(self, texts, role, *, remaining=None):
+                vectors = super().embed_role(texts, role, remaining=remaining)
+                remaining.expired = True
+                return vectors
 
-def test_unknown_provider_outcome_is_durable_and_never_silently_retried():
-    class UncertainProvider(Provider):
-        def embed_role(self, texts, role, *, remaining=None):
-            self.inputs.append((tuple(texts), role))
-            raise TimeoutError("private remote endpoint and body")
+        provider, repository, budget, cache = LateProvider(), Repository(), Budget(), {}
+        with self.assertRaises(TimeoutError):
+            body.Module3BodyEncoder(provider, repository, cache=cache).encode(("answer",), remaining=budget)
+        assert cache == {}
 
-    provider, repository, budget = UncertainProvider(), Repository(), Budget()
-    with pytest.raises(TimeoutError):
-        body.Module3BodyEncoder(provider, repository).encode(("answer",), remaining=budget)
-    with pytest.raises(body.BodyEncodingError) as caught:
-        body.Module3BodyEncoder(provider, repository).encode(("answer",), remaining=budget)
-    assert caught.value.code == "mmr_encoding_unresolved"
-    assert len(provider.inputs) == 1
-    assert next(iter(repository.attempts.values())).status == "unknown"
-
-
-def test_late_success_is_not_accepted_or_cached():
-    class LateProvider(Provider):
-        def embed_role(self, texts, role, *, remaining=None):
-            vectors = super().embed_role(texts, role, remaining=remaining)
-            remaining.expired = True
-            return vectors
-
-    provider, repository, budget, cache = LateProvider(), Repository(), Budget(), {}
-    with pytest.raises(TimeoutError):
-        body.Module3BodyEncoder(provider, repository, cache=cache).encode(("answer",), remaining=budget)
-    assert cache == {}
-
-
-def test_expired_budget_prevents_even_durable_or_cache_reuse():
-    provider, repository, budget = Provider(), Repository(), Budget()
-    encoder = body.Module3BodyEncoder(provider, repository)
-    encoder.encode(("answer",), remaining=budget)
-    budget.expired = True
-    with pytest.raises(TimeoutError):
+    def test_expired_budget_prevents_even_durable_or_cache_reuse(self):
+        provider, repository, budget = Provider(), Repository(), Budget()
+        encoder = body.Module3BodyEncoder(provider, repository)
         encoder.encode(("answer",), remaining=budget)
-    assert len(provider.inputs) == 1
+        budget.expired = True
+        with self.assertRaises(TimeoutError):
+            encoder.encode(("answer",), remaining=budget)
+        assert len(provider.inputs) == 1
 
-
-def test_invalid_matching_cached_vector_fails_the_whole_encoding_call():
-    provider, repository, budget = Provider(), Repository(), Budget()
-    scheme = embedding.IndexSchemeVersion(provider.metadata)
-    invalid = body.BodyVector.for_text("answer", scheme, (0, 0))
-    encoder = body.Module3BodyEncoder(provider, repository, reusable=(invalid,))
-    with pytest.raises(body.BodyEncodingError) as caught:
-        encoder.encode(("answer", "full parent body"), remaining=budget)
-    assert caught.value.code == "mmr_invalid_vector"
-    assert provider.inputs == []
+    def test_invalid_matching_cached_vector_fails_the_whole_encoding_call(self):
+        provider, repository, budget = Provider(), Repository(), Budget()
+        scheme = embedding.IndexSchemeVersion(provider.metadata)
+        invalid = body.BodyVector.for_text("answer", scheme, (0, 0))
+        encoder = body.Module3BodyEncoder(provider, repository, reusable=(invalid,))
+        with self.assertRaises(body.BodyEncodingError) as caught:
+            encoder.encode(("answer", "full parent body"), remaining=budget)
+        assert caught.exception.code == "mmr_invalid_vector"
+        assert provider.inputs == []

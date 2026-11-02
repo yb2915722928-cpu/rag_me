@@ -5,17 +5,18 @@ from collections import defaultdict
 from math import fsum
 
 from .fusion_contracts import FusedCandidate, RetrievalConfig, RouteResult, ScoreTrace
+from .deadline import budgeted
 
 
-def fuse_rrf(routes: tuple[RouteResult, ...], config: RetrievalConfig) -> tuple[FusedCandidate, ...]:
+def fuse_rrf(routes: tuple[RouteResult, ...], config: RetrievalConfig, *, remaining=None) -> tuple[FusedCandidate, ...]:
     records = {}
     traces = defaultdict(list)
-    for route in sorted(routes, key=lambda item: item.route_id):
+    for route in budgeted(sorted(budgeted(routes, remaining), key=lambda item: item.route_id), remaining):
         if route.status != "success":
             continue
         weight = config.route_weights.get(route.route_id, 1.0)
         seen = set()
-        for hit in route.candidates:
+        for hit in budgeted(route.candidates, remaining):
             identity = hit.content.identity
             if identity in seen:
                 continue
@@ -30,7 +31,16 @@ def fuse_rrf(routes: tuple[RouteResult, ...], config: RetrievalConfig) -> tuple[
                 hit.snapshot_id, weight, weight / (config.rrf_k + rank),
                 matched_questions=hit.matched_questions,
             ))
-    candidates = [FusedCandidate(records[identity], fsum(trace.contribution for trace in evidence),
+    candidates = [FusedCandidate(records[identity], fsum(trace.contribution for trace in budgeted(evidence, remaining)),
                                  tuple(evidence), (identity,), (records[identity].source,))
-                  for identity, evidence in traces.items()]
-    return tuple(sorted(candidates, key=lambda item: (-item.score, item.content.identity.parts))[:config.pool_size])
+                  for identity, evidence in budgeted(traces.items(), remaining)]
+
+    def rank_key(item):
+        if remaining is not None:
+            remaining.check()
+        return -item.score, item.content.identity.parts
+
+    ranked = sorted(candidates, key=rank_key)
+    if remaining is not None:
+        remaining.check()
+    return tuple(ranked[:config.pool_size])

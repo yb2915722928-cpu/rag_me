@@ -8,6 +8,7 @@ from typing import Callable, Literal, Mapping
 
 from .contracts import ContentRecord, EvidenceIdentity, ReadScope, RetrievalContractError, required_strings
 from .faq_contracts import FAQIdentity, FAQRecord, MatchedQuestion
+from .execution_errors import QueryRecovery
 
 RouteStatus = Literal["success", "empty", "failed", "timeout", "not_executed"]
 QueryStatus = Literal["complete", "partial", "incomplete"]
@@ -86,6 +87,7 @@ class RouteResult:
     candidate_limit: int | None = None
     limitations: tuple[str, ...] = ()
     reason: str | None = None
+    query_recovery: QueryRecovery | None = None
 
 
 @dataclass(frozen=True)

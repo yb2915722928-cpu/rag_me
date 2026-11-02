@@ -10,6 +10,7 @@ from .faq_bm25 import FAQBM25Analyzer, FAQBM25Candidate, FAQBM25QueryResult
 from .faq_bm25_resources import FAQBM25Resources
 from .faq_contracts import FAQIdentity, FAQRecord, MatchedQuestion
 from .faq_postgres import PostgresFAQRetrievalStore
+from .execution_errors import execution_failure
 
 
 class PostgresFAQBM25RetrievalStore(PostgresFAQRetrievalStore):
@@ -76,8 +77,6 @@ class PostgresFAQBM25RetrievalStore(PostgresFAQRetrievalStore):
                     snapshot.snapshot_id, float(row[6]), fingerprint,
                     tuple(MatchedQuestion(q["question"], float(q["raw_score"])) for q in row[7])) for row in rows)
             return FAQBM25QueryResult("success" if candidates else "empty", candidates)
-        except TimeoutError:
-            # Preserve the shared scheduler's timeout classification and budget.
-            raise
         except Exception as exc:
-            return FAQBM25QueryResult("failed", error=type(exc).__name__)
+            status, reason, _ = execution_failure(exc)
+            return FAQBM25QueryResult(status, error=reason)
