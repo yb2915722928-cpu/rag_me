@@ -4,7 +4,7 @@ import hashlib
 import importlib
 
 from app.models.embedding import IndexSchemeVersion, canonical_json, scheme_from_metadata
-from app.models.db.pgvector import _validate_vector, _vector_literal
+from app.models.db.pgvector import validate_vector, vector_literal
 from .contracts import ContentConflict, RetrievalContractError, SnapshotNotReady
 from .faq_contracts import FAQIdentity, FAQRecord, MatchedQuestion
 from .faq_postgres import encoding_namespace
@@ -73,7 +73,8 @@ class FAQVectorResources:
             raise SnapshotNotReady("required FAQ question vectors are incomplete")
 
 
-def search_faq_vector(owner, query, *, knowledge_base_id, scope, top_k=10, adapter=None, batch_options=None):
+def search_faq_vector(owner, query, *, knowledge_base_id, scope, top_k=10, adapter=None,
+                      batch_options=None, remaining=None):
     if not isinstance(query, str) or not query.strip():
         raise RetrievalContractError("FAQ query must be nonempty text")
     if type(top_k) is not int or not 1 <= top_k <= 2147483647:
@@ -93,9 +94,12 @@ def search_faq_vector(owner, query, *, knowledge_base_id, scope, top_k=10, adapt
         if IndexSchemeVersion(adapter.metadata).identity != scheme.identity:
             raise RetrievalContractError("FAQ query encoder differs from pinned scheme")
         indexing = importlib.import_module("app.modules.3_embeddingAndIndexing")
+        encoding_options = dict(batch_options or {})
+        if remaining is not None:
+            encoding_options["remaining"] = remaining
         candidates = indexing.search_chunks(query, adapter, _FAQSearch(owner, snapshot, predicate, params),
                                             limit=top_k, request_repository=owner.request_repository,
-                                            batch_options=batch_options)
+                                            batch_options=encoding_options)
         return VectorQueryResult("success" if candidates else "empty", tuple(candidates), "exact", top_k,
                                  True, max(0, top_k - len(candidates)))
     except Exception as exc:
@@ -111,7 +115,7 @@ class _FAQSearch:
         expected = scheme_from_metadata(self.snapshot.index_options["faq_vector"]["scheme"])
         if scheme.identity != expected.identity:
             raise RetrievalContractError("FAQ search scheme differs from snapshot")
-        literal = _vector_literal(_validate_vector(scheme, vector))
+        literal = vector_literal(validate_vector(scheme, vector))
         namespace = self.owner._namespace
         resource = resource_name(self.owner.schema, self.snapshot.knowledge_base_id, self.snapshot.snapshot_id)
         # Every qualified question is scored. Grouping happens before ranking and
