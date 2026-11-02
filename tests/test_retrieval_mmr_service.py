@@ -1,5 +1,7 @@
 """Public query MMR integration cases; authored only, not executed."""
 import importlib
+import threading
+import time
 
 import pytest
 
@@ -30,9 +32,9 @@ def published_service(*, provider=None):
     return service, provider, budgets
 
 
-def query(service, **config):
+def query(service, *, remaining=None, **config):
     return service.query("USB-C", knowledge_base_ids=("kb",),
-                         authorization=r.AuthorizationScope(("kb",)),
+                         authorization=r.AuthorizationScope(("kb",)), remaining=remaining,
                          config=r.RetrievalConfig(final_top_k=2, **config))
 
 
@@ -46,14 +48,16 @@ def test_public_default_is_disabled_and_does_not_encode():
 
 def test_public_mmr_diversifies_actual_bodies_and_preserves_root_budget_and_diagnostics():
     service, provider, budgets = published_service()
-    result = query(service, mmr=True, mmr_lambda=0.0)
+    root = r.Deadline(10)
+    result = query(service, remaining=root, mmr=True, mmr_lambda=0.0)
     assert [item.content.identity.chunk_id for item in result.candidates] == ["a", "c"]
     assert len(result.working_pool) == 3
     assert result.status == "complete"
     assert result.routes[0].status == "success"
     assert result.steps[-1] == r.PostprocessStep("mmr", "complete")
     assert provider.inputs == [(("full parent body", "similar parent body", "FAQ answer"), "document")]
-    assert provider.budgets[0] is budgets[0]
+    assert provider.budgets[0] is root
+    assert budgets[0] is not root  # Recall routes receive their per-route child budget.
     assert all(candidate.traces[0].scheme_identity == "recall-scheme" for candidate in result.candidates)
 
 
@@ -77,3 +81,41 @@ def test_public_failed_mmr_rolls_back_or_returns_empty_without_rewriting_recall(
 def test_public_mmr_options_are_validated(settings):
     with pytest.raises(r.RetrievalContractError):
         r.RetrievalConfig(**settings)
+
+
+@pytest.mark.parametrize("strict", [False, True])
+def test_uncooperative_encoder_is_bounded_and_late_result_cannot_change_public_result(strict):
+    service, _, _ = published_service()
+    entered, release, exited = threading.Event(), threading.Event(), threading.Event()
+    root = r.Deadline(0.2)
+
+    class BlockingEncoder:
+        def encode(self, texts, *, remaining):
+            assert remaining is root
+            entered.set()
+            try:
+                release.wait(2)
+                return ()
+            finally:
+                exited.set()
+
+    service.mmr_encoder = BlockingEncoder()
+    scheduler = r.BoundedScheduler(4)
+    service.scheduler = scheduler
+    started = time.monotonic()
+    try:
+        result = query(service, remaining=root, mmr=True, postprocess_strict=strict)
+        assert entered.is_set()
+        assert not exited.is_set()
+        assert time.monotonic() - started < 1.5
+        assert result.status == "complete"
+        assert len(result.working_pool) == 3
+        assert [item.content.identity.chunk_id for item in result.candidates] == ([] if strict else ["a", "b"])
+        assert result.steps[-1] == r.PostprocessStep("mmr", "failed" if strict else "partial", "mmr_timeout")
+        before = result
+        release.set()
+        assert exited.wait(1)
+        assert result == before
+    finally:
+        release.set()
+        scheduler.close()

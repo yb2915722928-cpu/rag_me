@@ -6,7 +6,7 @@ from math import isfinite
 
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
 from .fusion import fuse_rrf
-from .fusion_contracts import RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
+from .fusion_contracts import PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 from .mmr import MMRConfig, MMRFailure, select_mmr
 
 
@@ -48,13 +48,28 @@ class RetrievalService:
 
     def _mmr(self, pool, config, remaining):
         """Strict failures become public step diagnostics without changing recall status."""
-        try:
-            selected, step = select_mmr(pool, encoder=self.mmr_encoder, remaining=remaining,
+        if not config.mmr:
+            return tuple(pool), PostprocessStep("mmr", "skipped", "disabled")
+        if not pool:
+            return (), PostprocessStep("mmr", "complete")
+
+        def select(_budget):
+            # Keep the root request budget for the provider and durable request
+            # repository. The scheduler bounds acceptance of uncooperative calls.
+            return select_mmr(pool, encoder=self.mmr_encoder, remaining=remaining,
                 limit=config.final_top_k, config=MMRConfig(config.mmr, config.mmr_lambda),
                 postprocess_strict=config.postprocess_strict)
-            return selected, step
-        except MMRFailure as error:
-            return (), error.step
+
+        outcome = self.scheduler.run((select,), remaining=remaining,
+            route_timeout=max(remaining.remaining(), 1e-9), max_concurrency=1)[0]
+        if outcome.status == "completed":
+            return outcome.value
+        if isinstance(outcome.error, MMRFailure):
+            return (), outcome.error.step
+        timed_out = outcome.status in ("timeout", "not_executed") or isinstance(outcome.error, TimeoutError)
+        step = PostprocessStep("mmr", "failed" if config.postprocess_strict else "partial",
+                               "mmr_timeout" if timed_out else "mmr_encoding_failed")
+        return (() if config.postprocess_strict else tuple(pool)), step
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:
