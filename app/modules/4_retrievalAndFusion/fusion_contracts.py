@@ -7,6 +7,7 @@ from types import MappingProxyType
 from typing import Callable, Literal, Mapping
 
 from .contracts import ContentRecord, EvidenceIdentity, ReadScope, RetrievalContractError, required_strings
+from .faq_contracts import FAQIdentity, FAQRecord, MatchedQuestion
 
 RouteStatus = Literal["success", "empty", "failed", "timeout", "not_executed"]
 QueryStatus = Literal["complete", "partial", "incomplete"]
@@ -44,11 +45,12 @@ class RetrievalConfig:
 
 @dataclass(frozen=True)
 class RouteHit:
-    content: ContentRecord
+    content: ContentRecord | FAQRecord
     snapshot_id: str
     raw_score: float
     metric: str
     scheme_identity: str | None = None
+    matched_questions: tuple[MatchedQuestion, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -92,20 +94,21 @@ class ScoreTrace:
     raw_score: float
     metric: str
     scheme_identity: str | None
-    identity: EvidenceIdentity
+    identity: EvidenceIdentity | FAQIdentity
     snapshot_id: str
     weight: float
     contribution: float
     normalized_score: float | None = None
+    matched_questions: tuple[MatchedQuestion, ...] = ()
 
 
 @dataclass(frozen=True)
 class FusedCandidate:
-    content: ContentRecord
+    content: ContentRecord | FAQRecord
     score: float
     traces: tuple[ScoreTrace, ...]
     # Postprocessing may represent multiple original sources without discarding provenance.
-    represented_identities: tuple[EvidenceIdentity, ...] = ()
+    represented_identities: tuple[EvidenceIdentity | FAQIdentity, ...] = ()
     sources: tuple[dict, ...] = ()
     matched_children: tuple[ContentRecord, ...] = ()
 
