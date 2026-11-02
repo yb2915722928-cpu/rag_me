@@ -21,6 +21,7 @@ class RetrievalConfig:
     rrf_k: float = 60
     route_weights: Mapping[str, float] = field(default_factory=dict)
     parent_expansion: bool = False
+    body_dedup: bool = False
     postprocess_strict: bool = False
     total_timeout: float = 10
     route_timeout: float = 5
@@ -29,7 +30,7 @@ class RetrievalConfig:
     normalization: Literal["minmax", "l2"] = "minmax"
 
     def __post_init__(self):
-        for name in ("parent_expansion", "postprocess_strict"):
+        for name in ("parent_expansion", "body_dedup", "postprocess_strict"):
             if not isinstance(getattr(self, name), bool):
                 raise RetrievalContractError(f"{name} must be a boolean")
         if self.fusion_strategy not in ("rrf", "weighted"):

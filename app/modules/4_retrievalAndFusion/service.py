@@ -10,6 +10,7 @@ from .deadline import Deadline, deadline_scope
 from .scheduler import shared_scheduler
 
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
+from .body_dedup import BodyDedupProver, process_body_dedup
 from .faq_contracts import FAQRecord
 from .fusion import fuse_rrf
 from .weighted_fusion import fuse_weighted
@@ -36,7 +37,7 @@ class RetrievalService:
 
     def query(self, query: str, *, knowledge_base_ids, authorization, conditions=None,
               snapshot_ids=None, config: RetrievalConfig | None = None, exact_terms=(),
-              remaining=None) -> RetrievalResult:
+              remaining=None, body_dedup_prover: BodyDedupProver | None = None) -> RetrievalResult:
         required_strings(query)
         config = RetrievalConfig() if config is None else config
         if not isinstance(config, RetrievalConfig):
@@ -118,10 +119,23 @@ class RetrievalService:
                      PostprocessStep("mmr", "skipped", "prior_stage_failed"))
             return RetrievalResult(status, (), pool, results, scope, steps)
         pool = parent.candidates
-        # Later optional stages consume this full pool before the final cut.
-        steps = (parent.step, PostprocessStep("dedup", "skipped", "disabled"),
-                 PostprocessStep("mmr", "skipped", "disabled"))
-        return RetrievalResult(status, pool[:config.final_top_k], pool, results, scope, steps)
+        # Dedup consumes the full expanded pool; MMR follows before the final cut.
+        if config.body_dedup:
+            deduplicated = self.scheduler.run([
+                lambda _: process_body_dedup(pool, scope=scope, enabled=True,
+                                            prover=body_dedup_prover, remaining=remaining)
+            ], remaining=remaining, route_timeout=config.total_timeout, max_concurrency=1)[0]
+            if deduplicated.status == "completed":
+                pool, dedup_step = deduplicated.value
+            else:
+                dedup_step = PostprocessStep("dedup", "failed", "dedup_" + deduplicated.status)
+        else:
+            dedup_step = PostprocessStep("dedup", "skipped", "disabled")
+        strict_failure = config.postprocess_strict and dedup_step.status in ("failed", "partial")
+        steps = (parent.step, dedup_step,
+                 PostprocessStep("mmr", "skipped", "prior_stage_failed" if strict_failure else "disabled"))
+        candidates = () if strict_failure else pool[:config.final_top_k]
+        return RetrievalResult(status, candidates, pool, results, scope, steps)
 
     @staticmethod
     def _fuse(results, config, remaining):
