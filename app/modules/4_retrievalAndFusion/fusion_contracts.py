@@ -19,8 +19,16 @@ class RetrievalConfig:
     final_top_k: int = 20
     rrf_k: float = 60
     route_weights: Mapping[str, float] = field(default_factory=dict)
+    mmr: bool = False
+    mmr_lambda: float = 0.7
+    postprocess_strict: bool = False
 
     def __post_init__(self):
+        from .mmr import MMRConfig
+
+        MMRConfig(self.mmr, self.mmr_lambda)
+        if not isinstance(self.postprocess_strict, bool):
+            raise RetrievalContractError("postprocess_strict must be boolean")
         for name in ("route_top_k", "pool_size", "final_top_k"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:

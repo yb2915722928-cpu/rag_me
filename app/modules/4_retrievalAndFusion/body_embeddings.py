@@ -127,8 +127,9 @@ class Module3BodyEncoder:
             remaining.check()
 
         def persist(result):
-            # Durable receipts preserve module3's actual outcome, even if the
-            # caller's budget has expired. No late result is accepted by MMR.
+            # Preserve module3's actual outcome while repository budget permits.
+            # If an expired budget prevents persistence, the reserved pending
+            # attempt remains unresolved and cannot be automatically resubmitted.
             for item in result.items:
                 attempt = self.repository.get_attempt_for_identity(identities[item.key])
                 if attempt is None:

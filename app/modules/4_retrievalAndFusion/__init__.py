@@ -10,6 +10,8 @@ from .fusion_contracts import (
     RouteHit, RouteResult, ScoreTrace,
 )
 from .service import RetrievalService
+from .body_embeddings import BodyVector, Module3BodyEncoder
+from .mmr import MMRConfig, MMRFailure, select_mmr
 from .typed_filters import FilterPlan, FilterValidationError, compile_filter
 from .vector import PostgresVectorRetrievalStore, VectorCandidate, VectorQueryResult
 from .bm25 import BM25Analyzer, BM25Candidate, BM25QueryResult
@@ -21,6 +23,7 @@ __all__ = [
     "All", "Eq", "PostgresRetrievalStore", "FilterPlan", "FilterValidationError", "compile_filter",
     "FusedCandidate", "PostprocessStep", "RetrievalConfig", "RetrievalResult", "RetrievalRoute",
     "RouteHit", "RouteResult", "ScoreTrace", "RetrievalService",
+    "BodyVector", "Module3BodyEncoder", "MMRConfig", "MMRFailure", "select_mmr",
     "PostgresVectorRetrievalStore", "VectorCandidate", "VectorQueryResult",
     "PostgresBM25RetrievalStore", "BM25Analyzer", "BM25Candidate", "BM25QueryResult",
 ]

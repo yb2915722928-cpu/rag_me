@@ -7,12 +7,14 @@ from math import isfinite
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
 from .fusion import fuse_rrf
 from .fusion_contracts import RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
+from .mmr import MMRConfig, MMRFailure, select_mmr
 
 
 class RetrievalService:
-    def __init__(self, store, *, routes=None):
+    def __init__(self, store, *, routes=None, mmr_encoder=None):
         self.store = store
         self.routes = None if routes is None else tuple(routes)
+        self.mmr_encoder = mmr_encoder
 
     def query(self, query: str, *, knowledge_base_ids, authorization, conditions=None,
               snapshot_ids=None, config: RetrievalConfig | None = None, exact_terms=()) -> RetrievalResult:
@@ -43,6 +45,16 @@ class RetrievalService:
         completed = sum(result.status in ("success", "empty") for result in results)
         status = "complete" if completed == len(results) and completed else "partial" if completed else "incomplete"
         return RetrievalResult(status, pool[:config.final_top_k], pool, results, scope)
+
+    def _mmr(self, pool, config, remaining):
+        """Strict failures become public step diagnostics without changing recall status."""
+        try:
+            selected, step = select_mmr(pool, encoder=self.mmr_encoder, remaining=remaining,
+                limit=config.final_top_k, config=MMRConfig(config.mmr, config.mmr_lambda),
+                postprocess_strict=config.postprocess_strict)
+            return selected, step
+        except MMRFailure as error:
+            return (), error.step
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:
