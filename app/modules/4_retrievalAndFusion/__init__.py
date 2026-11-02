@@ -9,6 +9,7 @@ from .fusion_contracts import (
     FusedCandidate, PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute,
     RouteHit, RouteResult, ScoreTrace,
 )
+from .body_dedup import BodyDedupProof, BodyDedupProver, process_body_dedup
 from .service import RetrievalService
 from .typed_filters import FilterPlan, FilterValidationError, compile_filter
 from .vector import PostgresVectorRetrievalStore, VectorCandidate, VectorQueryResult
@@ -21,6 +22,7 @@ __all__ = [
     "All", "Eq", "PostgresRetrievalStore", "FilterPlan", "FilterValidationError", "compile_filter",
     "FusedCandidate", "PostprocessStep", "RetrievalConfig", "RetrievalResult", "RetrievalRoute",
     "RouteHit", "RouteResult", "ScoreTrace", "RetrievalService",
+    "BodyDedupProof", "BodyDedupProver", "process_body_dedup",
     "PostgresVectorRetrievalStore", "VectorCandidate", "VectorQueryResult",
     "PostgresBM25RetrievalStore", "BM25Analyzer", "BM25Candidate", "BM25QueryResult",
 ]

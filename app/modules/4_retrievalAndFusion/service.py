@@ -5,6 +5,7 @@ from dataclasses import replace
 from math import isfinite
 
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
+from .body_dedup import BodyDedupProver, process_body_dedup
 from .fusion import fuse_rrf
 from .fusion_contracts import RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 
@@ -15,7 +16,8 @@ class RetrievalService:
         self.routes = None if routes is None else tuple(routes)
 
     def query(self, query: str, *, knowledge_base_ids, authorization, conditions=None,
-              snapshot_ids=None, config: RetrievalConfig | None = None, exact_terms=()) -> RetrievalResult:
+              snapshot_ids=None, config: RetrievalConfig | None = None, exact_terms=(),
+              body_dedup_prover: BodyDedupProver | None = None) -> RetrievalResult:
         required_strings(query)
         config = RetrievalConfig() if config is None else config
         if not isinstance(config, RetrievalConfig):
@@ -42,7 +44,13 @@ class RetrievalService:
         pool = fuse_rrf(results, config)
         completed = sum(result.status in ("success", "empty") for result in results)
         status = "complete" if completed == len(results) and completed else "partial" if completed else "incomplete"
-        return RetrievalResult(status, pool[:config.final_top_k], pool, results, scope)
+        # Parent expansion precedes this seam; MMR follows it before truncation.
+        pool, dedup_step = process_body_dedup(
+            pool, scope=scope, enabled=config.body_dedup, prover=body_dedup_prover,
+        )
+        strict_failure = config.postprocess_strict and dedup_step.status in ("failed", "partial")
+        candidates = () if strict_failure else pool[:config.final_top_k]
+        return RetrievalResult(status, candidates, pool, results, scope, (dedup_step,))
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:

@@ -1,6 +1,6 @@
 """Body deduplication public processing seam; authored, never executed for #92.
 
-The query seam is added after the #86 dependency is integrated. These tests
+Query behavior is covered in test_retrieval_body_dedup_query.py. These tests
 exercise delivered candidates, provenance and status, never private helpers.
 """
 import importlib
@@ -11,8 +11,6 @@ from dataclasses import replace
 contracts = importlib.import_module("app.modules.4_retrievalAndFusion.contracts")
 fusion = importlib.import_module("app.modules.4_retrievalAndFusion.fusion_contracts")
 dedup = importlib.import_module("app.modules.4_retrievalAndFusion.body_dedup")
-# Real #88 contract; intentionally no copied stand-in while that dependency waits.
-faq = importlib.import_module("app.modules.4_retrievalAndFusion.faq_contracts")
 
 
 def candidate(document, text="same answer", score=1.0, version="2026", metadata=None):
@@ -150,6 +148,8 @@ class BodyDedupTests(unittest.TestCase):
         self.assertEqual(result[0].content, a.content)
 
     def test_faq_answer_dedup_keeps_versions_and_never_crosses_document_type(self):
+        # Requires the integrated #88 authority contract; never copy a stand-in.
+        faq = importlib.import_module("app.modules.4_retrievalAndFusion.faq_contracts")
         document = candidate("manual", text="USB-C answer", score=4)
         first = faq.FAQRecord(faq.FAQIdentity("kb", "faq-a", "v1"), "Question A", (),
                               " USB-C answer\r\n", {"region": "all"}, {"uri": "faq-a"})
