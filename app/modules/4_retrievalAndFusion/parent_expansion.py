@@ -78,7 +78,10 @@ def expand_parents(candidates: Iterable[FusedCandidate], *, store: ScopedContent
                 if remaining is not None:
                     remaining.check()
                 if parent_identity not in cache:
-                    parent = store.read(parent_identity, scope=scope, remaining=remaining)
+                    if remaining is None:
+                        parent = store.read(parent_identity, scope=scope)
+                    else:
+                        parent = store.read(parent_identity, scope=scope, remaining=remaining)
                     # A reader returning after the deadline cannot publish late data.
                     if remaining is not None:
                         remaining.check()
