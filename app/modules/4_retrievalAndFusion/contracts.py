@@ -154,6 +154,7 @@ class Snapshot:
     identities: tuple[EvidenceIdentity, ...]
     required_indexes: tuple[str, ...]
     field_types: Mapping[str, str]
+    index_options: Mapping[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -163,6 +164,7 @@ class ReadScope:
     authorization: AuthorizationScope
     conditions: object
     now: datetime
+    filter_plans: Mapping[str, object] = field(default_factory=dict)
 
     def __post_init__(self):
         from types import MappingProxyType
@@ -173,3 +175,4 @@ class ReadScope:
         if set(self.snapshots) - set(self.authorization.knowledge_base_ids):
             raise RetrievalContractError("requested knowledge base is outside authorization")
         object.__setattr__(self, "snapshots", MappingProxyType(dict(self.snapshots)))
+        object.__setattr__(self, "filter_plans", MappingProxyType(dict(self.filter_plans)))

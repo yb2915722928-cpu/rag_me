@@ -3,6 +3,7 @@
 Requires a disposable database with pgvector >= 0.8.0 already available.
 Only the external encoder is deterministic; persistence and ranking are real.
 """
+from dataclasses import replace
 import importlib
 import os
 import uuid
@@ -60,7 +61,11 @@ def test_public_chain_preserves_identity_source_and_pinned_versions(store):
         assert -1.000001 <= hit.raw_score <= 1.000001
         assert hit.snapshot_id == "s1"
     current = store.pin(("a",), authorization=auth)
-    result = store.query("candidate same", adapter, knowledge_base_id="a", scope=current)
+    def resolve_adapter(scheme):
+        assert scheme.identity == indexing.IndexSchemeVersion(adapter.metadata).identity
+        return adapter
+    routed = retrieval.PostgresVectorRetrievalStore(store.dsn, schema=store.schema, adapter_for_scheme=resolve_adapter)
+    result = routed.search_vector("candidate same", knowledge_base_id="a", scope=current, top_k=10)
     assert result.candidates[0].content.identity == new.identity
 
 
@@ -68,7 +73,7 @@ def test_exact_filter_is_applied_before_top_k_and_parent_safe_read(store):
     adapter = indexing.DeterministicEmbeddingAdapter(3)
     parent = record("kb", document="parent", allowed=False)
     # The permitted candidate sorts below the many excluded exact textual matches.
-    denied = [record("kb", document="same" + str(i), allowed=False) for i in range(50)]
+    denied = [replace(record("kb", document="same" + str(i), allowed=False), text="candidate same") for i in range(50)]
     selected = record("kb", document="rare", allowed=True)
     publish(store, "kb", "s", [parent, *denied, selected], adapter, {"allowed": "boolean"})
     scope = store.pin(("kb",), authorization=retrieval.AuthorizationScope(("kb",)),
@@ -99,6 +104,24 @@ def test_missing_vectors_cannot_publish_and_empty_results_are_not_failure(store)
     with pytest.raises(ValueError):
         store.pin(("kb",), authorization=retrieval.AuthorizationScope(("kb",)),
                   conditions={"field": "not_declared", "op": "eq", "value": True})
+
+
+def test_unindexed_parent_can_be_read_with_same_pinned_filter(store):
+    adapter = indexing.DeterministicEmbeddingAdapter(3)
+    parent = record("kb", chunk="parent", allowed=True)
+    child = replace(record("kb", chunk="child", allowed=True), parent=parent.identity)
+    store.ingest([parent, child])
+    assert store.index_documents([child], adapter).items[0].status == "stored"
+    store.prepare("kb", "s", [parent.identity, child.identity], required_indexes=("vector",),
+                  vector_scheme=indexing.IndexSchemeVersion(adapter.metadata),
+                  vector_identities=[child.identity], field_types={"allowed": "boolean"})
+    store.publish("kb", "s")
+    condition = {"field": "allowed", "op": "eq", "value": True}
+    scope = store.pin(("kb",), authorization=retrieval.AuthorizationScope(("kb",)), conditions=condition)
+    condition["value"] = False  # caller mutation cannot change a pinned query's meaning
+    result = store.query("candidate", adapter, knowledge_base_id="kb", scope=scope)
+    assert [hit.content.identity for hit in result.candidates] == [child.identity]
+    assert store.read(result.candidates[0].content.parent, scope=scope) == parent
 
 
 def test_ann_reports_candidate_budget_and_approximation(store):

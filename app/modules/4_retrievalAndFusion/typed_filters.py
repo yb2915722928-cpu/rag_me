@@ -15,7 +15,10 @@ from types import MappingProxyType
 from typing import Mapping
 
 
-class FilterValidationError(ValueError):
+from .contracts import RetrievalContractError
+
+
+class FilterValidationError(RetrievalContractError):
     """A filter cannot be implemented without changing its meaning."""
 
 
@@ -57,7 +60,7 @@ def _value(value, kind, now=None):
         return frozenset(_value(item, kind[4:-1], now) for item in value)
     valid = ((kind == "string" and isinstance(value, str))
              or (kind == "boolean" and type(value) is bool)
-             or (kind == "number" and type(value) in (int, float) and math.isfinite(value)))
+             or (kind == "number" and (type(value) is int or (type(value) is float and math.isfinite(value)))))
     if not valid:
         raise FilterValidationError("filter value does not match the declared field type")
     return value
@@ -97,6 +100,8 @@ def _parse(expression, fields, now, depth=0):
     field, op = expression.get("field"), expression.get("op")
     if not isinstance(field, str) or field not in fields:
         raise FilterValidationError("unknown filter field")
+    if not isinstance(op, str):
+        raise FilterValidationError("filter operation must be a string")
     kind = fields[field]
     allowed = {"field", "op"}
     if op in {"exists", "missing", "is_null"}:
