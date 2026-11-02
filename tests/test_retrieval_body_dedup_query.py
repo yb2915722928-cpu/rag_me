@@ -4,6 +4,7 @@ import unittest
 import threading
 import time
 from datetime import datetime, timezone
+from dataclasses import replace
 
 r = importlib.import_module("app.modules.4_retrievalAndFusion")
 
@@ -17,6 +18,10 @@ class PublishedStore:
 
     def publish(self, prepared):
         self.kb, self.snapshot, self.visible = prepared
+
+    def read(self, identity, *, scope, remaining):
+        remaining.check()
+        return next((item for item in self.visible if item.identity == identity), None)
 
     def pin(self, ids, *, authorization, conditions=None, snapshot_ids=None, **kwargs):
         return r.ReadScope({self.kb: self.snapshot}, authorization, conditions,
@@ -34,9 +39,9 @@ def approved(left, right, *, scope, remaining):
 
 class PublicBodyDedupTests(unittest.TestCase):
     def query(self, records, *, config=None, prover=None, scheduler=None, clock=time.monotonic,
-              on_search=None):
+              on_search=None, parents=(), remaining=None):
         store = PublishedStore()
-        store.ingest(records)
+        store.ingest((*records, *parents))
         store.publish(store.prepare("kb", "published"))
 
         def search(query, *, scope, top_k, exact_terms, **kwargs):
@@ -45,13 +50,13 @@ class PublicBodyDedupTests(unittest.TestCase):
             hits = tuple(r.RouteHit(item, scope.snapshots["kb"], 10 - index, "cosine",
                                    matched_questions=(r.MatchedQuestion(item.standard_question, 10 - index),)
                                    if isinstance(item, r.FAQRecord) else ())
-                         for index, item in enumerate(store.visible[:top_k]))
+                         for index, item in enumerate(store.visible[:len(records)][:top_k]))
             return r.RouteResult("vector", "kb", "vector", "success" if hits else "empty", hits)
 
         return r.RetrievalService(store, routes=(r.RetrievalRoute("vector", "kb", "vector", search),),
                                   scheduler=scheduler, clock=clock).query(
             "USB-C", knowledge_base_ids=("kb",), authorization=r.AuthorizationScope(("kb",)),
-            config=config, body_dedup_prover=prover,
+            config=config, body_dedup_prover=prover, remaining=remaining,
         )
 
     def test_disabled_and_unproven_duplicates_survive_public_query(self):
@@ -118,6 +123,54 @@ class PublicBodyDedupTests(unittest.TestCase):
         self.assertEqual(strict.routes[0].status, "success")
         failed = next(s for s in strict.steps if s.name == "dedup")
         self.assertEqual((failed.status, failed.reason), ("failed", "compatibility_proof_failed"))
+        self.assertEqual(strict.steps[-1], r.PostprocessStep("mmr", "skipped", "prior_stage_failed"))
+
+    def test_parent_expansion_precedes_dedup_and_preserves_all_children(self):
+        parents = tuple(replace(record(doc, "same parent"),
+                                identity=r.EvidenceIdentity("kb", doc, "v1", "parent", "p1"))
+                        for doc in ("a", "b"))
+        children = tuple(replace(record(doc, "different child " + doc), parent=parent.identity)
+                         for doc, parent in zip(("a", "b"), parents))
+        budgets = importlib.import_module("app.modules.4_retrievalAndFusion.deadline")
+        remaining = budgets.Deadline(10)
+        observed = []
+
+        def proof(left, right, *, scope, remaining):
+            observed.append((left.content, right.content, remaining))
+            return approved(left, right, scope=scope, remaining=remaining)
+
+        result = self.query(children, parents=parents, remaining=remaining,
+                            config=r.RetrievalConfig(parent_expansion=True, body_dedup=True), prover=proof)
+        self.assertEqual(observed, [(parents[0], parents[1], remaining)])
+        self.assertEqual(len(result.candidates), 1)
+        merged = result.candidates[0]
+        self.assertEqual(merged.matched_children, children)
+        self.assertEqual(set(merged.represented_identities), {c.identity for c in (*parents, *children)})
+        self.assertEqual({t.identity for t in merged.traces}, {c.identity for c in children})
+        self.assertEqual([(s.name, s.status) for s in result.steps],
+                         [("parent", "complete"), ("dedup", "complete"), ("mmr", "skipped")])
+
+    def test_strict_parent_failure_skips_prover_and_preserves_route_pool(self):
+        parent = r.EvidenceIdentity("kb", "a", "v1", "parent", "p1")
+        child = replace(record("a", "same"), parent=parent)
+        observed = []
+
+        def proof(*args, **kwargs):
+            observed.append(args)
+            return approved(*args, **kwargs)
+
+        result = self.query((child, record("b", "same")), prover=proof,
+                            config=r.RetrievalConfig(parent_expansion=True, body_dedup=True,
+                                                     postprocess_strict=True))
+        self.assertEqual(observed, [])
+        self.assertEqual(result.candidates, ())
+        self.assertEqual(len(result.working_pool), 2)
+        self.assertEqual(result.working_pool[0].content, child)
+        self.assertEqual(result.routes[0].status, "success")
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(result.steps[0].status, "failed")
+        self.assertEqual(result.steps[1:], (r.PostprocessStep("dedup", "skipped", "prior_stage_failed"),
+                                           r.PostprocessStep("mmr", "skipped", "prior_stage_failed")))
 
     def test_faq_answer_dedup_preserves_questions_sources_and_versions_without_document_merge(self):
         faqs = tuple(r.FAQRecord(r.FAQIdentity("kb", item, version), question, (), answer,
