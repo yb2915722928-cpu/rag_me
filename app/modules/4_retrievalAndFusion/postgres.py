@@ -10,6 +10,10 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 import re
+import math
+from contextlib import nullcontext
+from app.models.deadline import current_deadline
+from app.models.db.deadline import DeadlineCursor, watch_connection
 from typing import Callable, Iterable, Mapping
 
 from app.models.embedding import canonical_json
@@ -35,16 +39,32 @@ class PostgresRetrievalStore:
         self._namespace = '"' + schema + '"'
 
     @contextmanager
-    def _transaction(self):
+    def _transaction(self, *, repeatable_read=False):
+        remaining = current_deadline()
+        options = {}
+        if remaining is not None:
+            remaining.check()
+            options["connect_timeout"] = max(1, math.ceil(remaining.remaining()))
         if self._connect is None:
             import psycopg
-            connection = psycopg.connect(self.dsn)
+            connection = psycopg.connect(self.dsn, **options)
         else:
-            connection = self._connect(self.dsn)
+            connection = self._connect(self.dsn, **options)
         try:
-            with connection:
-                with connection.cursor() as cursor:
-                    yield cursor
+            with watch_connection(connection, remaining) if remaining is not None else nullcontext():
+                with connection:
+                    with connection.cursor() as cursor:
+                        # Isolation must precede set_config's first SELECT.
+                        if repeatable_read:
+                            if remaining is not None:
+                                remaining.check()
+                            cursor.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
+                        if remaining is not None:
+                            remaining.check()
+                            yield DeadlineCursor(cursor, remaining)
+                            remaining.check()
+                        else:
+                            yield cursor
         finally:
             connection.close()
 
@@ -144,8 +164,7 @@ class PostgresRetrievalStore:
         required_strings(*selected.values())
         now = self._clock()
         plans = {}
-        with self._transaction() as cursor:
-            cursor.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
+        with self._transaction(repeatable_read=True) as cursor:
             for kb in knowledge_base_ids:
                 if kb not in selected:
                     cursor.execute(f"SELECT snapshot_id FROM {self._namespace}.publications WHERE knowledge_base_id=%s", (kb,))

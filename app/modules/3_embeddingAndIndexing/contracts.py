@@ -23,6 +23,9 @@ class EmbeddingAdapter:
     metadata: EmbeddingMetadata
     supports_status_query = False
     supports_request_metadata = False
+    # Opt in only when embed_role/embed_request forwards remaining to every
+    # network connect/read and retry boundary. Unsupported providers fail closed.
+    supports_deadline = False
 
     def embed(self, texts: Sequence[str]) -> list[tuple[float, ...]]:
         raise NotImplementedError
@@ -32,13 +35,18 @@ class EmbeddingAdapter:
             raise EmbeddingContractError("embedding text must be a string")
         return self.metadata.role_config(role).instruction + text
 
-    def embed_role(self, texts: Sequence[str], role: str) -> list[tuple[float, ...]]:
+    def embed_role(self, texts: Sequence[str], role: str, *, remaining=None) -> list[tuple[float, ...]]:
         if not self.metadata.verifiable:
             raise EmbeddingContractError("adapter must explicitly declare both encoding roles")
         document = self.metadata.role_config("document")
         query = self.metadata.role_config("query")
         if document.encoder_id != query.encoder_id:
             raise EmbeddingContractError("different encoder endpoints require an explicit role-aware adapter")
+        if remaining is not None:
+            remaining.check()
+            if not self.supports_deadline:
+                raise EmbeddingContractError("adapter does not support a retrieval deadline")
+            return self.embed([self.prepare_text(text, role) for text in texts], remaining=remaining)
         return self.embed([self.prepare_text(text, role) for text in texts])
 
     def validate_scheme(self, scheme: IndexSchemeVersion) -> None:
@@ -51,6 +59,8 @@ class EmbeddingAdapter:
 class DeterministicEmbeddingAdapter(EmbeddingAdapter):
     """输出稳定的本地适配器，显式声明兼容的对称编码角色组合。"""
 
+    supports_deadline = True
+
     def __init__(self, dimensions: int, normalization: str = "unit", token_counter=None) -> None:
         self.token_counter = token_counter
         self.metadata = EmbeddingMetadata(
@@ -60,9 +70,11 @@ class DeterministicEmbeddingAdapter(EmbeddingAdapter):
             query_role=EmbeddingRoleConfig("query", "deterministic-hash:v1"),
         )
 
-    def embed(self, texts: Sequence[str]) -> list[tuple[float, ...]]:
+    def embed(self, texts: Sequence[str], *, remaining=None) -> list[tuple[float, ...]]:
         vectors = []
         for text in texts:
+            if remaining is not None:
+                remaining.check()
             values = []
             for index in range(self.metadata.dimensions):
                 digest = hashlib.sha256(f"{index}:{text}".encode("utf-8")).digest()
