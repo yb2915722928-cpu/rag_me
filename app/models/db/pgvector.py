@@ -156,11 +156,13 @@ def _validate_request_payload(identity, fingerprint, payload):
         raise EmbeddingContractError("request payload requires sha256 fingerprints")
 
 
-def _vector_literal(values):
+def vector_literal(values):
+    """Serialize already validated vector components for a bound pgvector parameter."""
     return "[" + ",".join(format(value, ".17g") for value in values) + "]"
 
 
-def _validate_vector(scheme, vector):
+def validate_vector(scheme, vector):
+    """Validate the shared representation, float32 and cosine storage contract."""
     raw = tuple(vector)
     if any(isinstance(value, (str, bytes, bool)) for value in raw):
         raise EmbeddingContractError("vector components must be numbers")
@@ -179,6 +181,11 @@ def _validate_vector(scheme, vector):
     if scheme.metadata.normalization == "unit" and abs(magnitude - 1) > 1e-6:
         raise EmbeddingContractError("vector does not satisfy unit normalization policy")
     return values
+
+
+# Preserve module3's internal names while exposing the shared storage boundary.
+_vector_literal = vector_literal
+_validate_vector = validate_vector
 
 
 def _scheme_from_metadata(payload):
