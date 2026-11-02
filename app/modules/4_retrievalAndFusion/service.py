@@ -13,6 +13,7 @@ from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError
 from .body_dedup import BodyDedupProver, process_body_dedup
 from .faq_contracts import FAQRecord
 from .fusion import fuse_rrf
+from .mmr import MMRConfig, MMRFailure, select_mmr
 from .weighted_fusion import fuse_weighted
 from .fusion_contracts import PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 from .parent_expansion import ParentExpansionResult, expand_parents
@@ -29,11 +30,12 @@ def _budget_call(function, *args, remaining, **kwargs):
 
 
 class RetrievalService:
-    def __init__(self, store, *, routes=None, scheduler=None, clock=time.monotonic):
+    def __init__(self, store, *, routes=None, scheduler=None, clock=time.monotonic, mmr_encoder=None):
         self.store = store
         self.routes = None if routes is None else tuple(routes)
         self.scheduler = scheduler if scheduler is not None else shared_scheduler()
         self.clock = clock
+        self.mmr_encoder = mmr_encoder
 
     def query(self, query: str, *, knowledge_base_ids, authorization, conditions=None,
               snapshot_ids=None, config: RetrievalConfig | None = None, exact_terms=(),
@@ -132,10 +134,12 @@ class RetrievalService:
         else:
             dedup_step = PostprocessStep("dedup", "skipped", "disabled")
         strict_failure = config.postprocess_strict and dedup_step.status in ("failed", "partial")
-        steps = (parent.step, dedup_step,
-                 PostprocessStep("mmr", "skipped", "prior_stage_failed" if strict_failure else "disabled"))
-        candidates = () if strict_failure else pool[:config.final_top_k]
-        return RetrievalResult(status, candidates, pool, results, scope, steps)
+        if strict_failure:
+            steps = (parent.step, dedup_step, PostprocessStep("mmr", "skipped", "prior_stage_failed"))
+            return RetrievalResult(status, (), pool, results, scope, steps)
+        selected, mmr_step = self._mmr(pool, config, remaining)
+        steps = (parent.step, dedup_step, mmr_step)
+        return RetrievalResult(status, selected[:config.final_top_k], pool, results, scope, steps)
 
     @staticmethod
     def _fuse(results, config, remaining):
@@ -146,6 +150,31 @@ class RetrievalService:
             pool = fuse_rrf(results, config)
         remaining.check()
         return pool, results
+
+    def _mmr(self, pool, config, remaining):
+        """Strict failures become public step diagnostics without changing recall status."""
+        if not config.mmr:
+            return tuple(pool), PostprocessStep("mmr", "skipped", "disabled")
+        if not pool:
+            return (), PostprocessStep("mmr", "complete")
+
+        def select(_budget):
+            # Keep the root request budget for the provider and durable request
+            # repository. The scheduler bounds acceptance of uncooperative calls.
+            return select_mmr(pool, encoder=self.mmr_encoder, remaining=remaining,
+                limit=config.final_top_k, config=MMRConfig(config.mmr, config.mmr_lambda),
+                postprocess_strict=config.postprocess_strict)
+
+        outcome = self.scheduler.run((select,), remaining=remaining,
+            route_timeout=max(remaining.remaining(), 1e-9), max_concurrency=1)[0]
+        if outcome.status == "completed":
+            return outcome.value
+        if isinstance(outcome.error, MMRFailure):
+            return (), outcome.error.step
+        timed_out = outcome.status in ("timeout", "not_executed") or isinstance(outcome.error, TimeoutError)
+        step = PostprocessStep("mmr", "failed" if config.postprocess_strict else "partial",
+                               "mmr_timeout" if timed_out else "mmr_encoding_failed")
+        return (() if config.postprocess_strict else tuple(pool)), step
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:

@@ -20,6 +20,8 @@ class RetrievalConfig:
     final_top_k: int = 20
     rrf_k: float = 60
     route_weights: Mapping[str, float] = field(default_factory=dict)
+    mmr: bool = False
+    mmr_lambda: float = 0.7
     parent_expansion: bool = False
     body_dedup: bool = False
     postprocess_strict: bool = False
@@ -30,6 +32,9 @@ class RetrievalConfig:
     normalization: Literal["minmax", "l2"] = "minmax"
 
     def __post_init__(self):
+        from .mmr import MMRConfig
+
+        MMRConfig(self.mmr, self.mmr_lambda)
         for name in ("parent_expansion", "body_dedup", "postprocess_strict"):
             if not isinstance(getattr(self, name), bool):
                 raise RetrievalContractError(f"{name} must be a boolean")
