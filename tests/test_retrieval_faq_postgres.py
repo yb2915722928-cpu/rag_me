@@ -108,6 +108,46 @@ class FAQPostgresTests(unittest.TestCase):
         self.assertEqual(empty.status, "empty")
         self.assertEqual(empty.candidates, ())
 
+    def test_public_query_fuses_document_and_faq_with_one_contribution_per_item(self):
+        from app.models.embedding import IndexSchemeVersion
+        encoder = FAQEncoder()
+        self.store.adapter_for_scheme = lambda scheme: encoder
+        faq = self.faq()
+        doc = r.ContentRecord(r.EvidenceIdentity("kb", "manual", "v1", "reset", "c1"),
+                              "Reset device from the console.", {"uri": "manual.pdf"}, {"product": "AX-100"})
+        self.store.index_documents([doc], encoder)
+        self.store.index_faq([faq], encoder)
+        self.store.prepare("kb", "mixed", [doc.identity], faq_identities=[faq.identity],
+                           required_indexes=("vector", "bm25", "faq_vector"),
+                           vector_scheme=IndexSchemeVersion(encoder.metadata),
+                           faq_vector_scheme=IndexSchemeVersion(encoder.metadata), field_types={"product": "string"})
+        self.store.publish("kb", "mixed")
+        result = r.RetrievalService(self.store).query("reset", knowledge_base_ids=["kb"], authorization=self.auth)
+        self.assertEqual(result.status, "complete")
+        self.assertEqual({x.content.identity for x in result.candidates}, {faq.identity, doc.identity})
+        hit = next(x for x in result.candidates if x.content.identity == faq.identity)
+        self.assertEqual(hit.content.text, faq.answer)
+        self.assertEqual(len(hit.traces), 1)
+        self.assertEqual(hit.traces[0].method, "faq_vector")
+        self.assertEqual(len(hit.traces[0].matched_questions), 3)
+        self.assertAlmostEqual(hit.score, 1 / 61)
+        self.assertEqual({route.method for route in result.routes}, {"vector", "bm25", "faq_vector"})
+        limited = r.RetrievalService(self.store).query("reset", knowledge_base_ids=["kb"], authorization=self.auth,
+                                                     config=r.RetrievalConfig(final_top_k=1))
+        self.assertEqual(len(limited.candidates), 1)
+        self.assertEqual(len(limited.working_pool), 2)
+        faq_only = r.RetrievalService(self.store).query(
+            "reset", knowledge_base_ids=["kb"],
+            authorization=r.AuthorizationScope(("kb",), faq_item_ids={"kb": ("reset",)}))
+        self.assertEqual([x.content.identity for x in faq_only.candidates], [faq.identity])
+        docs_only = r.RetrievalService(self.store).query(
+            "reset", knowledge_base_ids=["kb"], authorization=r.AuthorizationScope(("kb",), {"kb": ("manual",)}))
+        self.assertEqual([x.content.identity for x in docs_only.candidates], [doc.identity])
+        filtered = r.RetrievalService(self.store).query(
+            "reset", knowledge_base_ids=["kb"], authorization=self.auth, conditions=r.Eq("product", "OTHER"))
+        self.assertEqual(filtered.status, "complete")
+        self.assertEqual(filtered.candidates, ())
+
     def test_missing_required_faq_vectors_cannot_replace_publication(self):
         self.publish("old", [self.faq()])
         from app.models.embedding import IndexSchemeVersion

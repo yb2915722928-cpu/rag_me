@@ -24,6 +24,15 @@ class FAQContractTests(unittest.TestCase):
         self.assertEqual(record.metadata, {"product": "AX-100"})
         self.assertIsNone(record.parent)
 
+    def test_faq_only_grants_do_not_grant_documents(self):
+        scope = r.AuthorizationScope(("kb",), faq_item_ids={"kb": ("reset",)})
+        self.assertEqual(scope.faq_item_ids["kb"], ("reset",))
+        self.assertEqual(scope.document_ids["kb"], ())
+        both = r.AuthorizationScope(("kb",), {"kb": ("manual",)}, {"kb": ("reset",)})
+        self.assertEqual(both.document_ids["kb"], ("manual",))
+        with self.assertRaises(r.RetrievalContractError):
+            r.AuthorizationScope(("kb",), faq_item_ids={"other": ("reset",)})
+
     def test_required_content_is_rejected_before_ingest(self):
         for field, value in (("standard_question", ""), ("answer", " "),
                              ("source", {}), ("conditions", None), ("similar_questions", ("",))):
