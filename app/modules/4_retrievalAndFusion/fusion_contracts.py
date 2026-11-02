@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from math import isfinite
+from math import fsum, isfinite
 from types import MappingProxyType
 from typing import Callable, Literal, Mapping
 
@@ -23,8 +23,14 @@ class RetrievalConfig:
     total_timeout: float = 10
     route_timeout: float = 5
     max_concurrency: int = 4
+    fusion_strategy: Literal["rrf", "weighted"] = "rrf"
+    normalization: Literal["minmax", "l2"] = "minmax"
 
     def __post_init__(self):
+        if self.fusion_strategy not in ("rrf", "weighted"):
+            raise RetrievalContractError("fusion_strategy must be rrf or weighted")
+        if self.normalization not in ("minmax", "l2"):
+            raise RetrievalContractError("normalization must be minmax or l2")
         for name in ("total_timeout", "route_timeout"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value) or value <= 0:
@@ -40,6 +46,11 @@ class RetrievalConfig:
             required_strings(route_id)
             if isinstance(weight, bool) or not isinstance(weight, (int, float)) or not isfinite(weight) or weight < 0:
                 raise RetrievalContractError("route weights must be finite and nonnegative")
+        if self.fusion_strategy == "weighted":
+            try:
+                fsum(weights.values())
+            except OverflowError as exc:
+                raise RetrievalContractError("combined route weights exceed finite score range") from exc
         object.__setattr__(self, "route_weights", MappingProxyType(weights))
 
 

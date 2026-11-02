@@ -12,6 +12,7 @@ from .scheduler import shared_scheduler
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
 from .faq_contracts import FAQRecord
 from .fusion import fuse_rrf
+from .weighted_fusion import fuse_weighted
 from .fusion_contracts import PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 
 
@@ -81,20 +82,24 @@ class RetrievalService:
         fused = self.scheduler.run([
             lambda _: self._fuse(results, config, remaining)
         ], remaining=remaining, route_timeout=config.total_timeout, max_concurrency=1)[0]
+        if fused.status == "completed":
+            pool, results = fused.value
         completed = sum(result.status in ("success", "empty") for result in results)
         status = "complete" if completed == len(results) and completed else "partial" if completed else "incomplete"
         if fused.status != "completed":
             return RetrievalResult(status, (), (), results, scope,
                                    (PostprocessStep("fusion", "failed", "fusion_" + fused.status),))
-        pool = fused.value
         return RetrievalResult(status, pool[:config.final_top_k], pool, results, scope)
 
     @staticmethod
     def _fuse(results, config, remaining):
         remaining.check()
-        pool = fuse_rrf(results, config)
+        if config.fusion_strategy == "weighted":
+            pool, results = fuse_weighted(results, config)
+        else:
+            pool = fuse_rrf(results, config)
         remaining.check()
-        return pool
+        return pool, results
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:
@@ -163,7 +168,10 @@ class RetrievalService:
                     item_id = hit.content.identity.document_id
                 if grants is not None and item_id not in grants:
                     raise RetrievalContractError("route returned evidence outside authorization")
-                if (isinstance(hit.raw_score, bool) or not isinstance(hit.raw_score, (float, int))
+                # Weighted fusion reports score failures with specific safe codes
+                # after all scope checks; RRF keeps its existing validation contract.
+                if config.fusion_strategy == "rrf" and (
+                        isinstance(hit.raw_score, bool) or not isinstance(hit.raw_score, (float, int))
                         or not isfinite(hit.raw_score) or not isinstance(hit.metric, str) or not hit.metric):
                     raise RetrievalContractError("route scores require a finite value and declared metric")
             return replace(result, candidates=tuple(result.candidates))
