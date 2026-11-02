@@ -32,17 +32,21 @@ def _seconds(value, name, *, positive=False):
 class WaitBudget:
     """同时计量实际经过时间和累计休眠时间，兼容不推进时钟的注入休眠函数。"""
 
-    def __init__(self, limit, clock, sleeper):
+    def __init__(self, limit, clock, sleeper, *, deadline=None):
         _seconds(limit, "max_wait_seconds")
         self.limit, self.clock, self.sleeper = limit, clock, sleeper
         self.started = clock()
         self.slept = 0.0
+        self.deadline = deadline
 
     @property
     def remaining(self):
-        return max(0.0, self.limit - max(self.slept, self.clock() - self.started))
+        available = max(0.0, self.limit - max(self.slept, self.clock() - self.started))
+        return min(available, self.deadline.remaining()) if self.deadline is not None else available
 
     def sleep(self, duration):
+        if self.deadline is not None:
+            self.deadline.check()
         if duration > self.remaining or self.remaining <= 0:
             raise QuotaWaitExceeded("local quota or retry wait exceeded max_wait_seconds")
         self.sleeper(duration)
