@@ -230,12 +230,9 @@ class PostgresVectorStore:
 
     @contextmanager
     def _transaction(self):
-        # Late imports avoid a module3/module4 import cycle. Outside retrieval the
-        # context has no deadline and the ingestion transaction is unchanged.
-        from importlib import import_module
-        budget_module = import_module("app.modules.4_retrievalAndFusion.deadline")
-        sql_budget = import_module("app.modules.4_retrievalAndFusion.database_deadline")
-        remaining = budget_module.current_deadline()
+        from app.models.deadline import current_deadline
+        from app.models.db.deadline import DeadlineCursor, watch_connection
+        remaining = current_deadline()
         connection = self._connection(remaining)
         try:
             if remaining is None:
@@ -243,11 +240,11 @@ class PostgresVectorStore:
                     with connection.cursor() as cursor:
                         yield cursor
             else:
-                with sql_budget.watch_connection(connection, remaining):
+                with watch_connection(connection, remaining):
                     with connection:
                         with connection.cursor() as cursor:
                             remaining.check()
-                            yield sql_budget.DeadlineCursor(cursor, remaining)
+                            yield DeadlineCursor(cursor, remaining)
                             remaining.check()
         finally:
             connection.close()
