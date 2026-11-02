@@ -5,6 +5,7 @@ from dataclasses import replace
 from math import isfinite
 
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
+from .faq_contracts import FAQRecord
 from .fusion import fuse_rrf
 from .fusion_contracts import RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 
@@ -46,8 +47,11 @@ class RetrievalService:
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:
+            methods = ("vector", "bm25")
+            if callable(getattr(self.store, "search_faq_vector", None)):
+                methods += ("faq_vector",)
             return tuple(self._backend_route(kb, method) for kb in knowledge_base_ids
-                         for method in ("vector", "bm25"))
+                         for method in methods)
         selected = tuple(route for route in self.routes if route.knowledge_base_id in knowledge_base_ids)
         if set(knowledge_base_ids) - {route.knowledge_base_id for route in selected}:
             raise RetrievalContractError("every requested knowledge base requires a retrieval route")
@@ -63,7 +67,8 @@ class RetrievalService:
                 options["exact_terms"] = exact_terms
             result = getattr(self.store, f"search_{method}")(query, **options)
             successful = result.status in ("success", "empty")
-            hits = tuple(RouteHit(hit.content, hit.snapshot_id, hit.raw_score, hit.metric, hit.scheme_identity)
+            hits = tuple(RouteHit(hit.content, hit.snapshot_id, hit.raw_score, hit.metric, hit.scheme_identity,
+                                  matched_questions=getattr(hit, "matched_questions", ()))
                          for hit in result.candidates) if successful else ()
             return RouteResult(route_id, knowledge_base_id, method, result.status, hits,
                                algorithm=result.algorithm,
@@ -88,13 +93,20 @@ class RetrievalService:
             if (result.status == "success") != bool(result.candidates):
                 raise RetrievalContractError("route status and candidates disagree")
             for hit in result.candidates:
-                if not isinstance(hit.content, ContentRecord):
+                if not isinstance(hit.content, (ContentRecord, FAQRecord)):
                     raise RetrievalContractError("route requires authoritative content")
                 if (hit.content.identity.knowledge_base_id != route.knowledge_base_id
                         or hit.snapshot_id != scope.snapshots[route.knowledge_base_id]):
                     raise RetrievalContractError("route returned evidence outside its pinned scope")
-                documents = scope.authorization.document_ids.get(route.knowledge_base_id)
-                if documents is not None and hit.content.identity.document_id not in documents:
+                if isinstance(hit.content, FAQRecord):
+                    grants = scope.authorization.faq_item_ids.get(route.knowledge_base_id)
+                    if grants is None and route.knowledge_base_id in scope.authorization.document_ids:
+                        grants = ()
+                    item_id = hit.content.identity.item_id
+                else:
+                    grants = scope.authorization.document_ids.get(route.knowledge_base_id)
+                    item_id = hit.content.identity.document_id
+                if grants is not None and item_id not in grants:
                     raise RetrievalContractError("route returned evidence outside authorization")
                 if (isinstance(hit.raw_score, bool) or not isinstance(hit.raw_score, (float, int))
                         or not isfinite(hit.raw_score) or not isinstance(hit.metric, str) or not hit.metric):
