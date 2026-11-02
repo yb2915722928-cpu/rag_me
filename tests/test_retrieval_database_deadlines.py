@@ -28,6 +28,40 @@ class DatabaseBudgetTests(unittest.TestCase):
             cursor.execute("SELECT 3")
         self.assertEqual(len(raw.statements), 4)
 
+    def test_durable_request_repository_uses_retrieval_connection_and_sql_budget(self):
+        from app.models.db.pgvector import PostgresVectorStore
+        calls = []
+        class Cursor:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def execute(self, sql, parameters=None):
+                calls.append((sql, parameters))
+            def fetchone(self):
+                return None
+        class Connection:
+            def __enter__(self):
+                return self
+            def __exit__(self, *args):
+                pass
+            def cursor(self):
+                return Cursor()
+            def close(self):
+                pass
+        options = []
+        def connect(dsn, **kwargs):
+            options.append(kwargs)
+            return Connection()
+        store = PostgresVectorStore("unused", connect=connect)
+        with budget.deadline_scope(budget.Deadline(3, clock=lambda: 0)):
+            with self.assertRaises(KeyError):
+                store.get_attempt("missing")
+        self.assertEqual(options, [{"connect_timeout": 3}])
+        self.assertIn("statement_timeout", calls[0][0])
+        self.assertEqual(calls[0][1], ("3000",))
+        self.assertIn("embedding_request_attempts", calls[1][0])
+
 
 @unittest.skipUnless(os.environ.get("RETRIEVAL_TEST_DSN"), "requires explicitly provisioned PostgreSQL")
 class RealDatabaseDeadlineTests(unittest.TestCase):

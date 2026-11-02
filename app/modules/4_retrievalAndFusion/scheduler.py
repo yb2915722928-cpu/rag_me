@@ -137,7 +137,7 @@ _shared_lock = threading.Lock()
 
 
 def shared_scheduler():
-    """One lazily-created process pool shared by service instances and requests."""
+    """One lazily-created thread pool shared by service instances and requests."""
     global _shared
     with _shared_lock:
         if _shared is None:
