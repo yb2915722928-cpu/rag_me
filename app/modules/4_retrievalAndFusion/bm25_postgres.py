@@ -11,6 +11,7 @@ from .bm25_resources import DocumentBM25Resources
 from .contracts import (ContentRecord, EvidenceIdentity, ReadScope, RetrievalContractError,
                         SnapshotNotReady, required_strings)
 from .vector import PostgresVectorRetrievalStore
+from .execution_errors import execution_failure
 
 
 class PostgresBM25RetrievalStore(PostgresVectorRetrievalStore):
@@ -110,5 +111,5 @@ class PostgresBM25RetrievalStore(PostgresVectorRetrievalStore):
                     snapshot.snapshot_id, float(row[5]), fingerprint) for row in rows)
             return BM25QueryResult("success" if candidates else "empty", candidates)
         except Exception as exc:
-            # Do not expose database error text, SQL, DSNs or inaccessible values.
-            return BM25QueryResult("failed", error=type(exc).__name__)
+            status, reason, _ = execution_failure(exc)
+            return BM25QueryResult(status, error=reason)

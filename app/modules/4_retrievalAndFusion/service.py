@@ -17,6 +17,7 @@ from .mmr import MMRConfig, MMRFailure, select_mmr
 from .weighted_fusion import fuse_weighted
 from .fusion_contracts import PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 from .parent_expansion import ParentExpansionResult, expand_parents
+from .execution_errors import execution_failure
 
 
 def _budget_call(function, *args, remaining, **kwargs):
@@ -77,25 +78,34 @@ class RetrievalService:
                                     *(PostprocessStep(name, "skipped", "prior_stage_failed")
                                       for name in ("parent", "dedup", "mmr"))))
         scope = pinned.value
+        # Leave a bounded tail for fusion even when a started route occupies its
+        # worker until the route-stage deadline. All children still cap at root.
+        route_budget = remaining.child(max(remaining.remaining() * .9, 1e-9))
         scheduled = self.scheduler.run([
             lambda budget, route=route: self._execute(route, query, scope, config, exact_terms, budget)
             for route in routes
-        ], remaining=remaining, route_timeout=config.route_timeout, max_concurrency=config.max_concurrency)
+        ], remaining=route_budget, route_timeout=config.route_timeout, max_concurrency=config.max_concurrency)
         results = tuple(item.value if item.status == "completed" else
                         RouteResult(route.route_id, route.knowledge_base_id, route.method, item.status,
                                     reason="route_" + item.status)
                         for route, item in zip(routes, scheduled))
-        # The root budget is captured here, rather than resetting a postprocess clock.
-        fused = self.scheduler.run([
-            lambda _: self._fuse(results, config, remaining)
-        ], remaining=remaining, route_timeout=config.total_timeout, max_concurrency=1)[0]
-        if fused.status == "completed":
-            pool, results = fused.value
+        # Local CPU fusion checks the root budget without needing a worker slot
+        # that an uncooperative retrieval call may still occupy.
+        fusion_failure = None
+        try:
+            remaining.check()
+            fused = self._fuse(results, config, remaining)
+            remaining.check()
+            pool, results = fused
+        except TimeoutError:
+            fusion_failure = "fusion_timeout"
+        except Exception:
+            fusion_failure = "fusion_failed"
         completed = sum(result.status in ("success", "empty") for result in results)
         status = "complete" if completed == len(results) and completed else "partial" if completed else "incomplete"
-        if fused.status != "completed":
+        if fusion_failure is not None:
             return RetrievalResult(status, (), (), results, scope,
-                                   (PostprocessStep("fusion", "failed", "fusion_" + fused.status),
+                                   (PostprocessStep("fusion", "failed", fusion_failure),
                                     *(PostprocessStep(name, "skipped", "prior_stage_failed")
                                       for name in ("parent", "dedup", "mmr"))))
         if not config.parent_expansion:
@@ -145,9 +155,9 @@ class RetrievalService:
     def _fuse(results, config, remaining):
         remaining.check()
         if config.fusion_strategy == "weighted":
-            pool, results = fuse_weighted(results, config)
+            pool, results = fuse_weighted(results, config, remaining=remaining)
         else:
-            pool = fuse_rrf(results, config)
+            pool = fuse_rrf(results, config, remaining=remaining)
         remaining.check()
         return pool, results
 
@@ -207,7 +217,9 @@ class RetrievalService:
                                algorithm=result.algorithm,
                                candidate_limit=getattr(result, "candidate_limit", top_k),
                                limitations=result.limitations,
-                               reason=None if successful else "route_execution_failed")
+                               reason=None if successful else (
+                                    "route_timeout" if result.status == "timeout" else "route_execution_failed"),
+                                query_recovery=getattr(result, "query_recovery", None))
 
         return RetrievalRoute(route_id, knowledge_base_id, method, search)
 
@@ -250,10 +262,7 @@ class RetrievalService:
                         or not isfinite(hit.raw_score) or not isinstance(hit.metric, str) or not hit.metric):
                     raise RetrievalContractError("route scores require a finite value and declared metric")
             return replace(result, candidates=tuple(result.candidates))
-        except TimeoutError:
+        except Exception as exc:
+            status, reason, recovery = execution_failure(exc)
             return RouteResult(route.route_id, route.knowledge_base_id, route.method,
-                               "timeout", reason="route_timeout")
-        except Exception:
-            # Do not expose backend errors containing query text, content or credentials.
-            return RouteResult(route.route_id, route.knowledge_base_id, route.method,
-                               "failed", reason="route_execution_failed")
+                               status, reason=reason, query_recovery=recovery)

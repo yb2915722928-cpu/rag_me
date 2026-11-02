@@ -12,6 +12,7 @@ from typing import Iterable
 
 from .contracts import RetrievalContractError
 from .fusion_contracts import FusedCandidate, RetrievalConfig, RouteResult, ScoreTrace
+from .deadline import budgeted
 
 
 class NormalizationError(RetrievalContractError):
@@ -29,7 +30,7 @@ class NormalizedScores:
 
 
 def normalize_scores(scores: Iterable[float], *, metric: str,
-                     strategy: str = "minmax") -> NormalizedScores:
+                     strategy: str = "minmax", remaining=None) -> NormalizedScores:
     """Normalize one route's unique evidence scores, preserving their order."""
     if strategy not in ("minmax", "l2"):
         raise RetrievalContractError("normalization must be minmax or l2")
@@ -37,8 +38,8 @@ def normalize_scores(scores: Iterable[float], *, metric: str,
     distances = ("distance", "cosine_distance")
     if metric not in similarities + distances:
         raise NormalizationError("unknown_metric")
-    values = tuple(scores)
-    for score in values:
+    values = tuple(budgeted(scores, remaining))
+    for score in budgeted(values, remaining):
         if isinstance(score, bool) or not isinstance(score, (int, float)):
             raise NormalizationError("invalid_score")
         try:
@@ -47,32 +48,32 @@ def normalize_scores(scores: Iterable[float], *, metric: str,
             finite = False
         if not finite:
             raise NormalizationError("invalid_score")
-    values = tuple(float(score) for score in values)
-    directed = tuple(-score for score in values) if metric in distances else values
+    values = tuple(float(score) for score in budgeted(values, remaining))
+    directed = tuple(-score for score in budgeted(values, remaining)) if metric in distances else values
     if not directed:
         return NormalizedScores(())
     if strategy == "l2":
-        scale = max(abs(score) for score in directed)
+        scale = max(abs(score) for score in budgeted(directed, remaining))
         if scale == 0:
             return NormalizedScores((0.0,) * len(directed))
-        scaled = tuple(score / scale for score in directed)
-        norm = math.sqrt(math.fsum(score * score for score in scaled))
-        return NormalizedScores(tuple(score / norm for score in scaled))
-    low, high = min(directed), max(directed)
+        scaled = tuple(score / scale for score in budgeted(directed, remaining))
+        norm = math.sqrt(math.fsum(score * score for score in budgeted(scaled, remaining)))
+        return NormalizedScores(tuple(score / norm for score in budgeted(scaled, remaining)))
+    low, high = min(budgeted(directed, remaining)), max(budgeted(directed, remaining))
     if low == high:
         return NormalizedScores((1.0,) * len(directed), ("no_discrimination",))
     span = high - low
     if math.isfinite(span):
-        return NormalizedScores(tuple((score - low) / span for score in directed))
+        return NormalizedScores(tuple((score - low) / span for score in budgeted(directed, remaining)))
     # Opposite signed finite extrema can overflow subtraction. Scale only in
     # that case, keeping precision for close non-equal values on normal routes.
     scale = max(abs(low), abs(high))
     scaled_low, scaled_high = low / scale, high / scale
     return NormalizedScores(tuple((score / scale - scaled_low) / (scaled_high - scaled_low)
-                                  for score in directed))
+                                  for score in budgeted(directed, remaining)))
 
 
-def fuse_weighted(routes: tuple[RouteResult, ...], config: RetrievalConfig
+def fuse_weighted(routes: tuple[RouteResult, ...], config: RetrievalConfig, *, remaining=None
                   ) -> tuple[tuple[FusedCandidate, ...], tuple[RouteResult, ...]]:
     """Fuse valid routes and return their diagnostics in original request order.
 
@@ -83,26 +84,26 @@ def fuse_weighted(routes: tuple[RouteResult, ...], config: RetrievalConfig
     records = {}
     traces = defaultdict(list)
     diagnosed = {}
-    for route in sorted(routes, key=lambda item: item.route_id):
+    for route in budgeted(sorted(budgeted(routes, remaining), key=lambda item: item.route_id), remaining):
         diagnosed[route.route_id] = route
         if route.status != "success":
             continue
         try:
             # Validate the entire returned route, including duplicate and excess
             # hits, so invalid measurements cannot disappear at the pool boundary.
-            for hit in route.candidates:
-                normalize_scores((hit.raw_score,), metric=hit.metric, strategy=config.normalization)
+            for hit in budgeted(route.candidates, remaining):
+                normalize_scores((hit.raw_score,), metric=hit.metric, strategy=config.normalization, remaining=remaining)
             if not route.candidates:
                 raise NormalizationError("empty_successful_route")
             metric = route.candidates[0].metric
-            if any(hit.metric != metric for hit in route.candidates):
+            if any(hit.metric != metric for hit in budgeted(route.candidates, remaining)):
                 raise NormalizationError("mixed_metrics")
             unique = {}
-            for hit in route.candidates:
+            for hit in budgeted(route.candidates, remaining):
                 unique.setdefault(hit.content.identity, hit)
-            hits = tuple(unique.values())[:config.route_top_k]
+            hits = tuple(budgeted(unique.values(), remaining))[:config.route_top_k]
             normalized = normalize_scores((hit.raw_score for hit in hits), metric=metric,
-                                          strategy=config.normalization)
+                                          strategy=config.normalization, remaining=remaining)
         except NormalizationError as exc:
             diagnosed[route.route_id] = replace(route, status="failed", candidates=(),
                                                 reason=exc.code,
@@ -110,7 +111,7 @@ def fuse_weighted(routes: tuple[RouteResult, ...], config: RetrievalConfig
             continue
         diagnosed[route.route_id] = replace(route, limitations=route.limitations + normalized.diagnostics)
         weight = config.route_weights.get(route.route_id, 1.0)
-        for rank, (hit, score) in enumerate(zip(hits, normalized.values), 1):
+        for rank, (hit, score) in enumerate(budgeted(zip(hits, normalized.values), remaining), 1):
             identity = hit.content.identity
             records.setdefault(identity, hit.content)
             traces[identity].append(ScoreTrace(
@@ -119,8 +120,17 @@ def fuse_weighted(routes: tuple[RouteResult, ...], config: RetrievalConfig
                 hit.snapshot_id, weight, weight * score, score,
                 matched_questions=hit.matched_questions,
             ))
-    candidates = [FusedCandidate(records[identity], math.fsum(trace.contribution for trace in evidence),
+    candidates = [FusedCandidate(records[identity], math.fsum(trace.contribution for trace in budgeted(evidence, remaining)),
                                  tuple(evidence), (identity,), (records[identity].source,))
-                  for identity, evidence in traces.items()]
-    pool = tuple(sorted(candidates, key=lambda item: (-item.score, item.content.identity.parts))[:config.pool_size])
-    return pool, tuple(diagnosed[route.route_id] for route in routes)
+                  for identity, evidence in budgeted(traces.items(), remaining)]
+
+    def rank_key(item):
+        if remaining is not None:
+            remaining.check()
+        return -item.score, item.content.identity.parts
+
+    ranked = sorted(candidates, key=rank_key)
+    if remaining is not None:
+        remaining.check()
+    pool = tuple(ranked[:config.pool_size])
+    return pool, tuple(diagnosed[route.route_id] for route in budgeted(routes, remaining))

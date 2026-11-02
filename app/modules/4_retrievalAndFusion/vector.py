@@ -18,6 +18,7 @@ from app.models.db.pgvector import (PhysicalIndexConfig, PostgresVectorStore,
 from .contracts import (ContentConflict, ContentRecord, EvidenceIdentity,
                         RetrievalContractError, SnapshotNotReady)
 from .postgres import PostgresRetrievalStore
+from .execution_errors import QueryRecovery, execution_failure
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,7 @@ class VectorQueryResult:
     shortfall: int = 0
     limitations: tuple[str, ...] = ()
     error: str | None = None
+    query_recovery: QueryRecovery | None = None
 
 
 def _resource(schema, kb, snapshot):
@@ -224,8 +226,9 @@ class PostgresVectorRetrievalStore(PostgresRetrievalStore):
                                                 request_repository=self.request_repository,
                                                 batch_options=batch_options)
         except Exception as exc:
-            return VectorQueryResult("failed", algorithm=algorithm, candidate_limit=budget, exhaustive=False,
-                                     shortfall=limit, error=f"{type(exc).__name__}: {exc}")
+            status, reason, recovery = execution_failure(exc)
+            return VectorQueryResult(status, algorithm=algorithm, candidate_limit=budget, exhaustive=False,
+                                     shortfall=limit, error=reason, query_recovery=recovery)
         ann = algorithm != "exact"
         limitations = (("ANN is approximate; post-index filtering can underfill the candidate budget and does not guarantee complete qualified top-K.",)
                        if ann else ())

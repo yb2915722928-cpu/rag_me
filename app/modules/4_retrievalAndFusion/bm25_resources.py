@@ -108,23 +108,9 @@ class DocumentBM25Resources:
         if analyzer.definition != definition or analyzer.fingerprint != fingerprint:
             raise SnapshotNotReady("stored BM25 analyzer does not match the pinned release")
         relation = f"{self.namespace}.{quote_identifier(table)}"
-        cursor.execute("SELECT i.indisvalid, i.indisready, am.amname, pg_get_indexdef(i.indexrelid) "
-                       "FROM pg_index i JOIN pg_class idx ON idx.oid=i.indexrelid "
-                       "JOIN pg_am am ON am.oid=idx.relam "
-                       "WHERE i.indrelid=to_regclass(%s) AND i.indexrelid=to_regclass(%s)",
-                       (relation, f"{self.namespace}.{quote_identifier(index)}"))
-        row = cursor.fetchone()
-        if row is None or row[:3] != (True, True, "paradedb") or row[3] != ddl:
-            raise SnapshotNotReady("document BM25 physical index is missing, changed or not ready")
-        cursor.execute("SELECT count(*) FROM pg_index i JOIN pg_class idx ON idx.oid=i.indexrelid "
-                       "JOIN pg_am am ON am.oid=idx.relam WHERE i.indrelid=to_regclass(%s) "
-                       "AND am.amname IN ('paradedb', 'bm25')", (relation,))
-        if cursor.fetchone()[0] != 1:
-            raise SnapshotNotReady("document corpus must have exactly one ParadeDB index")
-        cursor.execute("SELECT 1 FROM pg_trigger WHERE tgrelid=to_regclass(%s) "
-                       "AND tgname='immutable_bm25' AND tgenabled='O' AND NOT tgisinternal", (relation,))
-        if cursor.fetchone() is None:
-            raise SnapshotNotReady("BM25 corpus immutability guard is missing")
+        verify_physical_index(cursor, relation=relation,
+            index=f"{self.namespace}.{quote_identifier(index)}", ddl=ddl,
+            trigger="immutable_bm25", subject="document")
         # Compare complete rows before publication; a readiness bit is insufficient.
         columns = "evidence_key,knowledge_base_id,document_id,document_version,chunk_id,chunk_version,body,source,metadata,parent_key"
         cursor.execute(f"WITH expected AS (SELECT {columns} FROM {self.namespace}.content "
@@ -136,3 +122,23 @@ class DocumentBM25Resources:
         if cursor.fetchone()[0]:
             raise SnapshotNotReady("document BM25 corpus differs from authoritative snapshot content")
         return resource
+
+
+def verify_physical_index(cursor, *, relation, index, ddl, trigger, subject):
+    """Shared readiness checks; each corpus still verifies its own full content."""
+    cursor.execute("SELECT i.indisvalid,i.indisready,am.amname,pg_get_indexdef(i.indexrelid) "
+                   "FROM pg_index i JOIN pg_class idx ON idx.oid=i.indexrelid "
+                   "JOIN pg_am am ON am.oid=idx.relam "
+                   "WHERE i.indrelid=to_regclass(%s) AND i.indexrelid=to_regclass(%s)", (relation, index))
+    row = cursor.fetchone()
+    if row is None or row[:3] != (True, True, "paradedb") or row[3] != ddl:
+        raise SnapshotNotReady(f"{subject} BM25 physical index is missing, changed or not ready")
+    cursor.execute("SELECT count(*) FROM pg_index i JOIN pg_class idx ON idx.oid=i.indexrelid "
+                   "JOIN pg_am am ON am.oid=idx.relam WHERE i.indrelid=to_regclass(%s) "
+                   "AND am.amname IN ('paradedb','bm25')", (relation,))
+    if cursor.fetchone()[0] != 1:
+        raise SnapshotNotReady(f"{subject} corpus must have exactly one ParadeDB index")
+    cursor.execute("SELECT 1 FROM pg_trigger WHERE tgrelid=to_regclass(%s) "
+                   "AND tgname=%s AND tgenabled='O' AND NOT tgisinternal", (relation, trigger))
+    if cursor.fetchone() is None:
+        raise SnapshotNotReady(f"{subject} BM25 corpus immutability guard is missing")

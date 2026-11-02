@@ -4,7 +4,7 @@ SQL authored against #85's fixed 0.26.4 APIs; execution remains unverified.
 """
 from app.models.embedding import canonical_json
 from .bm25 import create_index_sql, quote_identifier
-from .bm25_resources import DocumentBM25Resources
+from .bm25_resources import DocumentBM25Resources, verify_physical_index
 from .contracts import ContentConflict, SnapshotNotReady
 from .faq_bm25 import FAQBM25Analyzer, faq_corpus_names
 
@@ -74,22 +74,9 @@ class FAQBM25Resources:
         if analyzer.definition != definition or analyzer.fingerprint != fingerprint:
             raise SnapshotNotReady("FAQ BM25 analyzer differs from the pinned release")
         relation = f"{self.namespace}.{quote_identifier(table)}"
-        cursor.execute("SELECT i.indisvalid,i.indisready,am.amname,pg_get_indexdef(i.indexrelid) "
-                       "FROM pg_index i JOIN pg_class idx ON idx.oid=i.indexrelid JOIN pg_am am ON am.oid=idx.relam "
-                       "WHERE i.indrelid=to_regclass(%s) AND i.indexrelid=to_regclass(%s)",
-                       (relation, f"{self.namespace}.{quote_identifier(index)}"))
-        row = cursor.fetchone()
-        if row is None or row[:3] != (True, True, "paradedb") or row[3] != ddl:
-            raise SnapshotNotReady("FAQ BM25 physical index is missing, changed or not ready")
-        cursor.execute("SELECT count(*) FROM pg_index i JOIN pg_class idx ON idx.oid=i.indexrelid "
-                       "JOIN pg_am am ON am.oid=idx.relam WHERE i.indrelid=to_regclass(%s) "
-                       "AND am.amname IN ('paradedb','bm25')", (relation,))
-        if cursor.fetchone()[0] != 1:
-            raise SnapshotNotReady("FAQ corpus must have exactly one ParadeDB index")
-        cursor.execute("SELECT 1 FROM pg_trigger WHERE tgrelid=to_regclass(%s) "
-                       "AND tgname='immutable_faq_bm25' AND tgenabled='O' AND NOT tgisinternal", (relation,))
-        if cursor.fetchone() is None:
-            raise SnapshotNotReady("FAQ BM25 corpus immutability guard is missing")
+        verify_physical_index(cursor, relation=relation,
+            index=f"{self.namespace}.{quote_identifier(index)}", ddl=ddl,
+            trigger="immutable_faq_bm25", subject="FAQ")
         cursor.execute(f"WITH expected AS (SELECT question_key,evidence_key,knowledge_base_id,question_ordinal,question "
                        f"FROM {self.namespace}.faq_questions WHERE knowledge_base_id=%s AND evidence_key=ANY(%s::text[])), "
                        f"actual AS (SELECT question_key,evidence_key,knowledge_base_id,question_ordinal,body FROM {relation}) "

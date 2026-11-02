@@ -4,6 +4,7 @@ from .contracts import (
     RetrievalContractError, Snapshot, SnapshotNotReady,
 )
 from .filters import All, Eq
+from .execution_errors import QueryRecovery
 from .postgres import PostgresRetrievalStore
 from .fusion_contracts import (
     FusedCandidate, PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute,
@@ -28,7 +29,7 @@ __all__ = [
     "ReadScope", "RetrievalContractError", "Snapshot", "SnapshotNotReady",
     "All", "Eq", "PostgresRetrievalStore", "FilterPlan", "FilterValidationError", "compile_filter",
     "FusedCandidate", "PostprocessStep", "RetrievalConfig", "RetrievalResult", "RetrievalRoute",
-    "RouteHit", "RouteResult", "ScoreTrace", "RetrievalService",
+    "RouteHit", "RouteResult", "ScoreTrace", "RetrievalService", "QueryRecovery",
     "BodyVector", "Module3BodyEncoder", "MMRConfig", "MMRFailure", "select_mmr",
     "BodyDedupProof", "BodyDedupProver", "process_body_dedup",
     "PostgresVectorRetrievalStore", "VectorCandidate", "VectorQueryResult",

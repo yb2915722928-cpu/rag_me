@@ -97,6 +97,39 @@ class MultiKnowledgeBaseDeadlineTests(unittest.TestCase):
         self.assertIsNone(result.scope)
         self.assertEqual(result.steps[0].name, "pin")
 
+    def test_root_expiry_after_completed_pin_returns_diagnostics_without_new_budget(self):
+        for cancelled in (False, True):
+            with self.subTest(cancelled=cancelled):
+                instant = [0.0]
+                root = b.Deadline(1, clock=lambda: instant[0])
+
+                class Scheduler(s.BoundedScheduler):
+                    pin_completed = False
+
+                    def run(self, *args, **kwargs):
+                        outcomes = super().run(*args, **kwargs)
+                        if not self.pin_completed:
+                            self.pin_completed = True
+                            if cancelled:
+                                root.cancel()
+                            else:
+                                instant[0] = 1.0
+                        return outcomes
+
+                scheduler = Scheduler(1)
+                self.addCleanup(scheduler.close)
+                route = r.RetrievalRoute("a", "a", "vector",
+                    lambda *args, **kwargs: self.fail("route must not start after root expiry"))
+                result = r.RetrievalService(PinnedStore(), scheduler=scheduler, routes=(route,)).query(
+                    "query", knowledge_base_ids=("a",), authorization=r.AuthorizationScope(("a",)),
+                    remaining=root, config=r.RetrievalConfig(max_concurrency=1))
+                self.assertEqual(result.status, "incomplete")
+                self.assertEqual(result.scope.snapshots, {"a": "v1"})
+                self.assertEqual(result.routes[0].status, "not_executed")
+                self.assertEqual(result.steps[0], r.PostprocessStep("fusion", "failed", "fusion_timeout"))
+                self.assertEqual(result.candidates, ())
+                self.assertEqual(result.working_pool, ())
+
     def test_pin_and_fusion_share_root_and_route_is_clipped_child(self):
         roots, children = [], []
         class Store(PinnedStore):
@@ -117,6 +150,42 @@ class MultiKnowledgeBaseDeadlineTests(unittest.TestCase):
         self.assertIs(roots[0], roots[1])
         self.assertIsNot(children[0], roots[0])
         self.assertLessEqual(children[0].expires_at, roots[0].expires_at)
+
+    def test_completed_hits_fuse_when_last_route_exhausts_stage_with_no_free_worker(self):
+        for strategy in ("rrf", "weighted"):
+            with self.subTest(strategy=strategy):
+                instant = [0.0]
+                release = threading.Event()
+                scheduler = s.BoundedScheduler(1)
+                self.addCleanup(scheduler.close)
+                self.addCleanup(release.set)
+                content = r.ContentRecord(r.EvidenceIdentity("a", "doc", "v1", "child", "v1"),
+                                          "retained evidence", {"source": "fixture"}, {})
+
+                def completed(query, **kwargs):
+                    return r.RouteResult("a", "a", "vector", "success",
+                        (r.RouteHit(content, "v1", .8, "cosine_similarity"),))
+
+                def stalled(query, **kwargs):
+                    instant[0] = .91
+                    release.wait(2)
+                    return r.RouteResult("b", "b", "bm25", "empty")
+
+                result = r.RetrievalService(PinnedStore(), scheduler=scheduler,
+                    clock=lambda: instant[0], routes=(
+                        r.RetrievalRoute("a", "a", "vector", completed),
+                        r.RetrievalRoute("b", "b", "bm25", stalled),
+                    )).query("query", knowledge_base_ids=("a", "b"),
+                        authorization=r.AuthorizationScope(("a", "b")),
+                        config=r.RetrievalConfig(total_timeout=1, route_timeout=1,
+                                                max_concurrency=1, fusion_strategy=strategy))
+                self.assertEqual(result.status, "partial")
+                self.assertEqual([route.status for route in result.routes], ["success", "timeout"])
+                self.assertEqual([item.content for item in result.candidates], [content])
+                self.assertEqual(result.working_pool, result.candidates)
+                self.assertAlmostEqual(result.candidates[0].score, 1 / 61 if strategy == "rrf" else 1)
+                self.assertEqual([step.status for step in result.steps], ["skipped"] * 3)
+                release.set()
 
     def test_late_fusion_is_discarded_and_reports_failed_step_preserving_route_status(self):
         instant = [0.0]

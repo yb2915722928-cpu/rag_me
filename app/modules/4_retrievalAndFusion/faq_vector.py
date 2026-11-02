@@ -9,6 +9,7 @@ from .contracts import ContentConflict, RetrievalContractError, SnapshotNotReady
 from .faq_contracts import FAQIdentity, FAQRecord, MatchedQuestion
 from .faq_postgres import encoding_namespace
 from .vector import VectorQueryResult
+from .execution_errors import execution_failure
 
 
 @dataclass(frozen=True)
@@ -103,8 +104,9 @@ def search_faq_vector(owner, query, *, knowledge_base_id, scope, top_k=10, adapt
         return VectorQueryResult("success" if candidates else "empty", tuple(candidates), "exact", top_k,
                                  True, max(0, top_k - len(candidates)))
     except Exception as exc:
-        return VectorQueryResult("failed", algorithm="exact", candidate_limit=top_k, exhaustive=False,
-                                 shortfall=top_k, error=type(exc).__name__)
+        status, reason, recovery = execution_failure(exc)
+        return VectorQueryResult(status, algorithm="exact", candidate_limit=top_k, exhaustive=False,
+                                 shortfall=top_k, error=reason, query_recovery=recovery)
 
 
 class _FAQSearch:

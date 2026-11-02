@@ -2,7 +2,7 @@
 
 状态：**源码已静态对齐；所有测试、SQL、分词输出、后端组合和性能均未执行。**
 [场景数据](retrieval_pipeline_cases.py)、[确定性公共查询测试](test_retrieval_pipeline.py)、[真实后端测试](test_retrieval_pipeline_postgres.py) 与 [外部端口及断言辅助](retrieval_pipeline_support.py) 已接到最终公共接口。
-已按协调者授权合并 #83–#93 integration `cebcd41a9ea0939a9e8e9ca64d5f4a2df0ec9835`，核对公开配置、FAQ、父展开、去重、MMR及真实后端夹具。静态核对不构成运行通过；实现层已知问题交由最终审阅统一修复。
+已静态对齐 #83–#94 的公开配置、FAQ、父展开、去重、MMR及真实后端夹具，并修复最终审阅发现的超时分类、查询恢复入口与融合预算问题。12 个新增测试模块均沿用仓库的 `unittest` 流程；静态核对不构成运行通过。
 本阶段没有安装依赖、下载模型、连接数据库、启动服务、部署、联调或 benchmark。
 
 ## 已确认的测试边界
@@ -21,7 +21,7 @@
 
 ## 组合矩阵及独立预期
 
-[FEATURE_CASES](retrieval_pipeline_cases.py) 提供 24 个组合输入，两套公共查询测试各自参数化消费全部组合；`BOUNDARY_CASES` 是更广的边界核对清单，不能将其条目数算作已实现测试数。场景数据本身没有测试函数或数据库动作。新增测试没有 xfail 掩盖已知问题；真实后端仅在缺显式DSN或psycopg时skip。
+[FEATURE_CASES](retrieval_pipeline_cases.py) 提供 24 个组合输入，两套公共查询测试各自以 `unittest.TestCase.subTest` 消费全部组合；`BOUNDARY_CASES` 是更广的边界核对清单，不能将其条目数算作已实现测试数。场景数据本身没有测试函数或数据库动作。每个数据库组合创建独立的随机 schema，并在该组合结束时执行 `addCleanup` 登记的清理。真实后端仅在缺显式 DSN 时 skip；已声明的 psycopg 依赖缺失会报错。
 
 | 父块 | 去重 | MMR | 关键公开断言 |
 |---|---|---|---|
@@ -77,7 +77,7 @@
 | pg_search | **0.26.4**，固定tag commit `727a888fd2801f013d765b1936c6e8eb3a3edf15`；使用PG17对应构建 |
 | 分析器 | 内置Jieba随pg_search发行版固定；search_mode=true、trim=true；当前代码Jieba和regex均保留大小写，k1=1.2、b=.75 |
 | 型号regex | `[A-Za-z0-9]+([._+-][A-Za-z0-9]+)*`；USB-C、AX-100、v2.1完整词项及大小写、后缀/Unicode边界待真实核验 |
-| Python | 用户环境已有项目依赖、pytest、psycopg及实际模块3公开编码/持久化依赖；本次不安装 |
+| Python | 使用标准库 unittest 与 requirements.txt 已声明的 psycopg、项目及模块3公开编码/持久化依赖；本次不安装 |
 | 编码方案 | 查询与索引scheme一致；MMR单独指定统一scheme；实际正文指纹和document角色绑定 |
 | MMR持久化 | `Module3BodyEncoder(adapter, request_repository, ...)` 需要可用RequestRepository；真实集成使用真实持久化receipt |
 | 网络编码 | 目前没有远端network adapter；不能声称真实网络超时/取消/服务商联调已覆盖。真实模块3公开API调用不等于真实远端模型调用 |
@@ -92,7 +92,7 @@ Windows应用可配受支持Linux数据库环境，但尚未确认具体发行�
 | 测试代码 | 环境变量 | 行为边界 |
 |---|---|---|
 | [权威正文与发布](test_retrieval_postgres.py) | `TEST_DATABASE_URL` | PostgreSQL正文/发布/父读取，不要求向量/搜索扩展；创建和清理随机schema |
-| [向量过滤链路](integration/test_filtered_vector_retrieval.py) | `RAG_RETRIEVAL_TEST_DSN` | 真实pgvector，确定性外部编码；随机schema保留待维护者清理 |
+| [向量过滤链路](integration/test_filtered_vector_retrieval.py) | `RAG_RETRIEVAL_TEST_DSN` | 真实pgvector，确定性外部编码；创建/清理随机schema |
 | [文档BM25](test_retrieval_bm25.py) | `RETRIEVAL_BM25_TEST_DSN` | 固定PG/扩展组合；创建/清理随机schema，包含显式物理索引丢失故障 |
 | [公共流水线](test_retrieval_pipeline_postgres.py) | `RETRIEVAL_PIPELINE_TEST_DSN` | 显式一次性数据库；检索数据与module3回执分别使用随机schema，均清理；检查PG和扩展精确版本，不启动服务 |
 
@@ -109,33 +109,34 @@ Windows应用可配受支持Linux数据库环境，但尚未确认具体发行�
 确定性公共查询（不需要数据库）：
 
 ```powershell
-python -m pytest -q tests/test_retrieval_pipeline.py
+python -m unittest discover -s tests -p 'test_retrieval_pipeline.py' -v
 ```
 
 真实四路召回、发布、后处理与模块3回执全链：先通过自己的凭据管理方式设置 `RETRIEVAL_PIPELINE_TEST_DSN`，不得指向业务数据库。下面示例使用libpq service配置，需将service名替换成已有测试连接配置；命令文本不保存密码。
 
 ```powershell
 $env:RETRIEVAL_PIPELINE_TEST_DSN = 'service=rag_retrieval_disposable'
-python -m pytest -q -rs tests/test_retrieval_pipeline_postgres.py
+python -m unittest discover -s tests -p 'test_retrieval_pipeline_postgres.py' -v
 ```
 
 两套一起运行：
 
 ```powershell
-python -m pytest -q -rs tests/test_retrieval_pipeline.py tests/test_retrieval_pipeline_postgres.py
+python -m unittest discover -s tests -p 'test_retrieval_pipeline*.py' -v
 ```
 
-缺DSN或psycopg的skip不是通过。版本检查失败、缺DDL权限、扩展/SQL/tokenizer不兼容及已知实现回归均应作为待解决失败保留。以上命令没有在本次工作中执行，不提供运行报告、通过数量或性能数据。
+缺 DSN 导致的 skip 不是通过。依赖缺失、版本检查失败、缺 DDL 权限及扩展/SQL/tokenizer 不兼容均应作为失败保留。以上命令没有在本次工作中执行，不提供运行报告、通过数量或性能数据。
 
 ## 未验证与后续收口
 
 - 已编写两套各24组合的公共查询测试源码（确定性外部端口、真实数据库全链）；未运行、未collection，不能计作通过。确定性测试使用独立手算分数及MMR几何预期，真实后端不假定语义名次。
-- 故障源码覆盖父/去重/MMR默认降级和严格失败、路由失败不重分权重、空结果与全失败、pin失败、迟到MMR结果、真实父业务过滤、保留历史/多KB、查询中发布、物理FAQ索引丢失和编码器提前超时。提前TimeoutError被底层转成failed的已知静态线索保留为回归断言，待最终代码审阅处理。
+- 故障源码覆盖父/去重/MMR默认降级和严格失败、路由失败不重分权重、空结果与全失败、pin失败、迟到MMR结果、真实父业务过滤、保留历史/多KB、查询中发布、物理FAQ索引丢失和编码器提前超时。最终审阅已修复提前 TimeoutError 被转为 failed 的问题；保留真实公共查询回归断言，尚未运行。
 - 已静态对齐config.body_dedup/mmr/mmr_lambda、query(body_dedup_prover=...)与RetrievalService(mmr_encoder=...)。去重证明失败的step在默认/严格模式都为failed；默认保留incoming pool，严格返回空最终结果；父/MMR默认降级为partial。测试按该公开契约区分，不做反射兼容或skip掩盖不匹配。
-- 不运行pytest（含collection）、Python import/compile smoke、SQL、迁移、服务、容器、联调、benchmark或模型下载；也不以静态审阅宣称运行通过。
+- 本阶段不运行测试（含发现/收集）、Python import/compile smoke、SQL、迁移、服务、容器、联调、benchmark或模型下载；也不以静态审阅宣称运行通过。
 - 所有SQL/tokenizer组合、`pdb.score`与MATERIALIZED CTE、过滤计划和扩展加载均未运行。全量文本命中再授权/过滤/排序/LIMIT是当前正确性基线，代价未经测量。
 - 每KB×snapshot独立语料/物理索引；FAQ与文档分别排名。独立统计、精确词项、ANN限制和业务过滤实际执行行为仍需真实后端验证。
 - 十万chunk仅为设计参考，不设置本阶段规模门槛；不承诺延迟、召回质量或融合优于单路。
-- #94本轮交付测试源码与运行前提，不push、不关闭Issue。最终代码审阅需处理编码器提前TimeoutError被归类failed：模块3 [flow.py](../app/modules/3_embeddingAndIndexing/flow.py) 的search_chunks把非embedded结果包装为EmbeddingQueryError，文档 [vector.py](../app/modules/4_retrievalAndFusion/vector.py) 与 [faq_vector.py](../app/modules/4_retrievalAndFusion/faq_vector.py) 捕获所有Exception统一返回failed；root尚未到期时scheduler无法纠正。真实公共查询回归明确要求两条向量路为timeout、两条BM25路成功，未xfail。
+- [统一执行错误分类](../app/modules/4_retrievalAndFusion/execution_errors.py) 将原生 TimeoutError、模块3 `EMBEDDING_TIMEOUT` 及 PostgreSQL statement timeout 标为 timeout，用户主动取消等其他失败仍为 failed。两条向量路在 [RouteResult.query_recovery](../app/modules/4_retrievalAndFusion/fusion_contracts.py) 保留原始持久化查询结果；`QueryRecovery` 只公开 key/status/request_id/error_code，诊断不回显查询或提供方原文。调用方通过 `query_recovery.resolve(adapter, store, request_repository=..., ...)` 显式调用模块3恢复，提供遵循原授权与快照的搜索 store；未决 UNKNOWN 不会被自动重提。原生传输异常若没有模块3持久化结果，恢复字段为 None。
+- [公共查询预算](../app/modules/4_retrievalAndFusion/service.py) 在 pin 后将当前剩余预算的 90% 分给整个召回阶段，保留末尾 10% 给融合及后处理。融合在调用线程做纯 CPU 计算，逐项协作检查同一个原始 root 截止，不会因挂起路由占满后台 worker 而无法开始；其余后处理仍接收原始 root。融合到期时丢弃迟到结果，保留逐路状态及失败步骤。RRF/加权的“先成功、另一条路耗尽阶段预算且占满 worker”与 pin 完成后 root 已到期/取消均有公共回归源码，未运行。
 
 官方版本依据：[PostgreSQL 17.11](https://www.postgresql.org/docs/17/release-17-11.html)、[pgvector v0.8.6](https://github.com/pgvector/pgvector/tree/v0.8.6)、[pg_search v0.26.4](https://github.com/paradedb/paradedb/releases/tag/v0.26.4)。版本存在及源码推导不等于运行兼容性证明。
