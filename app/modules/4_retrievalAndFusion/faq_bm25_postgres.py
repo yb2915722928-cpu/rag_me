@@ -76,5 +76,8 @@ class PostgresFAQBM25RetrievalStore(PostgresFAQRetrievalStore):
                     snapshot.snapshot_id, float(row[6]), fingerprint,
                     tuple(MatchedQuestion(q["question"], float(q["raw_score"])) for q in row[7])) for row in rows)
             return FAQBM25QueryResult("success" if candidates else "empty", candidates)
+        except TimeoutError:
+            # Preserve the shared scheduler's timeout classification and budget.
+            raise
         except Exception as exc:
             return FAQBM25QueryResult("failed", error=type(exc).__name__)

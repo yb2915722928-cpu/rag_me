@@ -218,3 +218,10 @@ def test_missing_real_faq_index_blocks_publish_and_fails_without_candidates(stor
     result = store.search_faq_bm25("AX-100", knowledge_base_id="kb", scope=old)
     assert result.status == "failed"
     assert result.candidates == ()
+    public = api().RetrievalService(store).query("AX-100", knowledge_base_ids=("kb",),
+                                                authorization=api().AuthorizationScope(("kb",)))
+    route = next(route for route in public.routes if route.method == "faq_bm25")
+    assert route.status == "failed"
+    assert route.candidates == ()
+    assert public.status == "partial"
+    assert public.candidates == ()
