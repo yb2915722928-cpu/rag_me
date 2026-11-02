@@ -7,6 +7,7 @@ from types import MappingProxyType
 from typing import Callable, Literal, Mapping
 
 from .contracts import ContentRecord, EvidenceIdentity, ReadScope, RetrievalContractError, required_strings
+from .faq_contracts import FAQIdentity, FAQRecord, MatchedQuestion
 
 RouteStatus = Literal["success", "empty", "failed", "timeout", "not_executed"]
 QueryStatus = Literal["complete", "partial", "incomplete"]
@@ -19,6 +20,9 @@ class RetrievalConfig:
     final_top_k: int = 20
     rrf_k: float = 60
     route_weights: Mapping[str, float] = field(default_factory=dict)
+    total_timeout: float = 10
+    route_timeout: float = 5
+    max_concurrency: int = 4
     fusion_strategy: Literal["rrf", "weighted"] = "rrf"
     normalization: Literal["minmax", "l2"] = "minmax"
 
@@ -27,7 +31,11 @@ class RetrievalConfig:
             raise RetrievalContractError("fusion_strategy must be rrf or weighted")
         if self.normalization not in ("minmax", "l2"):
             raise RetrievalContractError("normalization must be minmax or l2")
-        for name in ("route_top_k", "pool_size", "final_top_k"):
+        for name in ("total_timeout", "route_timeout"):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not isfinite(value) or value <= 0:
+                raise RetrievalContractError(f"{name} must be finite and positive")
+        for name in ("route_top_k", "pool_size", "final_top_k", "max_concurrency"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
                 raise RetrievalContractError(f"{name} must be a positive integer")
@@ -48,11 +56,12 @@ class RetrievalConfig:
 
 @dataclass(frozen=True)
 class RouteHit:
-    content: ContentRecord
+    content: ContentRecord | FAQRecord
     snapshot_id: str
     raw_score: float
     metric: str
     scheme_identity: str | None = None
+    matched_questions: tuple[MatchedQuestion, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -72,8 +81,9 @@ class RouteResult:
 class RetrievalRoute:
     """Search returns ranked hits after enforcing the pinned scope, never postfilters top-N.
 
-    The callable accepts (query, *, scope, top_k, exact_terms) and returns a
-    RouteResult. Distinct index-scheme paths need distinct stable route IDs.
+    The callable accepts (query, *, scope, top_k, exact_terms, remaining) and returns
+    a RouteResult. Legacy callbacks may omit remaining and use current_deadline().
+    Distinct index-scheme paths need distinct stable route IDs.
     """
     route_id: str
     knowledge_base_id: str
@@ -95,20 +105,21 @@ class ScoreTrace:
     raw_score: float
     metric: str
     scheme_identity: str | None
-    identity: EvidenceIdentity
+    identity: EvidenceIdentity | FAQIdentity
     snapshot_id: str
     weight: float
     contribution: float
     normalized_score: float | None = None
+    matched_questions: tuple[MatchedQuestion, ...] = ()
 
 
 @dataclass(frozen=True)
 class FusedCandidate:
-    content: ContentRecord
+    content: ContentRecord | FAQRecord
     score: float
     traces: tuple[ScoreTrace, ...]
     # Postprocessing may represent multiple original sources without discarding provenance.
-    represented_identities: tuple[EvidenceIdentity, ...] = ()
+    represented_identities: tuple[EvidenceIdentity | FAQIdentity, ...] = ()
     sources: tuple[dict, ...] = ()
     matched_children: tuple[ContentRecord, ...] = ()
 
@@ -127,5 +138,5 @@ class RetrievalResult:
     candidates: tuple[FusedCandidate, ...]
     working_pool: tuple[FusedCandidate, ...]
     routes: tuple[RouteResult, ...]
-    scope: ReadScope
+    scope: ReadScope | None
     steps: tuple[PostprocessStep, ...] = ()

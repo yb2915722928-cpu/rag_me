@@ -117,6 +117,7 @@ def fuse_weighted(routes: tuple[RouteResult, ...], config: RetrievalConfig
                 route.route_id, route.knowledge_base_id, route.method, rank,
                 hit.raw_score, hit.metric, hit.scheme_identity, identity,
                 hit.snapshot_id, weight, weight * score, score,
+                matched_questions=hit.matched_questions,
             ))
     candidates = [FusedCandidate(records[identity], math.fsum(trace.contribution for trace in evidence),
                                  tuple(evidence), (identity,), (records[identity].source,))

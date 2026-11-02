@@ -214,6 +214,12 @@ class PostgresVectorRetrievalStore(PostgresRetrievalStore):
                 raise RetrievalContractError("query encoder does not match pinned vector scheme")
             scoped_store = _SnapshotSearch(self, snapshot, predicate, params, budget)
             indexing = importlib.import_module("app.modules.3_embeddingAndIndexing")
+            from app.models.deadline import current_deadline
+            remaining = current_deadline()
+            batch_options = dict(batch_options or {})
+            if remaining is not None:
+                remaining.check()
+                batch_options["remaining"] = remaining
             candidates = indexing.search_chunks(query, adapter, scoped_store, limit=limit,
                                                 request_repository=self.request_repository,
                                                 batch_options=batch_options)

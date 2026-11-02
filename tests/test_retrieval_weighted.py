@@ -1,6 +1,7 @@
 """Public query acceptance for #90; test-first source, intentionally NOT RUN."""
 import importlib
 import unittest
+from types import SimpleNamespace
 
 from tests.test_retrieval_fusion import PublishedStore, content
 
@@ -30,6 +31,75 @@ class PublicWeightedFusionTests(unittest.TestCase):
         return r.RetrievalService(self.store, routes=routes).query(
             "USB-C", knowledge_base_ids=("kb",), authorization=r.AuthorizationScope(("kb",)),
             config=config or r.RetrievalConfig(fusion_strategy="weighted"), **kwargs)
+
+    def test_faq_matched_questions_and_document_evidence_survive_weighted_fusion(self):
+        faq = r.FAQRecord(r.FAQIdentity("kb", "usb", "v1"), "支持 USB-C 吗？",
+                          ("USB-C 能用吗？",), "支持 USB-C。", {"product": "AX-100"}, {"uri": "faq"})
+        questions = (r.MatchedQuestion(faq.standard_question, .9),
+                     r.MatchedQuestion(faq.similar_questions[0], .8))
+        self.store.ingest((faq,))
+        def search(query, *, scope, top_k, exact_terms, remaining):
+            remaining.check()
+            return r.RouteResult("faq", "kb", "faq_vector", "success", (
+                r.RouteHit(faq, scope.snapshots["kb"], .9, "cosine_similarity", "scheme:faq", questions),))
+        routes = (r.RetrievalRoute("faq", "kb", "faq_vector", search),
+                  self.route("document", [(self.a, .7)]))
+        result = self.query(routes)
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(len(result.candidates), 2)
+        candidate = next(item for item in result.candidates if item.content.identity == faq.identity)
+        self.assertEqual(candidate.content.text, faq.answer)
+        self.assertEqual(candidate.content.conditions, {"product": "AX-100"})
+        self.assertEqual(candidate.traces[0].matched_questions, questions)
+        self.assertEqual(candidate.traces[0].normalized_score, 1)
+        self.assertEqual(candidate.traces[0].contribution, 1)
+        self.assertEqual(candidate.represented_identities, (faq.identity,))
+        denied = r.RetrievalService(self.store, routes=routes).query(
+            "USB-C", knowledge_base_ids=("kb",),
+            authorization=r.AuthorizationScope(("kb",), {"kb": ("manual",)}),
+            config=r.RetrievalConfig(fusion_strategy="weighted"))
+        self.assertEqual(denied.status, "partial")
+        self.assertEqual([item.content.identity for item in denied.candidates], [self.a.identity])
+        allowed = r.RetrievalService(self.store, routes=routes).query(
+            "USB-C", knowledge_base_ids=("kb",),
+            authorization=r.AuthorizationScope(("kb",), {"kb": ()}, {"kb": ("usb",)}),
+            config=r.RetrievalConfig(fusion_strategy="weighted"))
+        self.assertEqual(allowed.status, "partial")
+        self.assertEqual([item.content.identity for item in allowed.candidates], [faq.identity])
+        self.assertEqual(allowed.candidates[0].traces[0].matched_questions, questions)
+
+    def test_weighted_fusion_uses_original_budget_and_keeps_route_status_on_expiry(self):
+        instant = [0.0]
+        budgets = []
+        # Public scheduler injection deterministically consumes pin/recall time;
+        # no wall-clock sleep or private fusion function mocking is needed.
+        class Scheduler:
+            capacity = 4
+            def run(self, jobs, *, remaining, route_timeout, max_concurrency):
+                budgets.append(remaining)
+                if len(budgets) == 3:
+                    instant[0] = 11.0
+                outcomes = []
+                for job in jobs:
+                    try:
+                        remaining.check()
+                        value = job(remaining.child(route_timeout))
+                        remaining.check()
+                        outcomes.append(SimpleNamespace(status="completed", value=value, error=None))
+                    except TimeoutError as exc:
+                        outcomes.append(SimpleNamespace(status="not_executed", value=None, error=exc))
+                return outcomes
+        result = r.RetrievalService(self.store, routes=(self.route("v", [(self.a, 3)]),),
+                                    scheduler=Scheduler(), clock=lambda: instant[0]).query(
+            "USB-C", knowledge_base_ids=("kb",), authorization=r.AuthorizationScope(("kb",)),
+            config=r.RetrievalConfig(fusion_strategy="weighted", total_timeout=10))
+        self.assertEqual(len(budgets), 3)
+        self.assertTrue(all(budget is budgets[0] for budget in budgets))
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(result.routes[0].status, "success")
+        self.assertEqual(result.candidates, ())
+        self.assertEqual(result.steps[0].name, "fusion")
+        self.assertEqual(result.steps[0].status, "failed")
 
     def test_switching_strategy_keeps_rrf_default_and_weighted_minmax_trace(self):
         routes = (self.route("v", [(self.a, 4), (self.b, 3), (self.c, 0)], scheme="scheme:one"),
