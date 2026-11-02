@@ -1,8 +1,8 @@
 """Real PostgreSQL parent expansion lifecycle tests. Authored, NOT RUN.
 
 Requires an explicitly selected disposable TEST_DATABASE_URL. Parent bodies do
-not need pgvector or a vector index. Public-query coverage follows below once
-combined with the retrieval service's external route boundary.
+not need pgvector or a vector index. Public-query coverage uses an injected
+retrieval route backed by real scoped PostgreSQL reads.
 """
 import importlib
 import os
@@ -97,3 +97,49 @@ class ParentPostgresTests(unittest.TestCase):
         current = self.store.pin(["kb"], authorization=self.auth)
         self.assertIsNone(self.store.read(self.parent.identity, scope=current))
         self.assertIsNone(self.store.read(newer.identity, scope=scope))
+
+    def public_service(self, identities):
+        # The external route boundary reads actual published records; parent
+        # lookup and filter enforcement remain the production PostgreSQL code.
+        def search(query, *, scope, top_k, exact_terms, **options):
+            records = [self.store.read(identity, scope=scope) for identity in identities]
+            hits = tuple(r.RouteHit(item, scope.snapshots["kb"], 1., "fixture_rank")
+                         for item in records if item is not None)[:top_k]
+            return r.RouteResult("content-route", "kb", "content", "success" if hits else "empty", hits)
+        return r.RetrievalService(self.store, routes=(
+            r.RetrievalRoute("content-route", "kb", "content", search),))
+
+    def test_public_ingest_publish_query_expands_without_parent_vectors(self):
+        other = self.record("other", "Independent backup evidence")
+        self.publish("s1", [self.grandparent, self.parent, self.child, self.sibling, other])
+        service = self.public_service([self.child.identity, self.sibling.identity, other.identity])
+        result = service.query("fragment", knowledge_base_ids=("kb",), authorization=self.auth,
+                               config=r.RetrievalConfig(parent_expansion=True, final_top_k=2))
+        self.assertEqual(result.status, "complete")
+        self.assertEqual([item.content for item in result.candidates], [self.parent, other])
+        self.assertEqual(result.candidates[0].matched_children, (self.child, self.sibling))
+        self.assertAlmostEqual(result.candidates[0].score, 1 / 61)
+        self.assertEqual([trace.identity for trace in result.candidates[0].traces],
+                         [self.child.identity, self.sibling.identity])
+        self.assertEqual(result.steps[0].status, "complete")
+
+    def test_public_parent_filters_and_historical_snapshot_are_not_widened(self):
+        restricted = replace(self.parent, metadata={"product": "restricted"})
+        self.publish("s1", [self.grandparent, restricted, self.child])
+        newer = self.record("parent", "New document version", revision="v2")
+        self.publish("s2", [newer])
+        service = self.public_service([self.child.identity])
+        for strict in (False, True):
+            with self.subTest(strict=strict):
+                result = service.query("fragment", knowledge_base_ids=("kb",), authorization=self.auth,
+                    snapshot_ids={"kb": "s1"}, conditions=r.Eq("product", "public"),
+                    config=r.RetrievalConfig(parent_expansion=True, postprocess_strict=strict))
+                self.assertEqual(result.status, "complete")
+                self.assertEqual(result.routes[0].status, "success")
+                self.assertEqual(result.scope.snapshots["kb"], "s1")
+                self.assertEqual(result.steps[0].reason, "parent_unavailable")
+                self.assertEqual([item.content for item in result.working_pool], [self.child])
+                self.assertEqual([item.content for item in result.candidates], [] if strict else [self.child])
+        historical = service.query("fragment", knowledge_base_ids=("kb",), authorization=self.auth,
+            snapshot_ids={"kb": "s1"}, config=r.RetrievalConfig(parent_expansion=True))
+        self.assertEqual(historical.candidates[0].content, restricted)

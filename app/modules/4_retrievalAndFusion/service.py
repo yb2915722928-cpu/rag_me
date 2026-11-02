@@ -6,7 +6,8 @@ from math import isfinite
 
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
 from .fusion import fuse_rrf
-from .fusion_contracts import RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
+from .fusion_contracts import PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
+from .parent_expansion import expand_parents
 
 
 class RetrievalService:
@@ -15,7 +16,8 @@ class RetrievalService:
         self.routes = None if routes is None else tuple(routes)
 
     def query(self, query: str, *, knowledge_base_ids, authorization, conditions=None,
-              snapshot_ids=None, config: RetrievalConfig | None = None, exact_terms=()) -> RetrievalResult:
+              snapshot_ids=None, config: RetrievalConfig | None = None, exact_terms=(),
+              remaining=None) -> RetrievalResult:
         required_strings(query)
         config = RetrievalConfig() if config is None else config
         if not isinstance(config, RetrievalConfig):
@@ -42,7 +44,19 @@ class RetrievalService:
         pool = fuse_rrf(results, config)
         completed = sum(result.status in ("success", "empty") for result in results)
         status = "complete" if completed == len(results) and completed else "partial" if completed else "incomplete"
-        return RetrievalResult(status, pool[:config.final_top_k], pool, results, scope)
+        parent = expand_parents(pool, store=self.store, scope=scope,
+                                enabled=config.parent_expansion, strict=config.postprocess_strict,
+                                remaining=remaining)
+        if parent.step.status == "failed":
+            # Keep route diagnostics and the compliant input pool on strict failure.
+            steps = (parent.step, PostprocessStep("dedup", "skipped", "prior_stage_failed"),
+                     PostprocessStep("mmr", "skipped", "prior_stage_failed"))
+            return RetrievalResult(status, (), pool, results, scope, steps)
+        pool = parent.candidates
+        # Later optional stages consume this full pool before the final cut.
+        steps = (parent.step, PostprocessStep("dedup", "skipped", "disabled"),
+                 PostprocessStep("mmr", "skipped", "disabled"))
+        return RetrievalResult(status, pool[:config.final_top_k], pool, results, scope, steps)
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:

@@ -19,8 +19,13 @@ class RetrievalConfig:
     final_top_k: int = 20
     rrf_k: float = 60
     route_weights: Mapping[str, float] = field(default_factory=dict)
+    parent_expansion: bool = False
+    postprocess_strict: bool = False
 
     def __post_init__(self):
+        for name in ("parent_expansion", "postprocess_strict"):
+            if not isinstance(getattr(self, name), bool):
+                raise RetrievalContractError(f"{name} must be a boolean")
         for name in ("route_top_k", "pool_size", "final_top_k"):
             value = getattr(self, name)
             if isinstance(value, bool) or not isinstance(value, int) or value <= 0:

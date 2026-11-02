@@ -131,7 +131,7 @@ def expand_parents(candidates: Iterable[FusedCandidate], *, store: ScopedContent
                             previous.sources + candidate.sources),
             matched_children=_unique(previous.matched_children + candidate.matched_children),
         )
-    ordered = tuple(sorted(merged.values(), key=lambda item: (-item.score, item.content.identity.key)))
+    ordered = tuple(sorted(merged.values(), key=lambda item: (-item.score, item.content.identity.parts)))
     return ParentExpansionResult(ordered, PostprocessStep(
         "parent", "partial" if reasons else "complete",
         ";".join(sorted(reasons)) if reasons else None,
