@@ -1,7 +1,8 @@
 """Public query MMR integration cases; authored only, not executed."""
 import importlib
 import threading
-import time
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import replace
 
 import pytest
 
@@ -9,6 +10,8 @@ from test_retrieval_fusion import PublishedStore, content
 from test_retrieval_body_embeddings import Provider, Repository
 
 r = importlib.import_module("app.modules.4_retrievalAndFusion")
+deadlines = importlib.import_module("app.modules.4_retrievalAndFusion.deadline")
+schedulers = importlib.import_module("app.modules.4_retrievalAndFusion.scheduler")
 
 
 def published_service(*, provider=None):
@@ -48,7 +51,7 @@ def test_public_default_is_disabled_and_does_not_encode():
 
 def test_public_mmr_diversifies_actual_bodies_and_preserves_root_budget_and_diagnostics():
     service, provider, budgets = published_service()
-    root = r.Deadline(10)
+    root = deadlines.Deadline(10)
     result = query(service, remaining=root, mmr=True, mmr_lambda=0.0)
     assert [item.content.identity.chunk_id for item in result.candidates] == ["a", "c"]
     assert len(result.working_pool) == 3
@@ -87,27 +90,28 @@ def test_public_mmr_options_are_validated(settings):
 def test_uncooperative_encoder_is_bounded_and_late_result_cannot_change_public_result(strict):
     service, _, _ = published_service()
     entered, release, exited = threading.Event(), threading.Event(), threading.Event()
-    root = r.Deadline(0.2)
+    root = deadlines.Deadline(30)
 
     class BlockingEncoder:
         def encode(self, texts, *, remaining):
             assert remaining is root
             entered.set()
             try:
-                release.wait(2)
+                release.wait()
                 return ()
             finally:
                 exited.set()
 
     service.mmr_encoder = BlockingEncoder()
-    scheduler = r.BoundedScheduler(4)
+    scheduler = schedulers.BoundedScheduler(4)
     service.scheduler = scheduler
-    started = time.monotonic()
+    caller = ThreadPoolExecutor(max_workers=1)
     try:
-        result = query(service, remaining=root, mmr=True, postprocess_strict=strict)
-        assert entered.is_set()
+        future = caller.submit(query, service, remaining=root, mmr=True, postprocess_strict=strict)
+        assert entered.wait(2)
+        root.cancel()
+        result = future.result(timeout=2)
         assert not exited.is_set()
-        assert time.monotonic() - started < 1.5
         assert result.status == "complete"
         assert len(result.working_pool) == 3
         assert [item.content.identity.chunk_id for item in result.candidates] == ([] if strict else ["a", "b"])
@@ -118,4 +122,69 @@ def test_uncooperative_encoder_is_bounded_and_late_result_cannot_change_public_r
         assert result == before
     finally:
         release.set()
+        caller.shutdown(wait=True)
         scheduler.close()
+
+
+@pytest.mark.parametrize("failed_stage", [None, "parent", "dedup"])
+def test_public_parent_dedup_mmr_uses_final_parent_and_faq_answer_with_durable_encoding(failed_stage):
+    parent = content("parent", text="full parent body")
+    child = replace(content("child", text="only child snippet"), parent=parent.identity)
+    duplicate = content("duplicate", doc="other", text=parent.text)
+    faq = r.FAQRecord(r.FAQIdentity("kb", "faq", "v1"), "FAQ question", ("similar question",),
+                      "FAQ answer", {}, {"uri": "faq"})
+    store = PublishedStore()
+    store.ingest((parent, child, duplicate, faq))
+    store.publish(store.prepare("kb", "s1", (parent.identity, child.identity, duplicate.identity, faq.identity)))
+    root = deadlines.Deadline(10)
+    reads, proofs = [], []
+
+    def read(identity, *, scope, remaining):
+        assert remaining is root
+        reads.append(identity)
+        return None if failed_stage == "parent" else store.records[identity]
+
+    store.read = read
+
+    def search(query, *, scope, top_k, exact_terms, remaining):
+        assert exact_terms == ("USB-C",)
+        return r.RouteResult("mixed", "kb", "vector", "success", tuple(
+            r.RouteHit(record, scope.snapshots["kb"], 3 - index, "cosine_similarity", "recall-scheme")
+            for index, record in enumerate((child, duplicate, faq))))
+
+    def prove(left, right, *, scope, remaining):
+        assert remaining is root
+        proofs.append((left.content.text, right.content.text))
+        if failed_stage == "dedup":
+            raise TimeoutError("private proof failure")
+        return r.BodyDedupProof("same applicability", "equivalent versions")
+
+    provider, repository = Provider(), Repository()
+    service = r.RetrievalService(store, routes=(r.RetrievalRoute("mixed", "kb", "vector", search),),
+                                 mmr_encoder=r.Module3BodyEncoder(provider, repository))
+    options = dict(knowledge_base_ids=("kb",), authorization=r.AuthorizationScope(("kb",)),
+                   exact_terms=("USB-C",), remaining=root, body_dedup_prover=prove,
+                   config=r.RetrievalConfig(parent_expansion=True, body_dedup=True, mmr=True,
+                                            postprocess_strict=True, final_top_k=2))
+    result = service.query("USB-C", **options)
+    assert result.status == "complete"
+    assert result.routes[0].status == "success"
+    assert reads == [parent.identity]
+    if failed_stage:
+        assert result.candidates == ()
+        assert len(result.working_pool) == 3
+        assert result.steps[-1] == r.PostprocessStep("mmr", "skipped", "prior_stage_failed")
+        assert provider.inputs == []
+        return
+    assert [step.status for step in result.steps] == ["complete", "complete", "complete"]
+    assert proofs == [(parent.text, duplicate.text)]
+    assert [item.content for item in result.candidates] == [parent, faq]
+    assert provider.inputs == [((parent.text, faq.answer), "document")]
+    assert provider.budgets == [root]
+    assert child in result.candidates[0].matched_children
+    assert duplicate.identity in result.candidates[0].represented_identities
+    assert all(attempt.status == "succeeded" for attempt in repository.attempts.values())
+    service.mmr_encoder = r.Module3BodyEncoder(provider, repository)
+    repeated = service.query("USB-C", **options)
+    assert repeated.candidates == result.candidates
+    assert len(provider.inputs) == 1

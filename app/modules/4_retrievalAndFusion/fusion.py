@@ -28,6 +28,7 @@ def fuse_rrf(routes: tuple[RouteResult, ...], config: RetrievalConfig) -> tuple[
                 route.route_id, route.knowledge_base_id, route.method, rank,
                 hit.raw_score, hit.metric, hit.scheme_identity, identity,
                 hit.snapshot_id, weight, weight / (config.rrf_k + rank),
+                matched_questions=hit.matched_questions,
             ))
     candidates = [FusedCandidate(records[identity], fsum(trace.contribution for trace in evidence),
                                  tuple(evidence), (identity,), (records[identity].source,))

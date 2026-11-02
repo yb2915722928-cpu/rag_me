@@ -3,21 +3,43 @@ from __future__ import annotations
 
 from dataclasses import replace
 from math import isfinite
+import inspect
+import time
+
+from .deadline import Deadline, deadline_scope
+from .scheduler import shared_scheduler
 
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
+from .body_dedup import BodyDedupProver, process_body_dedup
+from .faq_contracts import FAQRecord
 from .fusion import fuse_rrf
-from .fusion_contracts import PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 from .mmr import MMRConfig, MMRFailure, select_mmr
+from .weighted_fusion import fuse_weighted
+from .fusion_contracts import PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
+from .parent_expansion import ParentExpansionResult, expand_parents
+
+
+def _budget_call(function, *args, remaining, **kwargs):
+    """Existing callbacks use the context; budget-aware adapters also receive it explicitly."""
+    parameters = inspect.signature(function).parameters
+    if "remaining" in parameters or any(p.kind == p.VAR_KEYWORD for p in parameters.values()):
+        kwargs["remaining"] = remaining
+    remaining.check()
+    with deadline_scope(remaining):
+        return function(*args, **kwargs)
 
 
 class RetrievalService:
-    def __init__(self, store, *, routes=None, mmr_encoder=None):
+    def __init__(self, store, *, routes=None, scheduler=None, clock=time.monotonic, mmr_encoder=None):
         self.store = store
         self.routes = None if routes is None else tuple(routes)
+        self.scheduler = scheduler if scheduler is not None else shared_scheduler()
+        self.clock = clock
         self.mmr_encoder = mmr_encoder
 
     def query(self, query: str, *, knowledge_base_ids, authorization, conditions=None,
-              snapshot_ids=None, config: RetrievalConfig | None = None, exact_terms=()) -> RetrievalResult:
+              snapshot_ids=None, config: RetrievalConfig | None = None, exact_terms=(),
+              remaining=None, body_dedup_prover: BodyDedupProver | None = None) -> RetrievalResult:
         required_strings(query)
         config = RetrievalConfig() if config is None else config
         if not isinstance(config, RetrievalConfig):
@@ -38,13 +60,96 @@ class RetrievalService:
             raise RetrievalContractError("route IDs must be unique")
         if set(config.route_weights) - set(route_ids):
             raise RetrievalContractError("route weight refers to an unrequested route")
-        scope = self.store.pin(knowledge_base_ids, authorization=authorization,
-                               conditions=conditions, snapshot_ids=snapshot_ids)
-        results = tuple(self._execute(route, query, scope, config, exact_terms) for route in routes)
-        pool = fuse_rrf(results, config)
+        if config.max_concurrency > self.scheduler.capacity:
+            raise RetrievalContractError("max_concurrency exceeds scheduler capacity")
+        remaining = Deadline(config.total_timeout, clock=self.clock) if remaining is None else remaining
+        pinned = self.scheduler.run([
+            lambda _: _budget_call(self.store.pin, knowledge_base_ids, remaining=remaining,
+                                   authorization=authorization, conditions=conditions, snapshot_ids=snapshot_ids)
+        ], remaining=remaining, route_timeout=config.total_timeout, max_concurrency=1)[0]
+        if pinned.status != "completed":
+            if isinstance(pinned.error, RetrievalContractError):
+                raise pinned.error
+            results = tuple(RouteResult(route.route_id, route.knowledge_base_id, route.method,
+                                        "not_executed", reason="snapshot_pin_unavailable") for route in routes)
+            return RetrievalResult("incomplete", (), (), results, None,
+                                   (PostprocessStep("pin", "failed", "snapshot_pin_" + pinned.status),
+                                    *(PostprocessStep(name, "skipped", "prior_stage_failed")
+                                      for name in ("parent", "dedup", "mmr"))))
+        scope = pinned.value
+        scheduled = self.scheduler.run([
+            lambda budget, route=route: self._execute(route, query, scope, config, exact_terms, budget)
+            for route in routes
+        ], remaining=remaining, route_timeout=config.route_timeout, max_concurrency=config.max_concurrency)
+        results = tuple(item.value if item.status == "completed" else
+                        RouteResult(route.route_id, route.knowledge_base_id, route.method, item.status,
+                                    reason="route_" + item.status)
+                        for route, item in zip(routes, scheduled))
+        # The root budget is captured here, rather than resetting a postprocess clock.
+        fused = self.scheduler.run([
+            lambda _: self._fuse(results, config, remaining)
+        ], remaining=remaining, route_timeout=config.total_timeout, max_concurrency=1)[0]
+        if fused.status == "completed":
+            pool, results = fused.value
         completed = sum(result.status in ("success", "empty") for result in results)
         status = "complete" if completed == len(results) and completed else "partial" if completed else "incomplete"
-        return RetrievalResult(status, pool[:config.final_top_k], pool, results, scope)
+        if fused.status != "completed":
+            return RetrievalResult(status, (), (), results, scope,
+                                   (PostprocessStep("fusion", "failed", "fusion_" + fused.status),
+                                    *(PostprocessStep(name, "skipped", "prior_stage_failed")
+                                      for name in ("parent", "dedup", "mmr"))))
+        if not config.parent_expansion:
+            parent = ParentExpansionResult(pool, PostprocessStep("parent", "skipped", "disabled"))
+        elif not any(item.content.parent is not None for item in pool):
+            parent = ParentExpansionResult(pool, PostprocessStep("parent", "skipped", "not_applicable"))
+        else:
+            expanded = self.scheduler.run([
+                lambda _: _budget_call(expand_parents, pool, store=self.store, scope=scope,
+                                       enabled=True, strict=config.postprocess_strict, remaining=remaining)
+            ], remaining=remaining, route_timeout=config.total_timeout, max_concurrency=1)[0]
+            if expanded.status == "completed":
+                parent = expanded.value
+            else:
+                reason = ("parent_budget_exhausted" if expanded.status in ("timeout", "not_executed")
+                          else "parent_read_failed")
+                parent = ParentExpansionResult(
+                    () if config.postprocess_strict else pool,
+                    PostprocessStep("parent", "failed" if config.postprocess_strict else "partial", reason))
+        if parent.step.status == "failed":
+            # Keep route diagnostics and the compliant input pool on strict failure.
+            steps = (parent.step, PostprocessStep("dedup", "skipped", "prior_stage_failed"),
+                     PostprocessStep("mmr", "skipped", "prior_stage_failed"))
+            return RetrievalResult(status, (), pool, results, scope, steps)
+        pool = parent.candidates
+        # Dedup consumes the full expanded pool; MMR follows before the final cut.
+        if config.body_dedup:
+            deduplicated = self.scheduler.run([
+                lambda _: process_body_dedup(pool, scope=scope, enabled=True,
+                                            prover=body_dedup_prover, remaining=remaining)
+            ], remaining=remaining, route_timeout=config.total_timeout, max_concurrency=1)[0]
+            if deduplicated.status == "completed":
+                pool, dedup_step = deduplicated.value
+            else:
+                dedup_step = PostprocessStep("dedup", "failed", "dedup_" + deduplicated.status)
+        else:
+            dedup_step = PostprocessStep("dedup", "skipped", "disabled")
+        strict_failure = config.postprocess_strict and dedup_step.status in ("failed", "partial")
+        if strict_failure:
+            steps = (parent.step, dedup_step, PostprocessStep("mmr", "skipped", "prior_stage_failed"))
+            return RetrievalResult(status, (), pool, results, scope, steps)
+        selected, mmr_step = self._mmr(pool, config, remaining)
+        steps = (parent.step, dedup_step, mmr_step)
+        return RetrievalResult(status, selected[:config.final_top_k], pool, results, scope, steps)
+
+    @staticmethod
+    def _fuse(results, config, remaining):
+        remaining.check()
+        if config.fusion_strategy == "weighted":
+            pool, results = fuse_weighted(results, config)
+        else:
+            pool = fuse_rrf(results, config)
+        remaining.check()
+        return pool, results
 
     def _mmr(self, pool, config, remaining):
         """Strict failures become public step diagnostics without changing recall status."""
@@ -73,8 +178,13 @@ class RetrievalService:
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:
+            methods = ("vector", "bm25")
+            if callable(getattr(self.store, "search_faq_vector", None)):
+                methods += ("faq_vector",)
+            if callable(getattr(self.store, "search_faq_bm25", None)):
+                methods += ("faq_bm25",)
             return tuple(self._backend_route(kb, method) for kb in knowledge_base_ids
-                         for method in ("vector", "bm25"))
+                         for method in methods)
         selected = tuple(route for route in self.routes if route.knowledge_base_id in knowledge_base_ids)
         if set(knowledge_base_ids) - {route.knowledge_base_id for route in selected}:
             raise RetrievalContractError("every requested knowledge base requires a retrieval route")
@@ -84,13 +194,14 @@ class RetrievalService:
         """Adapt the real snapshot backends without interpreting their raw scores."""
         route_id = f"{knowledge_base_id}:{method}"
 
-        def search(query, *, scope, top_k, exact_terms):
+        def search(query, *, scope, top_k, exact_terms, remaining):
             options = {"knowledge_base_id": knowledge_base_id, "scope": scope, "top_k": top_k}
-            if method == "bm25":
+            if method in ("bm25", "faq_bm25"):
                 options["exact_terms"] = exact_terms
-            result = getattr(self.store, f"search_{method}")(query, **options)
+            result = _budget_call(getattr(self.store, f"search_{method}"), query, remaining=remaining, **options)
             successful = result.status in ("success", "empty")
-            hits = tuple(RouteHit(hit.content, hit.snapshot_id, hit.raw_score, hit.metric, hit.scheme_identity)
+            hits = tuple(RouteHit(hit.content, hit.snapshot_id, hit.raw_score, hit.metric, hit.scheme_identity,
+                                  matched_questions=getattr(hit, "matched_questions", ()))
                          for hit in result.candidates) if successful else ()
             return RouteResult(route_id, knowledge_base_id, method, result.status, hits,
                                algorithm=result.algorithm,
@@ -101,9 +212,11 @@ class RetrievalService:
         return RetrievalRoute(route_id, knowledge_base_id, method, search)
 
     @staticmethod
-    def _execute(route, query, scope, config, exact_terms):
+    def _execute(route, query, scope, config, exact_terms, remaining):
         try:
-            result = route.search(query, scope=scope, top_k=config.route_top_k, exact_terms=exact_terms)
+            result = _budget_call(route.search, query, remaining=remaining, scope=scope,
+                                  top_k=config.route_top_k, exact_terms=exact_terms)
+            remaining.check()
             if not isinstance(result, RouteResult) or (
                     result.route_id, result.knowledge_base_id, result.method) != (
                     route.route_id, route.knowledge_base_id, route.method):
@@ -115,18 +228,31 @@ class RetrievalService:
             if (result.status == "success") != bool(result.candidates):
                 raise RetrievalContractError("route status and candidates disagree")
             for hit in result.candidates:
-                if not isinstance(hit.content, ContentRecord):
+                if not isinstance(hit.content, (ContentRecord, FAQRecord)):
                     raise RetrievalContractError("route requires authoritative content")
                 if (hit.content.identity.knowledge_base_id != route.knowledge_base_id
                         or hit.snapshot_id != scope.snapshots[route.knowledge_base_id]):
                     raise RetrievalContractError("route returned evidence outside its pinned scope")
-                documents = scope.authorization.document_ids.get(route.knowledge_base_id)
-                if documents is not None and hit.content.identity.document_id not in documents:
+                if isinstance(hit.content, FAQRecord):
+                    grants = scope.authorization.faq_item_ids.get(route.knowledge_base_id)
+                    if grants is None and route.knowledge_base_id in scope.authorization.document_ids:
+                        grants = ()
+                    item_id = hit.content.identity.item_id
+                else:
+                    grants = scope.authorization.document_ids.get(route.knowledge_base_id)
+                    item_id = hit.content.identity.document_id
+                if grants is not None and item_id not in grants:
                     raise RetrievalContractError("route returned evidence outside authorization")
-                if (isinstance(hit.raw_score, bool) or not isinstance(hit.raw_score, (float, int))
+                # Weighted fusion reports score failures with specific safe codes
+                # after all scope checks; RRF keeps its existing validation contract.
+                if config.fusion_strategy == "rrf" and (
+                        isinstance(hit.raw_score, bool) or not isinstance(hit.raw_score, (float, int))
                         or not isfinite(hit.raw_score) or not isinstance(hit.metric, str) or not hit.metric):
                     raise RetrievalContractError("route scores require a finite value and declared metric")
             return replace(result, candidates=tuple(result.candidates))
+        except TimeoutError:
+            return RouteResult(route.route_id, route.knowledge_base_id, route.method,
+                               "timeout", reason="route_timeout")
         except Exception:
             # Do not expose backend errors containing query text, content or credentials.
             return RouteResult(route.route_id, route.knowledge_base_id, route.method,
