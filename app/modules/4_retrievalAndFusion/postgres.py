@@ -13,6 +13,7 @@ import re
 from typing import Callable, Iterable, Mapping
 
 from app.models.embedding import canonical_json
+from .contracts import json_copy
 from .contracts import (
     AuthorizationScope, ContentConflict, ContentRecord, EvidenceIdentity,
     ReadScope, RetrievalContractError, Snapshot, SnapshotNotReady, required_strings,
@@ -21,6 +22,8 @@ from .filters import compile_condition, validate_condition, validate_field_types
 
 
 class PostgresRetrievalStore:
+    supported_indexes = frozenset({"content"})
+
     def __init__(self, dsn: str, *, connect: Callable | None = None,
                  schema: str = "retrieval", clock: Callable | None = None):
         if not isinstance(schema, str) or re.fullmatch(r"[a-z_][a-z0-9_]{0,62}", schema) is None:
@@ -63,7 +66,8 @@ class PostgresRetrievalStore:
     def prepare(self, knowledge_base_id: str, snapshot_id: str,
                 identities: Iterable[EvidenceIdentity], *,
                 required_indexes: Iterable[str] = ("content",),
-                field_types: Mapping[str, str] | None = None) -> Snapshot:
+                field_types: Mapping[str, str] | None = None,
+                index_options: Mapping | None = None) -> Snapshot:
         """Freeze the explicitly selected revisions and build required resources.
 
         No ordering or version-name heuristic selects a document revision.
@@ -77,9 +81,14 @@ class PostgresRetrievalStore:
         identities = tuple(sorted(set(identities)))
         indexes = tuple(sorted(set(required_indexes) | {"content"}))
         fields = validate_field_types(field_types or {})
-        snapshot = Snapshot(knowledge_base_id, snapshot_id, identities, indexes, fields)
+        options = json_copy(dict(index_options or {}))
+        if set(options) - set(indexes):
+            raise RetrievalContractError("index options require the corresponding index")
+        snapshot = Snapshot(knowledge_base_id, snapshot_id, identities, indexes, fields, options)
         manifest = {"identities": [item.key for item in identities],
                     "required_indexes": list(indexes), "field_types": fields}
+        if options:
+            manifest["index_options"] = options
         with self._transaction() as cursor:
             cursor.execute(f"INSERT INTO {self._namespace}.snapshots (knowledge_base_id, snapshot_id, manifest) "
                            "VALUES (%s, %s, %s::jsonb) ON CONFLICT DO NOTHING",
@@ -134,6 +143,7 @@ class PostgresRetrievalStore:
             raise RetrievalContractError("history selection contains an unrequested knowledge base")
         required_strings(*selected.values())
         now = self._clock()
+        plans = {}
         with self._transaction() as cursor:
             cursor.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY")
             for kb in knowledge_base_ids:
@@ -144,8 +154,8 @@ class PostgresRetrievalStore:
                         raise SnapshotNotReady("knowledge base has no published snapshot")
                     selected[kb] = row[0]
                 snapshot = self._load_snapshot(cursor, kb, selected[kb], published=True)
-                validate_condition(conditions, snapshot.field_types)
-        return ReadScope(selected, authorization, conditions, now)
+                plans[kb] = validate_condition(conditions, snapshot.field_types, now=now)
+        return ReadScope(selected, authorization, conditions, now, plans)
 
     def read(self, identity: EvidenceIdentity, *, scope: ReadScope) -> ContentRecord | None:
         """Read exact evidence within the pinned snapshot, authorization and conditions.
@@ -163,8 +173,7 @@ class PostgresRetrievalStore:
             return None
         with self._transaction() as cursor:
             snapshot = self._load_snapshot(cursor, kb, scope.snapshots[kb], published=True)
-            validate_condition(scope.conditions, snapshot.field_types)
-            predicate, parameters = compile_condition(scope.conditions)
+            predicate, parameters = self.scope_predicate(scope, kb)
             cursor.execute(f"SELECT c.body, c.source, c.metadata, c.parent_key "
                            f"FROM {self._namespace}.content c JOIN {self._namespace}.snapshot_members m "
                            "ON m.evidence_key=c.evidence_key AND m.knowledge_base_id=c.knowledge_base_id "
@@ -175,6 +184,20 @@ class PostgresRetrievalStore:
             return None
         return ContentRecord(identity, row[0], row[1], row[2],
                              EvidenceIdentity.from_key(row[3]) if row[3] else None)
+
+    def scope_predicate(self, scope: ReadScope, knowledge_base_id: str):
+        """Shared authorized SQL predicate against content alias c, pinned at ingress."""
+        if knowledge_base_id not in scope.snapshots or knowledge_base_id not in scope.authorization.knowledge_base_ids:
+            raise RetrievalContractError("knowledge base is outside pinned authorization")
+        plan = scope.filter_plans.get(knowledge_base_id)
+        if plan is None:
+            raise RetrievalContractError("read scope must be created by pin with validated filters")
+        predicate, params = compile_condition(plan)
+        documents = scope.authorization.document_ids.get(knowledge_base_id)
+        if documents is not None:
+            predicate = "(" + predicate + ") AND c.document_id=ANY(%s::text[])"
+            params.append(list(documents))
+        return predicate, params
 
     def _insert_content(self, cursor, record):
         parent_key = record.parent.key if record.parent else None
@@ -197,7 +220,7 @@ class PostgresRetrievalStore:
             raise SnapshotNotReady("snapshot is missing or has never been published")
         manifest = row[0]
         return Snapshot(kb, snapshot_id, tuple(EvidenceIdentity.from_key(key) for key in manifest["identities"]),
-                        tuple(manifest["required_indexes"]), manifest["field_types"])
+                        tuple(manifest["required_indexes"]), manifest["field_types"], manifest.get("index_options", {}))
 
     def _verify_content(self, cursor, snapshot):
         keys = [identity.key for identity in snapshot.identities]
@@ -222,9 +245,9 @@ class PostgresRetrievalStore:
     def _prepare_indexes(self, cursor, snapshot):
         # Concrete builders are added here as each index path is implemented.
         # An injected boolean/mark-ready hook would let an absent index publish.
-        self._verify_indexes(cursor, snapshot)
+        PostgresRetrievalStore._verify_indexes(self, cursor, snapshot)
 
     def _verify_indexes(self, cursor, snapshot):
-        unsupported = set(snapshot.required_indexes) - {"content"}
+        unsupported = set(snapshot.required_indexes) - self.supported_indexes
         if unsupported:
             raise SnapshotNotReady("required indexes are not implemented: " + ", ".join(sorted(unsupported)))
