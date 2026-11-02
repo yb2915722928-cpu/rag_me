@@ -12,6 +12,7 @@ from .scheduler import shared_scheduler
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
 from .faq_contracts import FAQRecord
 from .fusion import fuse_rrf
+from .weighted_fusion import fuse_weighted
 from .fusion_contracts import PostprocessStep, RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 from .parent_expansion import ParentExpansionResult, expand_parents
 
@@ -85,6 +86,8 @@ class RetrievalService:
         fused = self.scheduler.run([
             lambda _: self._fuse(results, config, remaining)
         ], remaining=remaining, route_timeout=config.total_timeout, max_concurrency=1)[0]
+        if fused.status == "completed":
+            pool, results = fused.value
         completed = sum(result.status in ("success", "empty") for result in results)
         status = "complete" if completed == len(results) and completed else "partial" if completed else "incomplete"
         if fused.status != "completed":
@@ -92,7 +95,6 @@ class RetrievalService:
                                    (PostprocessStep("fusion", "failed", "fusion_" + fused.status),
                                     *(PostprocessStep(name, "skipped", "prior_stage_failed")
                                       for name in ("parent", "dedup", "mmr"))))
-        pool = fused.value
         if not config.parent_expansion:
             parent = ParentExpansionResult(pool, PostprocessStep("parent", "skipped", "disabled"))
         elif not any(item.content.parent is not None for item in pool):
@@ -124,15 +126,20 @@ class RetrievalService:
     @staticmethod
     def _fuse(results, config, remaining):
         remaining.check()
-        pool = fuse_rrf(results, config)
+        if config.fusion_strategy == "weighted":
+            pool, results = fuse_weighted(results, config)
+        else:
+            pool = fuse_rrf(results, config)
         remaining.check()
-        return pool
+        return pool, results
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:
             methods = ("vector", "bm25")
             if callable(getattr(self.store, "search_faq_vector", None)):
                 methods += ("faq_vector",)
+            if callable(getattr(self.store, "search_faq_bm25", None)):
+                methods += ("faq_bm25",)
             return tuple(self._backend_route(kb, method) for kb in knowledge_base_ids
                          for method in methods)
         selected = tuple(route for route in self.routes if route.knowledge_base_id in knowledge_base_ids)
@@ -146,7 +153,7 @@ class RetrievalService:
 
         def search(query, *, scope, top_k, exact_terms, remaining):
             options = {"knowledge_base_id": knowledge_base_id, "scope": scope, "top_k": top_k}
-            if method == "bm25":
+            if method in ("bm25", "faq_bm25"):
                 options["exact_terms"] = exact_terms
             result = _budget_call(getattr(self.store, f"search_{method}"), query, remaining=remaining, **options)
             successful = result.status in ("success", "empty")
@@ -193,7 +200,10 @@ class RetrievalService:
                     item_id = hit.content.identity.document_id
                 if grants is not None and item_id not in grants:
                     raise RetrievalContractError("route returned evidence outside authorization")
-                if (isinstance(hit.raw_score, bool) or not isinstance(hit.raw_score, (float, int))
+                # Weighted fusion reports score failures with specific safe codes
+                # after all scope checks; RRF keeps its existing validation contract.
+                if config.fusion_strategy == "rrf" and (
+                        isinstance(hit.raw_score, bool) or not isinstance(hit.raw_score, (float, int))
                         or not isfinite(hit.raw_score) or not isinstance(hit.metric, str) or not hit.metric):
                     raise RetrievalContractError("route scores require a finite value and declared metric")
             return replace(result, candidates=tuple(result.candidates))
