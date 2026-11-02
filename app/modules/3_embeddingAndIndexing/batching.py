@@ -190,7 +190,12 @@ def embed_texts(
     before_request: Callable[[BatchRequest, int], None] | None = None,
     after_batch: Callable[[EmbeddingBatchResult], None] | None = None,
     prepared_inputs: Sequence[PreparedInput] | None = None,
+    remaining=None,
 ) -> EmbeddingBatchResult:
+    if remaining is not None:
+        remaining.check()
+        if not getattr(adapter, "supports_deadline", False):
+            raise EmbeddingContractError("adapter does not support a retrieval deadline")
     _positive_integer(max_batch_size, "max_batch_size")
     if not isinstance(max_retries, int) or isinstance(max_retries, bool) or max_retries < 0:
         raise ValueError("max_retries must be a nonnegative integer")
@@ -248,10 +253,12 @@ def embed_texts(
     for indexes in batches:
         request = _request([staged[index] for index in indexes], adapter, selected, role)
         attempts = 0
-        waiting = WaitBudget(max_wait_seconds, local.clock, local.sleeper)
+        waiting = WaitBudget(max_wait_seconds, local.clock, local.sleeper, deadline=remaining)
         error = None
         vectors = None
         while True:
+            if remaining is not None:
+                remaining.check()
             try:
                 local.acquire(sum(counts[index] for index in indexes), wait_budget=waiting)
             except (QuotaWaitExceeded, QuotaCapacityExceeded) as failure:
@@ -266,10 +273,15 @@ def embed_texts(
                     raise
             try:
                 attempts += 1
+                if remaining is not None:
+                    remaining.check()
+                budget_options = {"remaining": remaining} if remaining is not None else {}
                 if getattr(adapter, "supports_request_metadata", False):
-                    vectors = adapter.embed_request(request)
+                    vectors = adapter.embed_request(request, **budget_options)
                 else:
-                    vectors = adapter.embed_role(request.texts, role)
+                    vectors = adapter.embed_role(request.texts, role, **budget_options)
+                if remaining is not None:
+                    remaining.check()
                 if len(vectors) != len(indexes):
                     raise EmbeddingContractError("adapter returned a different number of vectors than inputs")
                 error = None
