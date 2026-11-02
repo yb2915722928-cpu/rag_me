@@ -7,9 +7,11 @@ authorization and business conditions for the parent's own identity.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+import inspect
 from typing import Iterable, Protocol
 
 from .contracts import ContentRecord, EvidenceIdentity, ReadScope
+from .deadline import deadline_scope
 from .fusion_contracts import FusedCandidate, PostprocessStep
 
 
@@ -81,7 +83,14 @@ def expand_parents(candidates: Iterable[FusedCandidate], *, store: ScopedContent
                     if remaining is None:
                         parent = store.read(parent_identity, scope=scope)
                     else:
-                        parent = store.read(parent_identity, scope=scope, remaining=remaining)
+                        parameters = inspect.signature(store.read).parameters
+                        options = {"scope": scope}
+                        if "remaining" in parameters or any(
+                                value.kind == value.VAR_KEYWORD for value in parameters.values()):
+                            options["remaining"] = remaining
+                        # Legacy PostgreSQL readers use the exact same root via context.
+                        with deadline_scope(remaining):
+                            parent = store.read(parent_identity, **options)
                     # A reader returning after the deadline cannot publish late data.
                     if remaining is not None:
                         remaining.check()

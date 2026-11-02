@@ -77,7 +77,11 @@ class RequestAdapter(Protocol):
     supports_request_metadata: bool
     supports_status_query: bool
 
-    def embed_request(self, request: BatchRequest) -> Sequence[Sequence[float]]: ...
+    # Deadline-capable providers must apply remaining.remaining() to network
+    # connect/read timeouts and check cancellation between chunks/retries.
+    supports_deadline: bool
+
+    def embed_request(self, request: BatchRequest, *, remaining=None) -> Sequence[Sequence[float]]: ...
 
     def resolve_request(self, request: BatchRequest) -> UnknownResolution: ...
 
