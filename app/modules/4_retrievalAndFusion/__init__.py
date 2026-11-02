@@ -17,6 +17,8 @@ from .bm25_postgres import PostgresBM25RetrievalStore
 from .faq_contracts import FAQIdentity, FAQRecord, MatchedQuestion
 from .faq_postgres import PostgresFAQRetrievalStore
 from .faq_vector import FAQVectorCandidate
+from .faq_bm25 import FAQBM25Analyzer, FAQBM25Candidate, FAQBM25QueryResult
+from .faq_bm25_postgres import PostgresFAQBM25RetrievalStore
 
 __all__ = [
     "AuthorizationScope", "ContentConflict", "ContentRecord", "EvidenceIdentity",
@@ -27,4 +29,5 @@ __all__ = [
     "PostgresVectorRetrievalStore", "VectorCandidate", "VectorQueryResult",
     "PostgresBM25RetrievalStore", "BM25Analyzer", "BM25Candidate", "BM25QueryResult",
     "FAQIdentity", "FAQRecord", "MatchedQuestion", "PostgresFAQRetrievalStore", "FAQVectorCandidate",
+    "FAQBM25Analyzer", "FAQBM25Candidate", "FAQBM25QueryResult", "PostgresFAQBM25RetrievalStore",
 ]
