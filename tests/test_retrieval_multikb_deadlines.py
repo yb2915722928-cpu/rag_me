@@ -94,3 +94,41 @@ class MultiKnowledgeBaseDeadlineTests(unittest.TestCase):
         result = service.query("query", knowledge_base_ids=["a"], authorization=r.AuthorizationScope(("a",)))
         self.assertEqual(result.status, "incomplete")
         self.assertEqual(result.routes[0].status, "not_executed")
+        self.assertIsNone(result.scope)
+        self.assertEqual(result.steps[0].name, "pin")
+
+    def test_pin_and_fusion_share_root_and_route_is_clipped_child(self):
+        roots, children = [], []
+        class Store(PinnedStore):
+            def pin(self, *args, remaining, **kwargs):
+                roots.append(remaining)
+                return super().pin(*args, remaining=remaining, **kwargs)
+        class Service(r.RetrievalService):
+            @staticmethod
+            def _fuse(results, config, remaining):
+                roots.append(remaining)
+                return r.RetrievalService._fuse(results, config, remaining)
+        def search(query, *, remaining, **kwargs):
+            children.append(remaining)
+            return r.RouteResult("a", "a", "vector", "empty")
+        result = Service(Store(), routes=[r.RetrievalRoute("a", "a", "vector", search)]).query(
+            "query", knowledge_base_ids=["a"], authorization=r.AuthorizationScope(("a",)))
+        self.assertEqual(result.status, "complete")
+        self.assertIs(roots[0], roots[1])
+        self.assertIsNot(children[0], roots[0])
+        self.assertLessEqual(children[0].expires_at, roots[0].expires_at)
+
+    def test_late_fusion_is_discarded_and_reports_failed_step_preserving_route_status(self):
+        instant = [0.0]
+        class Service(r.RetrievalService):
+            @staticmethod
+            def _fuse(results, config, remaining):
+                instant[0] = 11
+                return ()
+        route = r.RetrievalRoute("a", "a", "vector", lambda *args, **kwargs: r.RouteResult("a", "a", "vector", "empty"))
+        result = Service(PinnedStore(), routes=[route], clock=lambda: instant[0]).query(
+            "query", knowledge_base_ids=["a"], authorization=r.AuthorizationScope(("a",)))
+        self.assertEqual(result.status, "complete")
+        self.assertEqual(result.steps[0].status, "failed")
+        self.assertEqual(result.steps[0].name, "fusion")
+        self.assertEqual(result.candidates, ())
