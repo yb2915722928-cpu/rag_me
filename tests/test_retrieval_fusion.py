@@ -101,6 +101,33 @@ class PublicFusionTests(unittest.TestCase):
         self.assertEqual(result.candidates[0].traces[0].weight, 2)
         self.assertTrue(all(call[2] == 2 for call in self.observed))
 
+    def test_default_routes_adapt_vector_and_bm25_with_diagnostics(self):
+        calls = []
+
+        def vector(query, *, knowledge_base_id, scope, top_k):
+            calls.append(("vector", scope, top_k))
+            return r.VectorQueryResult("success", (r.VectorCandidate(self.a, "s1", "scheme:one", .8),),
+                                       algorithm="hnsw", candidate_limit=50, exhaustive=False,
+                                       limitations=("approximate recall",))
+
+        def bm25(query, *, knowledge_base_id, scope, top_k, exact_terms):
+            calls.append(("bm25", scope, top_k))
+            self.assertEqual(exact_terms, ("USB-C",))
+            return r.BM25QueryResult("success", (r.BM25Candidate(self.a, "s1", 5, "analyzer"),))
+
+        self.store.search_vector = vector
+        self.store.search_bm25 = bm25
+        result = r.RetrievalService(self.store).query("USB-C", knowledge_base_ids=("kb",),
+            authorization=r.AuthorizationScope(("kb",)), exact_terms=("USB-C",))
+        self.assertEqual(result.status, "complete")
+        self.assertEqual([route.route_id for route in result.routes], ["kb:vector", "kb:bm25"])
+        self.assertEqual(result.routes[0].algorithm, "hnsw")
+        self.assertEqual(result.routes[0].limitations, ("approximate recall",))
+        self.assertEqual(result.routes[0].candidate_limit, 50)
+        self.assertEqual({trace.scheme_identity for trace in result.candidates[0].traces}, {"scheme:one", "bm25:analyzer"})
+        self.assertAlmostEqual(result.candidates[0].score, .03278688524590164)
+        self.assertTrue(all(call[1] is result.scope for call in calls))
+
     def test_pool_limit_and_zero_weight_have_deterministic_behavior(self):
         routes = (self.route("v", "vector", [(self.b, .9), (self.a, .1)]),)
         result = self.query(routes, config=r.RetrievalConfig(pool_size=1, final_top_k=20,

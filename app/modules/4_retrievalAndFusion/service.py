@@ -6,7 +6,7 @@ from math import isfinite
 
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
 from .fusion import fuse_rrf
-from .fusion_contracts import RetrievalConfig, RetrievalResult, RouteResult
+from .fusion_contracts import RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 
 
 class RetrievalService:
@@ -46,11 +46,32 @@ class RetrievalService:
 
     def _routes(self, knowledge_base_ids):
         if self.routes is None:
-            raise RetrievalContractError("default backend routes are not connected yet")
+            return tuple(self._backend_route(kb, method) for kb in knowledge_base_ids
+                         for method in ("vector", "bm25"))
         selected = tuple(route for route in self.routes if route.knowledge_base_id in knowledge_base_ids)
         if set(knowledge_base_ids) - {route.knowledge_base_id for route in selected}:
             raise RetrievalContractError("every requested knowledge base requires a retrieval route")
         return selected
+
+    def _backend_route(self, knowledge_base_id, method):
+        """Adapt the real snapshot backends without interpreting their raw scores."""
+        route_id = f"{knowledge_base_id}:{method}"
+
+        def search(query, *, scope, top_k, exact_terms):
+            options = {"knowledge_base_id": knowledge_base_id, "scope": scope, "top_k": top_k}
+            if method == "bm25":
+                options["exact_terms"] = exact_terms
+            result = getattr(self.store, f"search_{method}")(query, **options)
+            successful = result.status in ("success", "empty")
+            hits = tuple(RouteHit(hit.content, hit.snapshot_id, hit.raw_score, hit.metric, hit.scheme_identity)
+                         for hit in result.candidates) if successful else ()
+            return RouteResult(route_id, knowledge_base_id, method, result.status, hits,
+                               algorithm=result.algorithm,
+                               candidate_limit=getattr(result, "candidate_limit", top_k),
+                               limitations=result.limitations,
+                               reason=None if successful else "route_execution_failed")
+
+        return RetrievalRoute(route_id, knowledge_base_id, method, search)
 
     @staticmethod
     def _execute(route, query, scope, config, exact_terms):
