@@ -59,7 +59,9 @@ def test_strict_and_default_failures_preserve_successful_route_diagnostics(stage
     assert result.status == "complete"
     assert all(route.status == "success" for route in result.routes)
     step = next(step for step in result.steps if step.name == stage)
-    assert step.status == ("failed" if strict else "partial")
+    # Dedup reports the failed proof step even when default mode retains its
+    # incoming pool; parent/MMR explicitly report a partial step on fallback.
+    assert step.status == ("failed" if strict or stage == "dedup" else "partial")
     assert step.reason
     assert "private" not in repr(result.steps)
     assert len(result.working_pool) >= 2

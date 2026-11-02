@@ -1,8 +1,8 @@
 # #94 检索完整流水线：组合场景与运行前提
 
-状态：**独立准备阶段；所有测试、SQL、分词输出、后端组合和性能均未执行。**
-本文件与 [场景数据](retrieval_pipeline_cases.py) 是 #94 接入前的准备产物。[确定性公共查询测试](test_retrieval_pipeline.py)、[真实后端测试](test_retrieval_pipeline_postgres.py) 与 [外部端口及断言辅助](retrieval_pipeline_support.py) 已编写源码；按协调者确认的最终接口接线，尚未合并依赖、运行或宣称通过。
-基线为 `5c52962`；待协调者明确 #87/#89/#90/#91/#92/#93 全部集成后，才合并最新 integration 并连接公共服务、补齐断言及修复组合缺口。
+状态：**源码已静态对齐；所有测试、SQL、分词输出、后端组合和性能均未执行。**
+[场景数据](retrieval_pipeline_cases.py)、[确定性公共查询测试](test_retrieval_pipeline.py)、[真实后端测试](test_retrieval_pipeline_postgres.py) 与 [外部端口及断言辅助](retrieval_pipeline_support.py) 已接到最终公共接口。
+已按协调者授权合并 #83–#93 integration `cebcd41a9ea0939a9e8e9ca64d5f4a2df0ec9835`，核对公开配置、FAQ、父展开、去重、MMR及真实后端夹具。静态核对不构成运行通过；实现层已知问题交由最终审阅统一修复。
 本阶段没有安装依赖、下载模型、连接数据库、启动服务、部署、联调或 benchmark。
 
 ## 已确认的测试边界
@@ -21,7 +21,7 @@
 
 ## 组合矩阵及独立预期
 
-[FEATURE_CASES](retrieval_pipeline_cases.py) 提供 24 个组合输入；`BOUNDARY_CASES` 提供故障和边界场景。它们没有测试函数、没有 skip/xfail 占位，也没有自动执行数据库动作；最终接入需为每项写可失败的公开行为断言。
+[FEATURE_CASES](retrieval_pipeline_cases.py) 提供 24 个组合输入，两套公共查询测试各自参数化消费全部组合；`BOUNDARY_CASES` 是更广的边界核对清单，不能将其条目数算作已实现测试数。场景数据本身没有测试函数或数据库动作。新增测试没有 xfail 掩盖已知问题；真实后端仅在缺显式DSN或psycopg时skip。
 
 | 父块 | 去重 | MMR | 关键公开断言 |
 |---|---|---|---|
@@ -102,15 +102,40 @@ Windows应用可配受支持Linux数据库环境，但尚未确认具体发行�
 
 `Module3BodyEncoder` 测试应覆盖真实模块3的 `embed_texts`、durable request receipts、缓存scheme/body不匹配重编码及未决请求不得自动重提。确定性Embedding可用于无需模型下载的适配协议测试；不可称作线上模型质量测试。没有远端适配器时明确保留网络超时/取消验证缺口。
 
+## 后续维护者实际运行命令（本次未执行）
+
+从仓库根目录使用已配置项目依赖的 Python 环境。下面为 PowerShell 命令；无需启动Web服务或下载模型。数据库必须已由维护者准备为可丢弃测试库，安装上表精确版本扩展于public，账号有CONNECT、CREATE schema、表/索引DDL与DML权限。夹具创建 `pipeline_<uuid>` / `receipts_<uuid>` 两个schema；只在这些schema写数据及注入索引丢失，finally执行DROP SCHEMA CASCADE。进程强杀可能遗留schema，应由维护者确认名称后清理。
+
+确定性公共查询（不需要数据库）：
+
+```powershell
+python -m pytest -q tests/test_retrieval_pipeline.py
+```
+
+真实四路召回、发布、后处理与模块3回执全链：先通过自己的凭据管理方式设置 `RETRIEVAL_PIPELINE_TEST_DSN`，不得指向业务数据库。下面示例使用libpq service配置，需将service名替换成已有测试连接配置；命令文本不保存密码。
+
+```powershell
+$env:RETRIEVAL_PIPELINE_TEST_DSN = 'service=rag_retrieval_disposable'
+python -m pytest -q -rs tests/test_retrieval_pipeline_postgres.py
+```
+
+两套一起运行：
+
+```powershell
+python -m pytest -q -rs tests/test_retrieval_pipeline.py tests/test_retrieval_pipeline_postgres.py
+```
+
+缺DSN或psycopg的skip不是通过。版本检查失败、缺DDL权限、扩展/SQL/tokenizer不兼容及已知实现回归均应作为待解决失败保留。以上命令没有在本次工作中执行，不提供运行报告、通过数量或性能数据。
+
 ## 未验证与后续收口
 
 - 已编写两套各24组合的公共查询测试源码（确定性外部端口、真实数据库全链）；未运行、未collection，不能计作通过。确定性测试使用独立手算分数及MMR几何预期，真实后端不假定语义名次。
 - 故障源码覆盖父/去重/MMR默认降级和严格失败、路由失败不重分权重、空结果与全失败、pin失败、迟到MMR结果、真实父业务过滤、保留历史/多KB、查询中发布、物理FAQ索引丢失和编码器提前超时。提前TimeoutError被底层转成failed的已知静态线索保留为回归断言，待最终代码审阅处理。
-- 公共接口使用config.body_dedup/mmr/mmr_lambda、query(body_dedup_prover=...)与RetrievalService(mmr_encoder=...)。所有依赖集成后仍需核对最终接口与语义；不做反射兼容或skip掩盖不匹配。
+- 已静态对齐config.body_dedup/mmr/mmr_lambda、query(body_dedup_prover=...)与RetrievalService(mmr_encoder=...)。去重证明失败的step在默认/严格模式都为failed；默认保留incoming pool，严格返回空最终结果；父/MMR默认降级为partial。测试按该公开契约区分，不做反射兼容或skip掩盖不匹配。
 - 不运行pytest（含collection）、Python import/compile smoke、SQL、迁移、服务、容器、联调、benchmark或模型下载；也不以静态审阅宣称运行通过。
 - 所有SQL/tokenizer组合、`pdb.score`与MATERIALIZED CTE、过滤计划和扩展加载均未运行。全量文本命中再授权/过滤/排序/LIMIT是当前正确性基线，代价未经测量。
 - 每KB×snapshot独立语料/物理索引；FAQ与文档分别排名。独立统计、精确词项、ANN限制和业务过滤实际执行行为仍需真实后端验证。
 - 十万chunk仅为设计参考，不设置本阶段规模门槛；不承诺延迟、召回质量或融合优于单路。
-- 收到全部依赖已集成的明确通知后，合并最新integration，对照本表逐项写公开查询断言、真实PG/扩展/模块3适配集成测试并修复缺口；仍不执行测试。完成时报告实际测试文件、未验证项、提交及干净工作树，不push、不关闭Issue。
+- #94本轮交付测试源码与运行前提，不push、不关闭Issue。最终代码审阅需处理编码器提前TimeoutError被归类failed：模块3 [flow.py](../app/modules/3_embeddingAndIndexing/flow.py) 的search_chunks把非embedded结果包装为EmbeddingQueryError，文档 [vector.py](../app/modules/4_retrievalAndFusion/vector.py) 与 [faq_vector.py](../app/modules/4_retrievalAndFusion/faq_vector.py) 捕获所有Exception统一返回failed；root尚未到期时scheduler无法纠正。真实公共查询回归明确要求两条向量路为timeout、两条BM25路成功，未xfail。
 
 官方版本依据：[PostgreSQL 17.11](https://www.postgresql.org/docs/17/release-17-11.html)、[pgvector v0.8.6](https://github.com/pgvector/pgvector/tree/v0.8.6)、[pg_search v0.26.4](https://github.com/paradedb/paradedb/releases/tag/v0.26.4)。版本存在及源码推导不等于运行兼容性证明。

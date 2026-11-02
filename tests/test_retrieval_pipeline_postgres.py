@@ -255,9 +255,13 @@ def test_real_publish_during_query_keeps_documents_faq_and_parents_on_pinned_sna
         # Real backend search/read methods receive that exact public ReadScope.
         def __getattr__(self, name):
             return getattr(store, name)
-        def pin(self, *args, **options):
+        def pin(self, *args, remaining, **options):
+            remaining.check()
+            # Store.pin reads the same budget from the service's deadline_scope;
+            # its public signature does not accept a remaining keyword.
             scope = store.pin(*args, **options)
             store.publish("kb-a", "s2")
+            remaining.check()
             return scope
     config = r.RetrievalConfig(parent_expansion=True, body_dedup=True, mmr=True, final_top_k=20)
     pinned = query(service_for(PublishingAuthority(), provider), config=config)

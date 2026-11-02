@@ -1,8 +1,8 @@
 """Reusable #94 public-query scenarios; authored only, NOT RUN.
 
 This is test input/oracle data, not a test runner or a replacement backend.
-The public-query tests will consume it after #87/#89/#90/#91/#92/#93 are
-integrated. No speculative service/FAQ constructor is imported here.
+The deterministic and real-backend public-query tests consume these cases
+against integrated #83–#93 interfaces. No service/FAQ constructor is imported here.
 """
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -29,7 +29,7 @@ class FeatureCase:
 
 
 # All eight independent/combined feature settings, for each supported strategy.
-# These names describe scenarios; wiring to RetrievalConfig waits for integration.
+# retrieval_pipeline_support.config_for maps these cases to RetrievalConfig.
 FEATURE_CASES = tuple(
     FeatureCase(parent, dedup, mmr, fusion, normalization)
     for parent, dedup, mmr in product((False, True), repeat=3)
