@@ -6,6 +6,7 @@ from math import isfinite
 
 from .contracts import AuthorizationScope, ContentRecord, RetrievalContractError, required_strings
 from .fusion import fuse_rrf
+from .weighted_fusion import fuse_weighted
 from .fusion_contracts import RetrievalConfig, RetrievalResult, RetrievalRoute, RouteHit, RouteResult
 
 
@@ -39,7 +40,10 @@ class RetrievalService:
         scope = self.store.pin(knowledge_base_ids, authorization=authorization,
                                conditions=conditions, snapshot_ids=snapshot_ids)
         results = tuple(self._execute(route, query, scope, config, exact_terms) for route in routes)
-        pool = fuse_rrf(results, config)
+        if config.fusion_strategy == "weighted":
+            pool, results = fuse_weighted(results, config)
+        else:
+            pool = fuse_rrf(results, config)
         completed = sum(result.status in ("success", "empty") for result in results)
         status = "complete" if completed == len(results) and completed else "partial" if completed else "incomplete"
         return RetrievalResult(status, pool[:config.final_top_k], pool, results, scope)
@@ -96,7 +100,10 @@ class RetrievalService:
                 documents = scope.authorization.document_ids.get(route.knowledge_base_id)
                 if documents is not None and hit.content.identity.document_id not in documents:
                     raise RetrievalContractError("route returned evidence outside authorization")
-                if (isinstance(hit.raw_score, bool) or not isinstance(hit.raw_score, (float, int))
+                # Weighted fusion reports score failures with specific safe codes
+                # after all scope checks; RRF keeps its existing validation contract.
+                if config.fusion_strategy == "rrf" and (
+                        isinstance(hit.raw_score, bool) or not isinstance(hit.raw_score, (float, int))
                         or not isfinite(hit.raw_score) or not isinstance(hit.metric, str) or not hit.metric):
                     raise RetrievalContractError("route scores require a finite value and declared metric")
             return replace(result, candidates=tuple(result.candidates))
