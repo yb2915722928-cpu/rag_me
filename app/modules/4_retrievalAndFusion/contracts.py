@@ -128,11 +128,13 @@ class ContentRecord:
 class AuthorizationScope:
     """Caller-confirmed KB grants, optionally narrowed to document IDs per KB.
 
-    An absent document restriction means all documents in that granted KB;
-    an explicit empty tuple grants none. Conditions can only narrow these grants.
+    A KB-only grant allows both kinds. A per-document or per-FAQ restriction
+    grants only that kind unless the other kind is explicitly granted as well.
+    Empty tuples grant none. Conditions can only narrow these grants.
     """
     knowledge_base_ids: tuple[str, ...]
     document_ids: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
+    faq_item_ids: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
 
     def __post_init__(self):
         from types import MappingProxyType
@@ -145,6 +147,15 @@ class AuthorizationScope:
             required_strings(*values)
         object.__setattr__(self, "knowledge_base_ids", ids)
         object.__setattr__(self, "document_ids", MappingProxyType(documents))
+        faqs = {kb: tuple(values) for kb, values in self.faq_item_ids.items()}
+        if set(faqs) - set(ids):
+            raise RetrievalContractError("FAQ authorization refers to an ungranted knowledge base")
+        for values in faqs.values():
+            required_strings(*values)
+        # Narrow grants for one evidence kind do not grant the other kind.
+        for kb in set(faqs) - set(documents):
+            documents[kb] = ()
+        object.__setattr__(self, "faq_item_ids", MappingProxyType(faqs))
 
 
 @dataclass(frozen=True)
